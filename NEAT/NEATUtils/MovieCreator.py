@@ -171,14 +171,14 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridX, gridY, offs
        
        shiftNone = [0,0]
        if offset > 0 and trainlabel > 0:
-                 shiftLX = [-int(offset), 0] 
-                 shiftRX = [offset, 0]
-                 shiftLXY = [-int(offset), -int(offset)]
+                 shiftLX = [int(offset), 0] 
+                 shiftRX = [-offset, 0]
+                 shiftLXY = [int(offset), int(offset)]
                  shiftRXY = [-int(offset), int(offset)]
-                 shiftDLXY = [-int(offset), int(offset)]
-                 shiftDRXY = [int(offset), int(offset)]
-                 shiftUY = [0, -int(offset)]
-                 shiftDY = [0, int(offset)]
+                 shiftDLXY = [int(offset), -int(offset)]
+                 shiftDRXY = [-int(offset), -int(offset)]
+                 shiftUY = [0, int(offset)]
+                 shiftDY = [0, -int(offset)]
                  AllShifts = [shiftNone, shiftLX, shiftRX,shiftLXY,shiftRXY,shiftDLXY,shiftDRXY,shiftUY,shiftDY]
 
        else:
@@ -193,7 +193,7 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridX, gridY, offs
            
                 newname = name + 'shift' + str(shift)
                 Event_data = []
-                newcenter = (center[0] + shift[1],center[1] + shift[0] )
+                newcenter = (center[0] - shift[1],center[1] - shift[0] )
                 x = center[1]
                 y = center[0]
                 if yoloV0:
@@ -203,28 +203,26 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridX, gridY, offs
                 Label[trainlabel] = 1
                 #T co ordinate
                 Label[TotalCategories + 2] = (sizeTminus) / (sizeTminus + sizeTplus)
-                if x - shift[0]> sizeX/2 and y - shift[1] > sizeY/2 and x - shift[0] + int(ImagesizeX/2) < image.shape[2] and y - shift[1]+ int(ImagesizeY/2) < image.shape[1] and time > sizeTminus and time + sizeTplus + 1 < image.shape[0]:
-                        crop_Xminus = x - shift[0] - int(ImagesizeX/2)
-                        crop_Xplus = x - shift[0]  + int(ImagesizeX/2)
-                        crop_Yminus = y - shift[1]  - int(ImagesizeY/2)
-                        crop_Yplus = y - shift[1]  + int(ImagesizeY/2)
+                if x + shift[0]> sizeX/2 and y + shift[1] > sizeY/2 and x + shift[0] + int(ImagesizeX/2) < image.shape[2] and y + shift[1]+ int(ImagesizeY/2) < image.shape[1] and time > sizeTminus and time + sizeTplus + 1 < image.shape[0]:
+                        crop_Xminus = x  - int(ImagesizeX/2)
+                        crop_Xplus = x  + int(ImagesizeX/2)
+                        crop_Yminus = y  - int(ImagesizeY/2)
+                        crop_Yplus = y   + int(ImagesizeY/2)
                         # Cut off the region for training movie creation
-                        region =(slice(int(time - sizeTminus),int(time + sizeTplus  + 1)),slice(int(crop_Yminus), int(crop_Yplus)),
-                              slice(int(crop_Xminus), int(crop_Xplus)))
+                        region =(slice(int(time - sizeTminus),int(time + sizeTplus  + 1)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
+                              slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
                         #Define the movie region volume that was cut
                         crop_image = image[region]   
+                        crop_image =  normalizeFloatZeroOne(crop_image ,1,99.8)
                         seglocationX = (newcenter[1] - crop_Xminus)
                         seglocationY = (newcenter[0] - crop_Yminus)
                          
                         Label[TotalCategories] =  seglocationX/sizeX
                         Label[TotalCategories + 1] = seglocationY/sizeY
-                        
-                        
                         if height >= ImagesizeY:
-                                     height = 0.5 * ImagesizeY
+                                        height = 0.5 * ImagesizeY
                         if width >= ImagesizeX:
-                                     width = 0.5 * ImagesizeX  
-                        
+                                        width = 0.5 * ImagesizeX
                         #Height
                         Label[TotalCategories + 3] = height/ImagesizeY
                         #Width
@@ -293,8 +291,8 @@ def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
                              if CsvName == CSVNameDiff + Name + Eventname:
                                             dataset = pd.read_csv(csvfname)
                                             time = dataset[dataset.keys()[0]][1:]
-                                            y = dataset[dataset.keys()[1]][1:]
-                                            x = dataset[dataset.keys()[2]][1:]     
+                                            x = dataset[dataset.keys()[1]][1:]
+                                            y = dataset[dataset.keys()[2]][1:]     
                                             
                                             #Categories + XYHW + Confidence 
                                             for t in range(1, len(time)):
@@ -302,6 +300,10 @@ def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
                                                count = count + 1
     
 
+
+    
+    
+def createNPZ(SaveDir, SaveName = 'Yolov0oneat', SaveNameVal = 'Yolov0oneatVal'):
             axes = 'SXYC'
             data = []
             label = []   
@@ -348,9 +350,6 @@ def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
             save_full_training_data(SaveDir, SaveName, traindata, trainlabel, axes)
             save_full_training_data(SaveDir, SaveNameVal, validdata, validlabel, axes)
     
-    
-    
-    
 
 def _raise(e):
     raise e
@@ -363,14 +362,14 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, To
 
                shiftNone = [0,0]
                if offset > 0 and trainlabel > 0:
-                         shiftLX = [-int(offset), 0] 
-                         shiftRX = [offset, 0]
-                         shiftLXY = [-int(offset), -int(offset)]
+                         shiftLX = [int(offset), 0] 
+                         shiftRX = [-offset, 0]
+                         shiftLXY = [int(offset), int(offset)]
                          shiftRXY = [-int(offset), int(offset)]
-                         shiftDLXY = [-int(offset), int(offset)]
-                         shiftDRXY = [int(offset), int(offset)]
-                         shiftUY = [0, -int(offset)]
-                         shiftDY = [0, int(offset)]
+                         shiftDLXY = [int(offset), -int(offset)]
+                         shiftDRXY = [-int(offset), -int(offset)]
+                         shiftUY = [0, int(offset)]
+                         shiftDY = [0, -int(offset)]
                          AllShifts = [shiftNone, shiftLX, shiftRX,shiftLXY,shiftRXY,shiftDLXY,shiftDRXY,shiftUY,shiftDY]
 
                else:
@@ -385,7 +384,7 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, To
                  for shift in AllShifts:
                    
                         newname = name + 'shift' + str(shift)
-                        newcenter = (center[0] + shift[1],center[1] + shift[0] )
+                        newcenter = (center[0] - shift[1],center[1] - shift[0] )
                         Event_data = []
                         
                         x = center[1]
@@ -395,17 +394,18 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, To
                         else:
                           Label = np.zeros([TotalCategories + 5])  
                         Label[trainlabel] = 1
-                        if x - shift[0]> sizeX/2 and y - shift[1] > sizeY/2 and x - shift[0] + int(ImagesizeX/2) < image.shape[2] and y - shift[1]+ int(ImagesizeY/2) < image.shape[1]:
-                                    crop_Xminus = x - shift[0] - int(ImagesizeX/2)
-                                    crop_Xplus = x - shift[0]  + int(ImagesizeX/2)
-                                    crop_Yminus = y - shift[1] - int(ImagesizeY/2)
-                                    crop_Yplus = y - shift[1]  + int(ImagesizeY/2)
+                        if x + shift[0]> sizeX/2 and y + shift[1] > sizeY/2 and x + shift[0] + int(ImagesizeX/2) < image.shape[2] and y + shift[1]+ int(ImagesizeY/2) < image.shape[1]:
+                                    crop_Xminus = x  - int(ImagesizeX/2)
+                                    crop_Xplus = x   + int(ImagesizeX/2)
+                                    crop_Yminus = y  - int(ImagesizeY/2)
+                                    crop_Yplus = y   + int(ImagesizeY/2)
                                  
                                     
-                                    region =(slice(int(time - 1),int(time)),slice(int(crop_Yminus), int(crop_Yplus)),
-                                           slice(int(crop_Xminus), int(crop_Xplus)))
+                                    region =(slice(int(time - 1),int(time)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
+                                           slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
                                    
                                     crop_image = image[region]      
+                                    crop_image =  normalizeFloatZeroOne(crop_image ,1,99.8)
                                     seglocationX = (newcenter[1] - crop_Xminus)
                                     seglocationY = (newcenter[0] - crop_Yminus)
                                       
@@ -415,9 +415,13 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, To
                                     if height >= ImagesizeY:
                                         height = 0.5 * ImagesizeY
                                     if width >= ImagesizeX:
-                                        width = 0.5 * ImagesizeX    
+                                        width = 0.5 * ImagesizeX
+                                    
                                     Label[TotalCategories + 2] = height/ImagesizeY
                                     Label[TotalCategories + 3] = width/ImagesizeX
+                                    
+                                        
+                                    
                                    
                                     if yoloV0==False:
                                             if SegLabel > 0:

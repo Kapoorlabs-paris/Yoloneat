@@ -175,10 +175,12 @@ def yolo_loss_v0(categories, grid_h, grid_w, nboxes, box_vector, entropy):
         
         true_box_xy = y_true[...,categories:categories + 2] 
         
-       
+        pred_box_wh = y_pred[...,categories + 2:] 
+        
+        true_box_wh = y_true[...,categories + 2:] 
 
         loss_xy      = K.sum(K.sum(K.square(true_box_xy - pred_box_xy), axis = -1), axis = -1)
-        
+        loss_wh      = K.sum(K.sum(K.square(K.sqrt(true_box_wh) - K.sqrt(pred_box_wh)), axis=-1), axis=-1)
         
         
         if entropy == 'binary':
@@ -188,7 +190,7 @@ def yolo_loss_v0(categories, grid_h, grid_w, nboxes, box_vector, entropy):
 
        
 
-        combinedloss = loss_xy + loss_class 
+        combinedloss = loss_xy + loss_class + loss_wh
             
         return combinedloss 
         
