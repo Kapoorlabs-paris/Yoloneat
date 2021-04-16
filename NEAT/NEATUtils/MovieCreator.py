@@ -9,7 +9,9 @@ import glob
 from skimage.measure import regionprops
 from skimage import measure
 from scipy import spatial 
+from tqdm import tqdm
 from pathlib import Path
+from sklearn.model_selection import train_test_split
 from .helpers import  normalizeFloatZeroOne
     
 """
@@ -39,7 +41,7 @@ Total categories for cell classification part of vanilla ONEAT are:
 csv file containing time, ylocation, xlocation of that event/cell type
 """    
     
-def MovieLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticLabel, CSVNameDiff,crop_size, gridX = 1, gridY = 1, offset = 0, yoloV0 = True):
+def MovieLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticLabel, CSVNameDiff,crop_size, gridX = 1, gridY = 1, offset = 0, yoloV0 = True, SaveName = 'Yolov0oneat', SaveNameVal = 'Yolov0oneatVal'):
     
     
             Raw_path = os.path.join(ImageDir, '*tif')
@@ -95,29 +97,32 @@ def MovieLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
             axes = 'STXYC'
             data = []
             label = []   
+            outputdir =  SaveDir
+            print(outputdir)
+            Images= [imread(fname)[0,:]  for fname in filesRaw]
+            Names = [os.path.basename(os.path.splitext(fname)[0])  for fname in filesRaw]
+            
+            #Normalize everything before it goes inside the training
+            NormalizeImages = [normalizeFloatZeroOne(image.astype('uint16') ,1,99.8) for image in tqdm(Images)]
 
+            for i in range(0,len(NormalizeImages)):
+               
+               n = NormalizeImages[i]
+               blankX = n
+               csvfname = outputdir + '/' + Names[i] + '.csv'   
+               arr = [] 
+               with open(csvfname) as csvfile:
+                     reader = csv.reader(csvfile, delimiter = ',')
+                     for train_vec in reader:
 
-            for i in range(0,len(Masteroutputdir)):
+                             arr =  [float(s) for s in train_vec[0:]]
+               blankY = arr
 
-                   outputdir =  Masteroutputdir[i]
-                   print(outputdir)
-                   Images = sorted(glob(outputdir + '/' +'*.tif'))
-                   Images = list(map(imread, Images))
-                   #Normalize everything before it goes inside the training
-                   NormalizeImages = [normalizeFloatZeroOne(image.astype('uint16') ,1,99.8) for image in tqdm(Images)]
+               blankY = np.expand_dims(blankY, -1)
+               blankX = np.expand_dims(blankX, -1)
 
-                   for n in NormalizeImages:
-
-                       blankX = n[starttime:endtime,:TrainshapeX,:TrainshapeY]
-
-
-                       blankY = Masterlabel[i]
-
-                       blankY = np.expand_dims(blankY, -1)
-                       blankX = np.expand_dims(blankX, -1)
-
-                       data.append(blankX)
-                       label.append(blankY)
+               data.append(blankX)
+               label.append(blankY)
 
 
 
@@ -126,8 +131,8 @@ def MovieLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
             labelarr = np.array(label)
             print(dataarr.shape, labelarr.shape)
             traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
-            save_full_training_data(SaveNpzDirectory, SaveName, traindata, trainlabel, axes)
-            save_full_training_data(SaveNpzDirectory, SaveNameVal, validdata, validlabel, axes)                                    
+            save_full_training_data(SaveDir, SaveName, traindata, trainlabel, axes)
+            save_full_training_data(SaveDir, SaveNameVal, validdata, validlabel, axes)                                    
                                                 
                                                
 
@@ -245,8 +250,12 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridX, gridY, offs
 
        
    
-                  
-def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticLabel, CSVNameDiff,crop_size, gridX = 1, gridY = 1, offset = 0,yoloV0 = True):
+def ReadName(fname):
+    
+    return os.path.basename(os.path.splitext(fname)[0])
+
+
+def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticLabel, CSVNameDiff,crop_size, gridX = 1, gridY = 1, offset = 0,yoloV0 = True, SaveName = 'Yolov0oneat', SaveNameVal = 'Yolov0oneatVal'):
     
     
             Raw_path = os.path.join(ImageDir, '*tif')
@@ -298,46 +307,53 @@ def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
             label = []   
 
                 
-            for i in range(0,len(SaveDir)):
-
-                       outputdir =  SaveDir[i]
-                      
-                       Images = sorted(glob(outputdir + '/' +'*.tif'))
-                       Images = list(map(imread, Images))
-                       #Normalize everything before it goes inside the training
-                       NormalizeImages = [normalizeFloatZeroOne(image.astype('uint16'),1,99.8) for image in tqdm(Images)]
-                    
-                    
-                       for n in NormalizeImages:
-                      
-                         blankX = n
-                         if blankX.ndim == 2: 
-                          if blankX.shape[0] == TrainshapeX and blankX.shape[1] == TrainshapeY: 
-
-                           blankY = SaveDir[i]
-                            
-                           blankY = np.expand_dims(blankY, -1)
-                           blankX = np.expand_dims(blankX, -1)
-                            
-                           data.append(blankX)
-                           label.append(blankY)
-                       
+            outputdir =  SaveDir
+            print(outputdir)
+             
+            Raw_path = os.path.join(outputdir, '*tif')
+            filesRaw = glob.glob(Raw_path)
+            filesRaw.sort
             
-                          else : 
-                              print(blankX.shape,blankY.shape, len(data), len(label))
-                          
+            Images= [imread(fname)[0,:] for fname in filesRaw]
+            Names = [os.path.basename(os.path.splitext(fname)[0])  for fname in filesRaw]
+            #Normalize everything before it goes inside the training
+            NormalizeImages = [normalizeFloatZeroOne(image.astype('uint16'),1,99.8) for image in tqdm(Images)]
+
+
+            for i in range(0,len(NormalizeImages)):
+               
+               n = NormalizeImages[i]
+               blankX = n
+               csvfname = outputdir + '/' + Names[i] + '.csv'   
+               arr = [] 
+               with open(csvfname) as csvfile:
+                     reader = csv.reader(csvfile, delimiter = ',')
+                     for train_vec in reader:
+
+                             arr =  [float(s) for s in train_vec[0:]]
+               blankY = arr
+
+               blankY = np.expand_dims(blankY, -1)
+               blankX = np.expand_dims(blankX, -1)
+
+               data.append(blankX)
+               label.append(blankY)
+
+
+
             dataarr = np.asarray(data)
             labelarr = np.asarray(label)
             print(dataarr.shape, labelarr.shape)
             traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
-            save_full_training_data(SaveNpzDirectory, SaveName, traindata, trainlabel, axes)
-            save_full_training_data(SaveNpzDirectory, SaveNameVal, validdata, validlabel, axes)
+            save_full_training_data(SaveDir, SaveName, traindata, trainlabel, axes)
+            save_full_training_data(SaveDir, SaveNameVal, validdata, validlabel, axes)
     
     
     
     
 
-
+def _raise(e):
+    raise e
 def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, TotalCategories, trainlabel, name, save_dir,yoloV0):
 
                sizeX, sizeY = crop_size
