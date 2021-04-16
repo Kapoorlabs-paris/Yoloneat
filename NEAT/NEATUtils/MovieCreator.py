@@ -39,7 +39,7 @@ Total categories for cell classification part of vanilla ONEAT are:
 csv file containing time, ylocation, xlocation of that event/cell type
 """    
     
-def MovieLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticLabel, CSVNameDiff,crop_size, gridX = 1, gridY = 1, offset = 0):
+def MovieLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticLabel, CSVNameDiff,crop_size, gridX = 1, gridY = 1, offset = 0, yoloV0 = True):
     
     
             Raw_path = os.path.join(ImageDir, '*tif')
@@ -87,7 +87,7 @@ def MovieLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
                                                 angle = dataset[dataset.keys()[3]][1:]                          
                                             #Categories + XYHW + Confidence 
                                             for t in range(1, len(time)):
-                                               MovieMaker(time[t], y[t], x[t], angle[t], image, segimage, crop_size, gridX, gridY, offset, TotalCategories, trainlabel, Name + Eventname + str(count), SaveDir)
+                                               MovieMaker(time[t], y[t], x[t], angle[t], image, segimage, crop_size, gridX, gridY, offset, TotalCategories, trainlabel, Name + Eventname + str(count), SaveDir,yoloV0)
                                                count = count + 1
                                                 
                                                 
@@ -191,7 +191,10 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridX, gridY, offs
                 newcenter = (center[0] + shift[1],center[1] + shift[0] )
                 x = center[1]
                 y = center[0]
-                Label = np.zeros([TotalCategories + 7])
+                if yoloV0:
+                    Label = np.zeros([TotalCategories + 6])
+                else:    
+                    Label = np.zeros([TotalCategories + 7])
                 Label[trainlabel] = 1
                 #T co ordinate
                 Label[TotalCategories + 2] = (sizeTminus) / (sizeTminus + sizeTplus)
@@ -211,6 +214,12 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridX, gridY, offs
                         Label[TotalCategories] =  seglocationX/sizeX
                         Label[TotalCategories + 1] = seglocationY/sizeY
                         
+                        
+                        if height >= ImagesizeY:
+                                     height = 0.5 * ImagesizeY
+                        if width >= ImagesizeX:
+                                     width = 0.5 * ImagesizeX  
+                        
                         #Height
                         Label[TotalCategories + 3] = height/ImagesizeY
                         #Width
@@ -218,11 +227,11 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridX, gridY, offs
                
                           
                         Label[TotalCategories + 5] = angle  
-                        
-                        if SegLabel > 0:
-                          Label[TotalCategories + 6] = 1 
-                        else:
-                          Label[TotalCategories + 6] = 0   
+                        if yoloV0 == False:
+                                if SegLabel > 0:
+                                  Label[TotalCategories + 6] = 1 
+                                else:
+                                  Label[TotalCategories + 6] = 0   
                       
                         #Write the image as 32 bit tif file 
                         if(crop_image.shape[0] == sizeTplus + sizeTminus + 1 and crop_image.shape[1]== ImagesizeY and crop_image.shape[2]== ImagesizeX):
@@ -237,7 +246,7 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridX, gridY, offs
        
    
                   
-def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticLabel, CSVNameDiff,crop_size, gridX = 1, gridY = 1, offset = 0):
+def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticLabel, CSVNameDiff,crop_size, gridX = 1, gridY = 1, offset = 0,yoloV0 = True):
     
     
             Raw_path = os.path.join(ImageDir, '*tif')
@@ -280,7 +289,7 @@ def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
                                             
                                             #Categories + XYHW + Confidence 
                                             for t in range(1, len(time)):
-                                               ImageMaker(time[t], y[t], x[t], image, segimage, crop_size, gridX, gridY, offset, TotalCategories, trainlabel, Name + Eventname + str(count), SaveDir)    
+                                               ImageMaker(time[t], y[t], x[t], image, segimage, crop_size, gridX, gridY, offset, TotalCategories, trainlabel, Name + Eventname + str(count), SaveDir,yoloV0)    
                                                count = count + 1
     
 
@@ -317,19 +326,19 @@ def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
                           else : 
                               print(blankX.shape,blankY.shape, len(data), len(label))
                           
-                dataarr = np.asarray(data)
-                labelarr = np.asarray(label)
-                print(dataarr.shape, labelarr.shape)
-                traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
-                save_full_training_data(SaveNpzDirectory, SaveName, traindata, trainlabel, axes)
-                save_full_training_data(SaveNpzDirectory, SaveNameVal, validdata, validlabel, axes)
+            dataarr = np.asarray(data)
+            labelarr = np.asarray(label)
+            print(dataarr.shape, labelarr.shape)
+            traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
+            save_full_training_data(SaveNpzDirectory, SaveName, traindata, trainlabel, axes)
+            save_full_training_data(SaveNpzDirectory, SaveNameVal, validdata, validlabel, axes)
     
     
     
     
 
 
-def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, TotalCategories, trainlabel, name, save_dir):
+def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, TotalCategories, trainlabel, name, save_dir,yoloV0):
 
                sizeX, sizeY = crop_size
 
@@ -365,7 +374,10 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, To
                         
                         x = center[1]
                         y = center[0]
-                        Label = np.zeros([TotalCategories + 5])
+                        if yoloV0:
+                          Label = np.zeros([TotalCategories + 4])
+                        else:
+                          Label = np.zeros([TotalCategories + 5])  
                         Label[trainlabel] = 1
                         if x - shift[0]> sizeX/2 and y - shift[1] > sizeY/2 and x - shift[0] + int(ImagesizeX/2) < image.shape[2] and y - shift[1]+ int(ImagesizeY/2) < image.shape[1]:
                                     crop_Xminus = x - shift[0] - int(ImagesizeX/2)
@@ -384,15 +396,18 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, To
                                     Label[TotalCategories] =  seglocationX/sizeX
                                     Label[TotalCategories + 1] = seglocationY/sizeY
                                     
-                                    
+                                    if height >= ImagesizeY:
+                                        height = 0.5 * ImagesizeY
+                                    if width >= ImagesizeX:
+                                        width = 0.5 * ImagesizeX    
                                     Label[TotalCategories + 2] = height/ImagesizeY
                                     Label[TotalCategories + 3] = width/ImagesizeX
                                    
-
-                                    if SegLabel > 0:
-                                      Label[TotalCategories + 4] = 1 
-                                    else:
-                                      Label[TotalCategories + 4] = 0  
+                                    if yoloV0==False:
+                                            if SegLabel > 0:
+                                              Label[TotalCategories + 4] = 1 
+                                            else:
+                                              Label[TotalCategories + 4] = 0  
                                  
                                     if(crop_image.shape[1]== ImagesizeY and crop_image.shape[2]== ImagesizeX):
                                              imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))  
@@ -422,6 +437,7 @@ def getHW(defaultX, defaultY, trainlabel, currentsegimage):
                              center = (defaultY, defaultX)
                              height = 10
                              width = 10
+                               
                     
                                 
     return height, width, center, SegLabel     

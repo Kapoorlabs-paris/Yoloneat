@@ -17,7 +17,7 @@ from keras import backend as K
 #from IPython.display import clear_output
 from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
-rom pathlib import Path
+from pathlib import Path
 
 
 class NEATStaticDetection(object):
