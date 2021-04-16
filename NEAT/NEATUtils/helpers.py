@@ -10,36 +10,73 @@ import cv2
 from matplotlib import cm
 from tifffile import imsave
 from skimage import measure
-try:
-    from pathlib import Path
-    Path().expanduser()
-except (ImportError,AttributeError):
-    from pathlib2 import Path
+from pathlib import Path
 
-try:
-    import tempfile
-    tempfile.TemporaryDirectory
-except (ImportError,AttributeError):
-    from backports import tempfile
     
 
 """
- 
-   Here we have added some of the useful functions taken from the csbdeep package which are a part of third party software called CARE
-   https://github.com/CSBDeep/CSBDeep
+ @author: Varun Kapoor
 
 """    
-  ##Save image data as a tiff file, function defination taken from CARE csbdeep python package  
     
+"""
+This method is used to convert Marker image to a list containing the XY indices for all time points
+"""
+
+def remove_big_objects(ar, max_size=6400, connectivity=1, in_place=False):
+    
+    out = ar.copy()
+    ccs = out
+
+    try:
+        component_sizes = np.bincount(ccs.ravel())
+    except ValueError:
+        raise ValueError("Negative value labels are not supported. Try "
+                         "relabeling the input with `scipy.ndimage.label` or "
+                         "`skimage.morphology.label`.")
+
+
+
+    too_big = component_sizes > max_size
+    too_big_mask = too_big[ccs]
+    out[too_big_mask] = 0
+
+    return out
+
+def IntergerLabelGen(fname, savedir):
+            
+            BinaryImage = imread(fname)
+            Name = os.path.basename(os.path.splitext(fname)[0])
+            InputBinaryImage = BinaryImage.astype('uint8')
+            IntegerImage = np.zeros([BinaryImage.shape[0],BinaryImage.shape[1], BinaryImage.shape[2]])
+            for i in tqdm(range(0, InputBinaryImage.shape[0])):
+                 
+                    BinaryImageOriginal = InputBinaryImage[i,:]
+                    Orig = normalizeFloatZeroOne(BinaryImageOriginal)
+                    InvertedBinaryImage = invertimage(BinaryImageOriginal)
+                    BinaryImage = normalizeFloatZeroOne(InvertedBinaryImage)
+                    image = binary_dilation(BinaryImage)
+                    image = invertimage(image)
+                    labelclean = label(image)
+                    labelclean = remove_big_objects(labelclean, max_size = 15000) 
+                    AugmentedLabel = dilation(labelclean, selem = square(3) )
+                    AugmentedLabel = np.multiply(AugmentedLabel ,  Orig)
+                    IntegerImage[i,:] = AugmentedLabel
+            
+            imwrite(savedir + Name + '.tif', IntegerImage.astype('uint16'))
+            
+
 def MarkerToCSV(MarkerImage):
     
     MarkerImage = MarkerImage.astype('uint16')
     MarkerList = []
+    print('Obtaining co-ordinates of markers in all regions')
     for i in range(0, MarkerImage.shape[0]):
           waterproperties = measure.regionprops(MarkerImage, MarkerImage)
           indices = [prop.centroid for prop in waterproperties]
           MarkerList.append([i, indices[0], indices[1]])
     return  MarkerList
+    
     
   
 def load_json(fpath):
@@ -50,31 +87,82 @@ def save_json(data,fpath,**kwargs):
     with open(fpath,'w') as f:
         f.write(json.dumps(data,**kwargs))    
   
-def save_tiff_imagej_compatible(file, img, axes, **imsave_kwargs):
-    """Save image in ImageJ-compatible TIFF format.
+class BestAnchorBoxFinder(object):
+    def __init__(self, ANCHORS):
+        '''
+        ANCHORS: a np.array of even number length e.g.
+        
+        _ANCHORS = [4,2, ##  width=4, height=2,  flat large anchor box
+                    2,4, ##  width=2, height=4,  tall large anchor box
+                    1,1] ##  width=1, height=1,  small anchor box
+        '''
+        self.anchors = [BoundBox(0, 0, ANCHORS[2*i], ANCHORS[2*i+1]) 
+                        for i in range(int(len(ANCHORS)//2))]
+        
+    def _interval_overlap(self,interval_a, interval_b):
+        x1, x2 = interval_a
+        x3, x4 = interval_b
+        if x3 < x1:
+            if x4 < x1:
+                return 0
+            else:
+                return min(x2,x4) - x1
+        else:
+            if x2 < x3:
+                 return 0
+            else:
+                return min(x2,x4) - x3  
 
-    Parameters
-    ----------
-    file : str
-        File name
-    img : numpy.ndarray
-        Image
-    axes: str
-        Axes of ``img``
-    imsave_kwargs : dict, optional
-        Keyword arguments for :func:`tifffile.imsave`
+    def bbox_iou(self,box1, box2):
+        intersect_w = self._interval_overlap([box1.xmin, box1.xmax], [box2.xmin, box2.xmax])
+        intersect_h = self._interval_overlap([box1.ymin, box1.ymax], [box2.ymin, box2.ymax])  
 
-    """
-    t = np.uint8
-    # convert to imagej-compatible data type
-    t_new = t
-    img = img.astype(t_new, copy=False)
-    if t != t_new:
-        warnings.warn("Converting data type from '%s' to ImageJ-compatible '%s'." % (t, np.dtype(t_new)))
+        intersect = intersect_w * intersect_h
 
-    imsave_kwargs['imagej'] = True
-    imsave(file, img, **imsave_kwargs)
+        w1, h1 = box1.xmax-box1.xmin, box1.ymax-box1.ymin
+        w2, h2 = box2.xmax-box2.xmin, box2.ymax-box2.ymin
 
+        union = w1*h1 + w2*h2 - intersect
+
+        return float(intersect) / union
+    
+    def find(self,center_w, center_h):
+        # find the anchor that best predicts this box
+        best_anchor = -1
+        max_iou     = -1
+        # each Anchor box is specialized to have a certain shape.
+        # e.g., flat large rectangle, or small square
+        shifted_box = BoundBox(0, 0,center_w, center_h)
+        ##  For given object, find the best anchor box!
+        for i in range(len(self.anchors)): ## run through each anchor box
+            anchor = self.anchors[i]
+            iou    = self.bbox_iou(shifted_box, anchor)
+            if max_iou < iou:
+                best_anchor = i
+                max_iou     = iou
+        return(best_anchor,max_iou)    
+    
+    
+class BoundBox:
+    def __init__(self, xmin, ymin, xmax, ymax, confidence=None,classes=None):
+        self.xmin, self.ymin = xmin, ymin
+        self.xmax, self.ymax = xmax, ymax
+        ## the code below are used during inference
+        # probability
+        self.confidence      = confidence
+        # class probaiblities [c1, c2, .. cNclass]
+        self.set_class(classes)
+        
+    def set_class(self,classes):
+        self.classes = classes
+        self.label   = np.argmax(self.classes) 
+        
+    def get_label(self):  
+        return(self.label)
+    
+    def get_score(self):
+        return(self.classes[self.label])
+        
 
    ##CARE csbdeep modification of implemented function
 def normalizeFloat(x, pmin = 3, pmax = 99.8, axis = None, eps = 1e-20, dtype = np.float32):
@@ -389,154 +477,181 @@ def chunk_list(image, patchshape, stride, pair):
         
             return patch, rowstart, colstart     
            
+def DensityCounter(MarkerImage, TrainshapeX, TrainshapeY, densityveto = 10):
 
-def Printpredict(idx, model, data, Truelabel, Categories_name,  cols=5, threshold=.8, plot = False, simple = False, catsimple = False):
-    try:
-        idx = list(idx)
-    except:
-        idx = [idx]
         
+    AllDensity = {}
 
-    data = data[idx]
-    Truelabel = Truelabel[idx]
-    mean = np.mean(data)
-    
-    if mean > 0:
-      prediction = model.predict(data)
-   
-      i = 0
-   
-      while i < prediction.shape[0]:
-        if plot:  
-          import matplotlib.pyplot as plt  
-          fig, ax = plt.subplots(1,data.shape[1],figsize=(5*cols,5))
-          fig.figsize=(20,10)
-        
-        for i in range(0,(prediction.shape[0])): 
-           
-           for j in range(0,data.shape[1]):
-           
-            img = data[i,j,:,:,0]
-            if plot:
-              ax[j].imshow(img, cm.Spectral)
-     
-           if len(Categories_name) > 1: 
-            for k in range(0, len(Categories_name)):
-               
-               Name, Label = Categories_name[k]
-               
-               print('Top predictions : ' , Name, 'Probability', ':' , prediction[i,:,:, int(Label)])
-       
-            if simple == False and catsimple == False:
-                   print('X Y T H W',prediction[i,:,:,int(Label)+1:])
-           
+    for i in tqdm(range(0, MarkerImage.shape[0])):
+            density = []
+            location = []
+            currentimage = MarkerImage[i, :].astype('uint16')
+            waterproperties = measure.regionprops(currentimage, currentimage)
+            indices = [prop.centroid for prop in waterproperties]
             
-           print('True Label : ', Truelabel)
-            
-         
-
-           if plot:
-              plt.show()     
-          
-           i += 1
-           if i >= prediction.shape[0]:
-                  break
-              
+            for y,x in indices:
                 
-def PrintStaticpredict(idx, model, data, Truelabel, Categories_name,  cols=5, threshold=.8, plot = False, simple = False, catsimple = False):
-
-    try:
-        idx = list(idx)
-    except:
-        idx = [idx]
-        
-
-    data = data[idx]
-    Truelabel = Truelabel[idx]
-    mean = np.mean(data)
+                           crop_Xminus = x - int(TrainshapeX/2)
+                           crop_Xplus = x  + int(TrainshapeX/2)
+                           crop_Yminus = y  - int(TrainshapeY/2)
+                           crop_Yplus = y  + int(TrainshapeY/2)
+                      
+                           region =(slice(int(crop_Yminus), int(crop_Yplus)),
+                                      slice(int(crop_Xminus), int(crop_Xplus)))
+                           crop_image = currentimage[region].astype('uint16')
+                           if crop_image.shape[0] >= TrainshapeY and crop_image.shape[1] >= TrainshapeX:
+                                    
+                                     waterproperties = measure.regionprops(crop_image, crop_image)
+                                     
+                                     labels = [prop.label for prop in waterproperties]
+                                     labels = np.asarray(labels)
+                                     #These regions should be downsampled                               
+                                     if labels.shape[0] < densityveto:
+                                         density.append(labels.shape[0])
+                                         location.append((int(y),int(x)))
+            #Create a list of TYX marker locations that should be downsampled                             
+            AllDensity[str(i)] = [density, location]
     
-    if mean > 0:
-      prediction = model.predict(data)
-   
-      i = 0
-   
-      while i < prediction.shape[0]:
-           
-          
-        
-        for i in range(0,(prediction.shape[0])): 
-           
-           
-           
-            img = data[i,:,:,0]
-            if plot:
-              import matplotlib.pyplot as plt   
-              plt.imshow(img, cm.Spectral)
-              plt.show()   
-            if len(Categories_name) > 1: 
-              for k in range(0, len(Categories_name)):
-               
-               Name, Label = Categories_name[k]
-               
-               print('Top predictions : ' , Name, 'Probability', ':' , prediction[i,:,:, int(Label)])
-  
-               if simple == False or catsimple == False:
-                    print('X Y',prediction[i,:,:,int(Label)+1:int(Label)+3])
-              
-           
-            print('True Label : ', Truelabel)
-            
-         
+    return AllDensity
 
-            if plot:
-              plt.show()     
-          
-            i += 1
-            if i >= prediction.shape[0]:
-                  break              
-
-def X_right_prediction(image,sY, sX, time_prediction, stride, inputtime, Categories_Name, Categories_event_threshold, TrainshapeX, TrainshapeY, TimeFrames):
+"""
+This method takes the integer labelled segmentation image as input and creates a dictionary of markers at all timepoints for easy search
+"""    
+def MakeTrees(segimage):
     
-                         LocationBoxes = []
-                         j = 0
-                         k = 1
-                         while True:
+        AllTrees = {}
+        print("Creating Dictionary of marker location for fast search")
+        for i in tqdm(range(0, segimage.shape[0])):
+                currentimage = segimage[i, :].astype('uint16')
+                waterproperties = measure.regionprops(currentimage, currentimage)
+                indices = [prop.centroid for prop in waterproperties] 
+                if len(indices) > 0:
+                    tree = spatial.cKDTree(indices)
+                
+                    AllTrees[str(i)] =  [tree, indices]
+                    
+                    
+                           
+        return AllTrees
+    
+"""
+This method is used to create a segmentation image of an input image (StarDist probability or distance map) using marker controlled watershedding using a mask image (UNET) 
+"""    
+def WatershedwithMask(Image, Label,mask, grid):
+    
+    
+   
+    properties = measure.regionprops(Label, Image)
+    Coordinates = [prop.centroid for prop in properties] 
+    Coordinates = sorted(Coordinates , key=lambda k: [k[1], k[0]])
+    Coordinates.append((0,0))
+    Coordinates = np.asarray(Coordinates)
+    
+    
+
+    coordinates_int = np.round(Coordinates).astype(int)
+    markers_raw = np.zeros_like(Image)  
+    markers_raw[tuple(coordinates_int.T)] = 1 + np.arange(len(Coordinates))
+    
+    markers = morphology.dilation(markers_raw, morphology.disk(2))
+    Image = sobel(Image)
+    watershedImage = watershed(Image, markers, mask = mask)
+    
+    return watershedImage, markers     
+   
+"""
+Prediction function for whole image/tile, output is Prediction vector for each image patch it passes over
+"""    
+
+def Yoloprediction(image,sY, sX, time_prediction, stride, inputtime, KeyCategories, KeyCord, TrainshapeX, TrainshapeY, TimeFrames, nboxes, Mode, EventType):
+    
+                             LocationBoxes = []
+                             j = 0
+                             k = 1
+                             while True:
                                       j = j + 1
                                       if j > time_prediction.shape[1]:
                                            j = 1
                                            k = k + 1
-                             
+
                                       if k > time_prediction.shape[0]:
                                           break;
-                                      
-                                      y = (k - 1) * stride
-                                      x = (j - 1) * stride
-                                      prediction_vector = time_prediction[k-1,j-1,:]
-                                      #Note to self k,1 is x j,0 is y 
-                                      for p in range(1, len(Categories_Name)):
-                                           if prediction_vector[p] > (Categories_event_threshold[p]):
-                                                 
-                                                 Xbox =  x + sX + prediction_vector[len(Categories_Name)] * TrainshapeX
-                                                 Ybox =  y + sY + prediction_vector[len(Categories_Name) + 1] * TrainshapeY
-                                                 Tbox = int(inputtime + 1 + prediction_vector[len(Categories_Name) + 2] * TimeFrames)
-                                                 
-                                                 Score = prediction_vector[p]
-                                                 Traw = prediction_vector[len(Categories_Name) + 2]
-                                                 Name, Label = Categories_Name[p] 
-                                                 box = (x, y,x + TrainshapeX, y + TrainshapeY, Xbox,Ybox, Score, Tbox, Label,Traw )
-                                                 
-                                                 boxregion = (slice(0,image.shape[0]),slice(y  , y   + TrainshapeY,),slice(x  , x   + TrainshapeX))
-                                                 sliceboxregion = image[boxregion]
-                                                 try:
-                                                  if np.mean(sliceboxregion) > 0.3:
-                                                      LocationBoxes.append([box, Label])
-                                                 except ValueError:
-                                                     print('No box', x, y)
-                                                    
-                                                    
-                         return LocationBoxes      
 
+                                      Classybox, MaxProbLabel = PredictionLoop(j, k, sX, sY, TrainshapeX, TrainshapeY, TimeFrames, stride, time_prediction, KeyCategories, KeyCord, inputtime, Mode, EventType)
+                                      #Append the box and the maximum likelehood detected class
+                                      LocationBoxes.append([Classybox, MaxProbLabel])         
+                             return LocationBoxes
+                        
+                        
+def PredictionLoop(j, k, sX, sY, TrainshapeX, TrainshapeY, TimeFrames, nboxes, stride, time_prediction, KeyCategories, KeyCord, inputtime, Mode, EventType):
 
+                                          TotalClasses = len(KeyCategories) 
+                                          y = (k - 1) * stride
+                                          x = (j - 1) * stride
+                                          prediction_vector = time_prediction[k-1,j-1,:]
+                                          
+                                          Xstart = x + sX
+                                          Ystart = y + sY
+                                          Class = {}
+                                          #Compute the probability of each class
+                                          for (EventName,EventLabel) in KeyCategories.items():
+                                              
+                                              Class[EventName] = prediction_vector[EventLabel]
+                                          Xcentermean = 0
+                                          Ycentermean = 0
+                                          Widthmean = 0
+                                          Heightmean = 0
+                                          Confidencemean = 0
+                                          for b in nboxes:
+                                                  Xcenter = Xstart + prediction_vector[TotalClasses + KeyCord['X'] ] * TrainshapeX
+                                                  Ycenter = Ystart + prediction_vector[TotalClasses + KeyCord['Y'] ] * TrainshapeY
+                                                  Height = prediction_vector[TotalClasses + KeyCord['H']] * TrainshapeX  
+                                                  Width = prediction_vector[TotalClasses + KeyCord['W']] * TrainshapeY
+                                                  Confidence = prediction_vector[TotalClasses + KeyCord['Conf']]
+                                                  #Ignore Yolo boxes with lower than 0.5 confidence
+                                                  if Confidence < 0.5:
+                                                       continue
+                                                  Xcentermean = Xcentermean + Xcenter
+                                                  Ycentermean = Ycentermean + Ycenter
+                                                  Heightmean = Heightmean + Height
+                                                  Widthmean = Widthmean + Width
+                                                  Confidencemean = Confidencemean + Confidence
+                                         
+                                          
+                                          Xcentermean = Xcentermean/nboxes
+                                          Ycentermean = Ycentermean/nboxes
+                                          Heightmean = Heightmean/nboxes
+                                          Widthmean = Widthmean/nboxes
+                                          Confidencemean = Confidencemean/nboxes
+                                          MaxProbLabel = np.argmax(prediction_vector[:TotalClasses])
+                                          
+                                          if EventType == 'Dynamic':
+                                                  if Mode == 'Detection':
+                                                          RealTimeevent = int(inputtime + prediction_vector[TotalClasses + KeyCord['T']] * TimeFrames)
+                                                          BoxTimeevent = prediction_vector[TotalClasses + KeyCord['T']]    
+                                                  if Mode == 'Prediction':
+                                                          RealTimeevent = int(inputtime)
+                                                          BoxTimeevent = int(inputtime)
+                                                  RealAngle = math.pi * (prediction_vector[TotalClasses + KeyCord['Angle']] - 0.5)
+                                                  RawAngle = prediction_vector[TotalClasses + KeyCord['Angle']]
+                                          
+                                          if EventType == 'Static':
+                                                          RealTimeevent = int(inputtime)
+                                                          BoxTimeevent = int(inputtime)
+                                                          RealAngle = 0
+                                                          RawAngle = 0
+                                          #Compute the box vectors 
+                                          box = {'Xstart' : Xstart, 'Ystart' : Ystart, 'Xcenter' : Xcenter, 'Ycenter' : Ycenter, 'RealTimeevent' : RealTimeevent, 'BoxTimeevent' : BoxTimeevent,
+                                                 'Height' : Height, 'Width' : Width, 'Confidence' : Confidence, 'RealAngle' : RealAngle, 'RawAngle' : RawAngle}
+                                          
+                                          
+                                          
+                                          #Make a single dict object containing the class and the box vectors
+                                          Classybox = {}
+                                          for d in [Class,box]:
+                                              Classybox.update(d) 
+                                          
+                                          return Classybox, MaxProbLabel
 def draw_labelimages(image, location, time, timelocation ):
 
      cv2.circle(image, location, 2,(255,0,0), thickness = -1 )
@@ -578,7 +693,7 @@ def extra_pad(image, patchX, patchY):
 def save_labelimages(save_dir, image, axes, fname, Name):
 
     
-             save_tiff_imagej_compatible((save_dir + Name + os.path.basename(fname) ) , image, axes)
+             imwrite((save_dir + Name + '.tif' ) , image)
         
     
                 

@@ -12,22 +12,12 @@ from NEATUtils import helpers
 from keras import callbacks
 import os
 from NEATModels import nets
+from NEATModels.loss import static_yolo_loss, yolo_loss_v1, yolo_loss_v0
 from keras import backend as K
 #from IPython.display import clear_output
 from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
-try:
-    from pathlib import Path
-    Path().expanduser()
-except (ImportError,AttributeError):
-    from pathlib2 import Path
-
-try:
-    import tempfile
-    tempfile.TemporaryDirectory
-
-except (ImportError,AttributeError):
-    from backports import tempfile
+rom pathlib import Path
 
 
 class NEATStaticDetection(object):
@@ -66,18 +56,19 @@ class NEATStaticDetection(object):
     """
     
     
-    def __init__(self, staticconfig, NpzDirectory, TrainModelName, ValidationModelName, Categories_Name, model_dir, model_name, model_weights = None,  show = False ):
+    def __init__(self, staticconfig, NpzDirectory,KeyCatagories, KeyCord, TrainModelName, ValidationModelName, model_dir, model_name,  show = False ):
 
         self.NpzDirectory = NpzDirectory
         self.TrainModelName = TrainModelName
         self.ValidationModelName = ValidationModelName
         self.model_dir = model_dir
         self.model_name = model_name
-        self.Categories_Name = Categories_Name
-        self.model_weights = model_weights
+        self.KeyCatagories = KeyCatagories
+        self.box_vector = staticconfig.box_vector
+        self.model_weights = None
         self.show = show
         self.simple = staticconfig.simple
-        self.categories = len(Categories_Name)
+        self.categories = len(KeyCatagories)
         self.depth = staticconfig.depth
         self.start_kernel = staticconfig.start_kernel
         self.mid_kernel = staticconfig.mid_kernel
@@ -86,6 +77,14 @@ class NEATStaticDetection(object):
         self.residual = staticconfig.residual
         self.startfilter = staticconfig.startfilter
         self.batch_size = staticconfig.batch_size
+        self.multievent = staticconfig.multievent
+        self.ImageX = staticconfig.ImageX
+        self.ImageY = staticconfig.ImageY
+        self.nboxes = staticconfig.nboxes
+        self.gridX = staticconfig.gridX
+        self.gridY = staticconfig.gridY
+        self.yoloV0 = yoloV0
+        self.last_activation = None
         self.X = None
         self.Y = None
         self.axes = None
@@ -147,12 +146,30 @@ class NEATStaticDetection(object):
             model_keras = nets.resnet_v2
         else:
             model_keras = nets.seqnet_v2
+            
+        if self.multievent == True:
+           self.last_activation = 'sigmoid'
+           self.entropy = 'binary'
+           
+           
+        if self.multievent == False:
+           self.last_activation = 'softmax'              
+           self.entropy = 'notbinary' 
+           
+        model_weights = self.model_dir + self.model_name
+        if os.path.exists(model_weights):
         
-        self.Trainingmodel = model_keras(input_shape, self.categories,   box_vector = Y_rest.shape[-1] , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
+            self.model_weights = model_weights
+            print('loading weights')
+        else:
+           
+            self.model_weights = None
+        
+        self.Trainingmodel = model_keras(input_shape, self.categories,   box_vector = self.box_vector , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights)
         
             
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
-        self.Trainingmodel.compile(optimizer=sgd, loss=yolo_loss(Ncat = self.categories), metrics=['accuracy'])
+        self.Trainingmodel.compile(optimizer=sgd, loss = yolo_loss_v0(self.categories, self.gridX, self.gridY, self.nboxes, self.box_vector, self.entropy), metrics=['accuracy'])
         self.Trainingmodel.summary()
         
         
@@ -160,7 +177,7 @@ class NEATStaticDetection(object):
         lrate = callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4, verbose=1)
         hrate = callbacks.History()
         srate = callbacks.ModelCheckpoint(self.model_dir + self.model_name, monitor='loss', verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1)
-        prate = plotters.PlotStaticHistory(self.Trainingmodel, self.X_val, self.Y_val, self.Categories_Name, plot = self.show)
+        prate = plotters.PlotStaticHistory(self.Trainingmodel, self.X_val, self.Y_val, self.KeyCatagories, self.KeyCord, self.gridX, self.gridY, plot = self.show, nboxes = self.nboxes)
         
         
         #Train the model and save as a h5 file
@@ -181,60 +198,6 @@ class NEATStaticDetection(object):
         helpers.Printpredict(idx, self.Trainingmodel, self.X_val, self.Y_val, self.Categories_Name)
 
     
-def yolo_loss(Ncat):
 
-    def loss(y_true, y_pred):
-        
-       
-        y_true_class = y_true[...,0:Ncat]
-        y_pred_class = y_pred[...,0:Ncat]
-        
-        
-        y_pred_xyt = y_pred[...,Ncat:] 
-        
-        y_true_xyt = y_true[...,Ncat:] 
-        
-        
-        class_loss = K.mean(K.categorical_crossentropy(y_true_class, y_pred_class), axis=-1)
-        xy_loss = K.sum(K.sum(K.square(y_true_xyt - y_pred_xyt), axis = -1), axis = -1)
-        
-      
-
-        d =  class_loss + xy_loss
-        return d 
-    return loss
-        
-        
-
-
-def mid_yolo_loss(Ncat):
-    
-    def loss(y_true, y_pred):
-        
-       
-        y_true_class = y_true[...,0:Ncat]
-        y_pred_class = y_pred[...,0:Ncat]
-        
-        
-        y_pred_xyt = y_pred[...,Ncat:Ncat + 2] 
-        
-        y_true_xyt = y_true[...,Ncat:Ncat + 2] 
-        
-        y_pred_hw = y_pred[...,Ncat + 2:]
-        
-        y_true_hw = y_true[...,Ncat + 2:]
-        
-        
-        class_loss = K.mean(K.categorical_crossentropy(y_true_class, y_pred_class), axis=-1)
-        xy_loss = K.sum(K.sum(K.square(y_true_xyt - y_pred_xyt), axis = -1), axis = -1)
-        hw_loss = K.sum(K.sum(K.square(K.sqrt(y_true_hw) - K.sqrt(y_pred_hw)), axis = -1))
-      
-
-        d =  class_loss + 2 * xy_loss + hw_loss
-        
-        
-        return d 
-    return loss
-        
     
         
