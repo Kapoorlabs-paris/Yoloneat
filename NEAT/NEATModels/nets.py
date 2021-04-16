@@ -702,7 +702,7 @@ def ThreeDresnet_layer(inputs,
 
 
 
-def resnet_v2(input_shape, categories, box_vector, depth = 38,  start_kernel = 7, mid_kernel = 3, startfilter = 48,  input_weights = None):
+def resnet_v2(input_shape, categories, box_vector, depth = 38,  start_kernel = 7, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
@@ -796,7 +796,7 @@ def resnet_v2(input_shape, categories, box_vector, depth = 38,  start_kernel = 7
       
     
 
-    output_cat = (Conv2D(categories, (round(input_shape[0]/4),round(input_shape[1]/4)),activation= 'softmax' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_cat = (Conv2D(categories, (round(input_shape[0]/4),round(input_shape[1]/4)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
     output_box = (Conv2D((box_vector), (round(input_shape[0]/4),round(input_shape[1]/4)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
     
 
@@ -816,7 +816,7 @@ def resnet_v2(input_shape, categories, box_vector, depth = 38,  start_kernel = 7
         
     return model
   
-def seqnet_v2(input_shape, categories, box_vector, depth = 38, start_kernel = 7, mid_kernel = 3, startfilter = 48,  input_weights = None):
+def seqnet_v2(input_shape, categories, box_vector, depth = 38, start_kernel = 7, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
@@ -895,7 +895,7 @@ def seqnet_v2(input_shape, categories, box_vector, depth = 38, start_kernel = 7,
       
     
 
-    output_cat = (Conv2D(categories, (round(input_shape[0]/4),round(input_shape[1]/4)),activation= 'softmax' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_cat = (Conv2D(categories, (round(input_shape[0]/4),round(input_shape[1]/4)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
     output_box = (Conv2D((box_vector), (round(input_shape[0]/4),round(input_shape[1]/4)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
     
 
