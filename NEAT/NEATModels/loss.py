@@ -114,10 +114,10 @@ def calc_loss_class(true_box_conf, true_box_class, pred_box_class, entropy):
     class_mask   = true_box_conf  * lambdaclass
     
     if entropy == 'binary':
-        loss_class = K.sum(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
+        loss_class = K.mean(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
     if entropy == 'notbinary':
          
-        loss_class   = K.sum(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
+        loss_class   = K.mean(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
     loss_class   = loss_class * class_mask 
 
     return loss_class
@@ -149,9 +149,9 @@ def yolo_loss_v1(categories, grid_h, grid_w, nboxes, box_vector, entropy):
         loss_xywh = lambdacoord * loss_xywh
 
         if entropy == 'binary':
-            loss_class = K.sum(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
+            loss_class = K.mean(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
         if entropy == 'notbinary':
-            loss_class   = K.sum(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
+            loss_class   = K.mean(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
 
         loss_class   = loss_class * lambdaclass 
 
@@ -184,13 +184,13 @@ def yolo_loss_v0(categories, grid_h, grid_w, nboxes, box_vector, entropy):
         
         
         if entropy == 'binary':
-            loss_class = K.sum(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
+            loss_class = K.mean(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
         if entropy == 'notbinary':
-            loss_class   = K.sum(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
+            loss_class   = K.mean(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
 
        
 
-        combinedloss = loss_xy + loss_class + loss_wh
+        combinedloss = loss_xy + 5 * loss_class + loss_wh
             
         return combinedloss 
         

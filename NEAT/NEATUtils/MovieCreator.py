@@ -213,7 +213,7 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridX, gridY, offs
                               slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
                         #Define the movie region volume that was cut
                         crop_image = image[region]   
-                        crop_image =  normalizeFloatZeroOne(crop_image ,1,99.8)
+                        
                         seglocationX = (newcenter[1] - crop_Xminus)
                         seglocationY = (newcenter[0] - crop_Yminus)
                          
@@ -405,7 +405,6 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, To
                                            slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
                                    
                                     crop_image = image[region]      
-                                    crop_image =  normalizeFloatZeroOne(crop_image ,1,99.8)
                                     seglocationX = (newcenter[1] - crop_Xminus)
                                     seglocationY = (newcenter[0] - crop_Yminus)
                                       

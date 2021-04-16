@@ -181,7 +181,7 @@ class NEATStaticDetection(object):
         
         
         #Train the model and save as a h5 file
-        self.Trainingmodel.fit(self.X,self.Y, class_weight = d_class_weights , batch_size = self.batch_size, epochs = self.epochs, validation_data=(self.X_val, self.Y_val), shuffle = True, callbacks = [lrate,hrate,srate,prate])
+        self.Trainingmodel.fit(self.X,self.Y,  batch_size = self.batch_size, epochs = self.epochs, validation_data=(self.X_val, self.Y_val), shuffle = True, callbacks = [lrate,hrate,srate,prate])
         #clear_output(wait=True) 
 
      
