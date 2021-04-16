@@ -142,7 +142,7 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
 
     Image = data[idx]
     Truelabel = Truelabel[idx]
-    prediction = model.predict(data)
+    prediction = model.predict(Image)
    
     # The prediction vector is (1, categories + box_vector) dimensional, input data is (N H W C) C is 1 in our case
             
@@ -150,7 +150,7 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
     if plot:
         plt.imshow(img, cm.Spectral)
     for i in range(0, prediction.shape[0]):
-        for (k,v) in KeyCategories.gitems(): 
+        for (k,v) in KeyCategories.items(): 
            print(prediction[i,:,:,v], k)               
     print('Prediction :', prediction[0,:,:,0: ])         
     print('True Label : ', Truelabel[0,0,0: ])
