@@ -180,7 +180,7 @@ class NEATStaticDetection(object):
         self.Y = dummyY
         self.Y_val = dummyY_val
         
-        self.Trainingmodel = model_keras(input_shape, self.categories, class_weights = d_class_weights, box_vector = self.box_vector , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights)
+        self.Trainingmodel = model_keras(input_shape, self.categories, box_vector = self.box_vector , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights)
         
             
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
@@ -196,7 +196,7 @@ class NEATStaticDetection(object):
         
         
         #Train the model and save as a h5 file
-        self.Trainingmodel.fit(self.X,self.Y,  batch_size = self.batch_size, epochs = self.epochs, validation_data=(self.X_val, self.Y_val), shuffle = True, callbacks = [lrate,hrate,srate,prate])
+        self.Trainingmodel.fit(self.X,self.Y, class_weight = d_class_weights,  batch_size = self.batch_size, epochs = self.epochs, validation_data=(self.X_val, self.Y_val), shuffle = True, callbacks = [lrate,hrate,srate,prate])
         #clear_output(wait=True) 
 
      
