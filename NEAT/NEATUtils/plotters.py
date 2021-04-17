@@ -151,9 +151,15 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
         plt.imshow(img, cm.Spectral)
     for i in range(0, prediction.shape[0]):
         for (k,v) in KeyCategories.items(): 
-           print(prediction[i,:,:,v], k)               
-    print('Prediction :', prediction[0,:,:,0: ])         
-    print('True Label : ', Truelabel[0,0,0: ])
+           print( k , "Probability:", prediction[i,:,:,v])
+           print('True Probability for ', k, TrueLabel[0,0,v])
+        for b in range(1,boxes - 1):
+                prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] += prediction[i,:,:,len(KeyCategories) + b*len(KeyCord):len(KeyCategories) + (b + 1)*len(KeyCord) ] 
+        prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] = prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] / boxes        
+        for (k,v) in KeyCord.items():
+            
+            print(k, prediction[i,:,:,len(KeyCategories) + v])
+            print('True Number', k, TrueLabel[0,0,len(KeyCategories) + v])
 
     if plot:
               plt.show()          
