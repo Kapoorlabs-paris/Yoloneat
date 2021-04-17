@@ -62,8 +62,11 @@ class PlotHistory(keras.callbacks.Callback):
         
 def Printpredict(idx, model, data, Truelabel, KeyCatagories, gridX, gridY, plot = False, nboxes = 1):
 
+    
     Image = data[idx]
     Truelabel = Truelabel[idx]
+    data = np.expand_dims(Image, 0)
+    prediction = model.predict(data)
     prediction = model.predict(data)
    
     cols = 5
@@ -142,7 +145,8 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
 
     Image = data[idx]
     Truelabel = Truelabel[idx]
-    prediction = model.predict(Image)
+    data = np.expand_dims(Image, 0)
+    prediction = model.predict(data)
    
     # The prediction vector is (1, categories + box_vector) dimensional, input data is (N H W C) C is 1 in our case
             
@@ -150,9 +154,14 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
     if plot:
         plt.imshow(img, cm.Spectral)
     for i in range(0, prediction.shape[0]):
+        maxevent = np.argmax(prediction[i,:,:,:len(KeyCategories)], axis = -1)
+        trueevent = np.argmax(Truelabel[0,0,:len(KeyCategories)], axis = -1)
         for (k,v) in KeyCategories.items(): 
-           print( k , "Probability:", prediction[i,:,:,v])
-           print('True Probability for ', k, TrueLabel[0,0,v])
+           if v == maxevent: 
+           maxlabel =  k
+        
+       print( "Predicted cell:" maxlabel , "Probability:", prediction[i,:,:,maxevent])
+       print('True Cell ', trueevent)
         for b in range(1,boxes - 1):
                 prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] += prediction[i,:,:,len(KeyCategories) + b*len(KeyCord):len(KeyCategories) + (b + 1)*len(KeyCord) ] 
         prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] = prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] / boxes        

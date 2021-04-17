@@ -165,11 +165,11 @@ class NEATStaticDetection(object):
            
             self.model_weights = None
         
-        dummyY = np.zeros([self.Y.shape[0],self.Y.shape[1],self.Y.shape[2],self.Y.shape[3] * self.nboxes])
+        dummyY = np.zeros([self.Y.shape[0],self.Y.shape[1],self.Y.shape[2],self.categories + self.nboxes* self.box_vector])
         
         dummyY[:,:,:,:self.Y.shape[3]] = self.Y
         
-        dummyY_val = np.zeros([self.Y_val.shape[0],self.Y_val.shape[1],self.Y_val.shape[2],self.Y_val.shape[3] * self.nboxes])
+        dummyY_val = np.zeros([self.Y_val.shape[0],self.Y_val.shape[1],self.Y_val.shape[2],self.categories + self.nboxes* self.box_vector])
         
         dummyY_val[:,:,:,:self.Y_val.shape[3]] = self.Y_val
         for b in range(1, self.nboxes - 1):
@@ -180,7 +180,8 @@ class NEATStaticDetection(object):
         self.Y = dummyY
         self.Y_val = dummyY_val
         
-        self.Trainingmodel = model_keras(input_shape, self.categories, box_vector = self.box_vector , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights)
+        print(self.Y.shape, self.nboxes)
+        self.Trainingmodel = model_keras(input_shape, self.categories, box_vector = self.box_vector ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights)
         
             
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
