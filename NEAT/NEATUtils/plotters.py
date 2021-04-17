@@ -158,7 +158,7 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
         trueevent = np.argmax(Truelabel[0,0,:len(KeyCategories)], axis = -1)
         for (k,v) in KeyCategories.items(): 
            if v == maxevent: 
-           maxlabel =  k
+               maxlabel =  k
         
        print( "Predicted cell:" maxlabel , "Probability:", prediction[i,:,:,maxevent])
        print('True Cell ', trueevent)
