@@ -94,45 +94,7 @@ def MovieLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
                                                 
                                                 
                                                 
-            axes = 'STXYC'
-            data = []
-            label = []   
-            outputdir =  SaveDir
-            print(outputdir)
-            Images= [imread(fname)[0,:]  for fname in filesRaw]
-            Names = [os.path.basename(os.path.splitext(fname)[0])  for fname in filesRaw]
-            
-            #Normalize everything before it goes inside the training
-            NormalizeImages = [normalizeFloatZeroOne(image.astype('uint16') ,1,99.8) for image in tqdm(Images)]
-
-            for i in range(0,len(NormalizeImages)):
-               
-               n = NormalizeImages[i]
-               blankX = n
-               csvfname = outputdir + '/' + Names[i] + '.csv'   
-               arr = [] 
-               with open(csvfname) as csvfile:
-                     reader = csv.reader(csvfile, delimiter = ',')
-                     for train_vec in reader:
-
-                             arr =  [float(s) for s in train_vec[0:]]
-               blankY = arr
-
-               blankY = np.expand_dims(blankY, -1)
-               blankX = np.expand_dims(blankX, -1)
-
-               data.append(blankX)
-               label.append(blankY)
-
-
-
-
-            dataarr = np.array(data)
-            labelarr = np.array(label)
-            print(dataarr.shape, labelarr.shape)
-            traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
-            save_full_training_data(SaveDir, SaveName, traindata, trainlabel, axes)
-            save_full_training_data(SaveDir, SaveNameVal, validdata, validlabel, axes)                                    
+                                 
                                                 
                                                
 
@@ -302,9 +264,10 @@ def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
 
 
     
+                 
     
-def createNPZ(SaveDir, SaveName = 'Yolov0oneat', SaveNameVal = 'Yolov0oneatVal'):
-            axes = 'SXYC'
+def createNPZ(SaveDir, axes, SaveName = 'Yolov0oneat', SaveNameVal = 'Yolov0oneatVal'):
+            
             data = []
             label = []   
 
@@ -317,7 +280,7 @@ def createNPZ(SaveDir, SaveName = 'Yolov0oneat', SaveNameVal = 'Yolov0oneatVal')
             filesRaw.sort
             
             Images= [imread(fname)[0,:] for fname in filesRaw]
-            Names = [os.path.basename(os.path.splitext(fname)[0])  for fname in filesRaw]
+            Names = [ReadName(fname)  for fname in filesRaw]
             #Normalize everything before it goes inside the training
             NormalizeImages = [normalizeFloatZeroOne(image.astype('uint16'),1,99.8) for image in tqdm(Images)]
 

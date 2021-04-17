@@ -27,14 +27,13 @@ def adjust_scale_prediction(y_pred, cell_grid, nboxes,grid_h, grid_w, box_vector
     
     pred_nboxes = K.reshape(y_pred[...,categories:], (-1, grid_h * grid_w, nboxes, box_vector))
     
-    pred_box_xy = (pred_nboxes[..., :2]) + cell_grid
+    pred_box_xy = tf.sigmoid(pred_nboxes[..., :2]) + cell_grid
     
-    pred_box_wh = (pred_nboxes[..., 2:4]) 
+    pred_box_wh = tf.exp(pred_nboxes[..., 2:4]) * np.reshape(anchors,[1,1,1,boxes,2])
     
-    if version > 1:
-       pred_box_conf = (y_pred[..., 4])
-    else:
-      pred_box_conf = 1.0  
+    
+    pred_box_conf = tf.sigmoid(y_pred[..., 4])
+     
         
     pred_box_class = y_pred[..., :categories]
     
@@ -98,14 +97,22 @@ def compute_conf_loss(best_ious, true_box_conf, true_box_conf_iou,pred_box_conf)
 
     return loss_obj 
 
+def compute_conf_mask(best_ious, true_box_conf, true_box_conf_iou, lambdanoobject, lambdaobject):
+    
+    
+    conf_mask = tf.to_float(best_ious < 0.6) * (1 - true_box_conf) * lambdanoobject
+    conf_mask = conf_mask + true_box_conf_iou * lambdanoobject
+
+    return conf_mask
+
 def calc_loss_xywh(true_box_conf, true_box_xy, pred_box_xy, true_box_wh, pred_box_wh):
 
     
-    coord_mask  = K.expand_dims(true_box_conf, axis=-1) * lambdacoord
-    loss_xy      =  K.sum(K.sum(K.square(true_box_xy - pred_box_xy), axis = -1), axis = -1)
-    loss_wh      = K.sum(K.sum(K.square(K.sqrt(true_box_wh) - K.sqrt(pred_box_wh)), axis=-1), axis=-1)
-    loss_xywh = (loss_xy + loss_wh)
-    loss_xywh = lambdacoord * loss_xywh
+    coord_mask  = tf.expand_dims(true_box_conf, axis=-1) * lambdacoord 
+    nb_coord_box = tf.reduce_sum(tf.to_float(coord_mask > 0.0))
+    loss_xy      = tf.reduce_sum(tf.square(true_box_xy-pred_box_xy) * coord_mask) / (nb_coord_box + 1e-6) / 2.
+    loss_wh      = tf.reduce_sum(tf.square(true_box_wh-pred_box_wh) * coord_mask) / (nb_coord_box + 1e-6) / 2.
+    loss_xywh = loss_xy + loss_wh
     return loss_xywh, coord_mask
 
 def calc_loss_class(true_box_conf, true_box_class, pred_box_class, entropy):
@@ -113,17 +120,20 @@ def calc_loss_class(true_box_conf, true_box_class, pred_box_class, entropy):
     
     class_mask   = true_box_conf  * lambdaclass
     
+    nb_class_box = tf.reduce_sum(tf.to_float(class_mask > 0.0))
+    
+    
     if entropy == 'binary':
         loss_class = K.mean(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
     if entropy == 'notbinary':
          
         loss_class   = K.mean(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
-    loss_class   = loss_class * class_mask 
+    loss_class   = tf.reduce_sum(loss_class * class_mask) / (nb_class_box + 1e-6)
 
     return loss_class
 
 
-def yolo_loss_v1(categories, grid_h, grid_w, nboxes, box_vector, entropy):
+def yolo_loss_v0(categories, grid_h, grid_w, nboxes, box_vector, entropy):
     
     def loss(y_true, y_pred):    
 
@@ -162,39 +172,7 @@ def yolo_loss_v1(categories, grid_h, grid_w, nboxes, box_vector, entropy):
     return loss 
 
 
-def yolo_loss_v0(categories, grid_h, grid_w, nboxes, box_vector, entropy):
-    
-    def loss(y_true, y_pred):    
 
-            
-        true_box_class = y_true[...,0:categories]
-        pred_box_class = y_pred[...,0:categories]
-        
-        
-        pred_box_xy = y_pred[...,categories:categories + 2] 
-        
-        true_box_xy = y_true[...,categories:categories + 2] 
-        
-        pred_box_wh = y_pred[...,categories + 2:] 
-        
-        true_box_wh = y_true[...,categories + 2:] 
-
-        loss_xy      = K.sum(K.sum(K.square(true_box_xy - pred_box_xy), axis = -1), axis = -1)
-        loss_wh      = K.sum(K.sum(K.square(K.sqrt(true_box_wh) - K.sqrt(pred_box_wh)), axis=-1), axis=-1)
-        
-        
-        if entropy == 'binary':
-            loss_class = K.mean(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
-        if entropy == 'notbinary':
-            loss_class   = K.mean(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
-
-       
-
-        combinedloss = loss_xy + 5 * loss_class + loss_wh
-            
-        return combinedloss 
-        
-    return loss
 
 def static_yolo_loss(categories, grid_h, grid_w, nboxes, box_vector, entropy):
     
