@@ -160,8 +160,8 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
            if v == maxevent: 
                maxlabel =  k
         
-       print( "Predicted cell:" maxlabel , "Probability:", prediction[i,:,:,maxevent])
-       print('True Cell ', trueevent)
+        print( "Predicted cell:" maxlabel , "Probability:", prediction[i,:,:,maxevent])
+        print('True Cell ', trueevent)
         for b in range(1,boxes - 1):
                 prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] += prediction[i,:,:,len(KeyCategories) + b*len(KeyCord):len(KeyCategories) + (b + 1)*len(KeyCord) ] 
         prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] = prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] / boxes        
