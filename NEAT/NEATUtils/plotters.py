@@ -159,16 +159,18 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
         for (k,v) in KeyCategories.items(): 
            if v == maxevent: 
                maxlabel =  k
+           if v == trueevent:
+               truelabel = k
         
-        print( "Predicted cell:" maxlabel , "Probability:", prediction[i,:,:,maxevent])
-        print('True Cell ', trueevent)
-        for b in range(1,boxes - 1):
+        print( "Predicted cell:", maxlabel , "Probability:", prediction[i,0,0,maxevent])
+        print('True Cell type:', truelabel)
+        for b in range(1,nboxes - 1):
                 prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] += prediction[i,:,:,len(KeyCategories) + b*len(KeyCord):len(KeyCategories) + (b + 1)*len(KeyCord) ] 
-        prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] = prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] / boxes        
+        prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] = prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] / nboxes        
         for (k,v) in KeyCord.items():
             
             print(k, prediction[i,:,:,len(KeyCategories) + v])
-            print('True Number', k, TrueLabel[0,0,len(KeyCategories) + v])
+            print('True positional value', k, Truelabel[0,0,len(KeyCategories) + v])
 
     if plot:
               plt.show()          
