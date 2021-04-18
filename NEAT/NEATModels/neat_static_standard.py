@@ -183,9 +183,13 @@ class NEATStaticDetection(object):
         print(self.Y.shape, self.nboxes)
         self.Trainingmodel = model_keras(input_shape, self.categories, box_vector = self.box_vector ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights)
         
-            
+        if self.yoloV0:
+            yololoss = yolo_loss_v0(self.categories, self.gridX, self.gridY, self.nboxes, self.box_vector, self.entropy)
+        else:
+            yololoss = static_yolo_loss(self.categories, self.gridX, self.gridY, self.nboxes, self.box_vector, self.entropy)
+        
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
-        self.Trainingmodel.compile(optimizer=sgd, loss = yolo_loss_v0(self.categories, self.gridX, self.gridY, self.nboxes, self.box_vector, self.entropy), metrics=['accuracy'])
+        self.Trainingmodel.compile(optimizer=sgd, loss = yololoss, metrics=['accuracy'])
         self.Trainingmodel.summary()
         
         

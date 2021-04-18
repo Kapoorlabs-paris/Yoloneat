@@ -253,8 +253,8 @@ def ImageLabelDataSet(ImageDir, SegImageDir, CSVDir,SaveDir, StaticName, StaticL
                              if CsvName == CSVNameDiff + Name + Eventname:
                                             dataset = pd.read_csv(csvfname)
                                             time = dataset[dataset.keys()[0]][1:]
-                                            x = dataset[dataset.keys()[1]][1:]
-                                            y = dataset[dataset.keys()[2]][1:]     
+                                            y = dataset[dataset.keys()[1]][1:]
+                                            x = dataset[dataset.keys()[2]][1:]     
                                             
                                             #Categories + XYHW + Confidence 
                                             for t in range(1, len(time)):
