@@ -119,7 +119,7 @@ class NEATStaticDetection(object):
         self.axes = axes
         self.Y = self.Y.reshape( (self.Y.shape[0],1,1,self.Y.shape[1]))
         self.Y_val = self.Y_val.reshape( (self.Y_val.shape[0],1,1,self.Y_val.shape[1]))
-          
+        print(self.Y.shape)   
 
               
     def TrainModel(self):

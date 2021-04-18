@@ -68,8 +68,8 @@ def compute_conf_loss(pred_box_wh, true_box_wh, pred_box_xy,true_box_xy,true_box
 def calc_loss_xywh(true_box_conf, true_box_xy, pred_box_xy, true_box_wh, pred_box_wh, y_true_conf):
 
     
-    loss_xy      = K.sum(K.sum(K.square(true_box_xy - pred_box_xy), axis = -1)*y_true_conf, axis = -1)
-    loss_wh      = K.sum(K.sum(K.square(K.sqrt(true_box_wh) - K.sqrt(pred_box_wh)), axis=-1)*y_true_conf, axis=-1)
+    loss_xy      = K.sum(K.sum(K.square(true_box_xy - pred_box_xy), axis = -1), axis = -1)
+    loss_wh      = K.sum(K.sum(K.square(K.sqrt(true_box_wh) - K.sqrt(pred_box_wh)), axis=-1), axis=-1)
     loss_xywh = (loss_xy + loss_wh)
     loss_xywh = lambdacoord * loss_xywh
     return loss_xywh
