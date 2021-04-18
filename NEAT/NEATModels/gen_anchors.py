@@ -92,7 +92,7 @@ def main():
     Csv_path = os.path.join(CSVDir, '*csv')
     filesCsv = glob.glob(Csv_path)
     filesCsv.sort
-    num_anchors = 10
+    num_anchors = 5
 
 
     grid_w = 1

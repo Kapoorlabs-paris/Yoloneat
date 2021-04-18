@@ -23,117 +23,68 @@ def get_cell_grid(grid_h, grid_w, boxes):
     
     return cell_grid
     
-def adjust_scale_prediction(y_pred, cell_grid, anchors,grid_h, grid_w, box_vector, categories, version = 1):
-    
-    
-    nboxes = len(anchors)//2
-    
-    pred_nboxes = K.reshape(y_pred[...,categories:], (-1, grid_h * grid_w, nboxes, box_vector))
-    
-    pred_box_xy = tf.sigmoid(pred_nboxes[..., :2]) + cell_grid
-    
-    pred_box_wh = tf.exp(pred_nboxes[..., 2:4]) * np.reshape(anchors,[1,1,1,boxes,2])
-    
-    
-    pred_box_conf = tf.sigmoid(y_pred[..., 4])
-     
+def extract_ground_pred(y_pred, categories):
+
+        pred_box_class = y_pred[...,0:categories]
         
-    pred_box_class = y_pred[..., :categories]
+        pred_box_xy = y_pred[...,categories:categories + 2] 
+        
+        pred_box_wh = y_pred[...,categories + 2:categories + 4] 
+        
+        pred_box_conf = y_pred[...,categories + 4]
+        
+        return pred_box_class, pred_box_xy, pred_box_wh, pred_box_conf
+
+def extract_ground_truth(y_true, categories):
+
+        true_box_class = y_true[...,0:categories]
+        
+        true_box_xy = y_true[...,categories:categories + 2] 
+        
+        true_box_wh = y_true[...,categories + 2:categories + 4] 
+        
+        true_box_conf = y_true[...,categories + 4] 
+        
+        
+        return true_box_class, true_box_xy, true_box_wh, true_box_conf
+
+
+def compute_conf_loss(pred_box_wh, true_box_wh, pred_box_xy,true_box_xy,true_box_conf,pred_box_conf):
     
-    return pred_box_xy, pred_box_wh, pred_box_conf, pred_box_class
+# compute the intersection of all boxes at once (the IOU)
+        intersect_wh = K.maximum(K.zeros_like(pred_box_wh), (pred_box_wh + true_box_wh)/2 - K.square(pred_box_xy - true_box_xy) )
+        intersect_area = intersect_wh[...,0] * intersect_wh[...,1]
+        true_area = true_box_wh[...,0] * true_box_wh[...,1]
+        pred_area = pred_box_wh[...,0] * pred_box_wh[...,1]
+        union_area = pred_area + true_area - intersect_area
+        iou = tf.truediv(intersect_area , union_area)
 
-def extract_ground_truth(y_true, nboxes, grid_h, grid_w, box_vector, categories, version = 1):
+        loss_conf = K.sum(K.square(true_box_conf*iou - pred_box_conf), axis=-1)
 
-    true_nboxes = K.reshape(y_true[...,categories:], (-1, grid_h * grid_w, nboxes, box_vector))
-    
-    true_box_xy    = true_nboxes[..., 0:2]  
-    true_box_wh    = true_nboxes[..., 2:4] 
-    if version > 1:
-         true_box_conf  = y_true[...,4]
-    else:
-        true_box_conf = 1.0
-    true_box_class = y_true[..., :categories]
+        loss_conf = loss_conf * lambdaobject
 
-    return true_box_xy, true_box_wh, true_box_conf, true_box_class
-    
-def compute_iou(true_xy, true_wh, pred_xy, pred_wh):
+        return loss_conf 
 
-       
-    intersect_wh = K.maximum(K.zeros_like(pred_wh), (pred_wh + true_wh)/2 - K.square(pred_xy - true_xy))
-    intersect_area = intersect_wh[...,0] * intersect_wh[...,1]
-    true_area = true_wh[...,0] * true_wh[...,1]
-    pred_area = pred_wh[...,0] * pred_wh[...,1]
-    union_area = pred_area + true_area - intersect_area
-    iou_scores = tf.truediv(intersect_area , union_area)
-
-    
-    return iou_scores
-
-def compute_boxconf_iou(true_box_conf, true_box_xy, true_box_wh, pred_box_xy, pred_box_wh):
-
-    iou_scores        =  compute_iou(true_box_xy,true_box_wh,
-                                            pred_box_xy,pred_box_wh)
-    true_box_conf_IOU = iou_scores * true_box_conf
-    
-    return true_box_conf_IOU
-
-def compute_best_ious(pred_box_xy, pred_box_wh, true_xy, true_wh):
-
-    
-    
-    iou_scores  =  compute_iou(true_xy,
-                                      true_wh,
-                                      pred_box_xy,
-                                      pred_box_wh)   
-
-    best_ious = K.max(iou_scores, axis= -1)
-    
-    return best_ious
-
-def compute_conf_loss(best_ious, true_box_conf, true_box_conf_iou,pred_box_conf):
-    
-    indicator_noobj = K.cast(best_ious < 0.6, np.float32) * (1 - true_box_conf) * lambdanoobject
-    indicator_obj = true_box_conf * lambdaobject
-    indicator_o = indicator_obj + indicator_noobj
-
-    loss_obj = K.sum(K.square(true_box_conf_iou-pred_box_conf) * indicator_o)#, axis=[1,2,3])
-
-    return loss_obj 
-
-def compute_conf_mask(best_ious, true_box_conf, true_box_conf_iou, lambdanoobject, lambdaobject):
-    
-    
-    conf_mask = tf.to_float(best_ious < 0.6) * (1 - true_box_conf) * lambdanoobject
-    conf_mask = conf_mask + true_box_conf_iou * lambdanoobject
-
-    return conf_mask
-
-def calc_loss_xywh(true_box_conf, true_box_xy, pred_box_xy, true_box_wh, pred_box_wh):
+def calc_loss_xywh(true_box_conf, true_box_xy, pred_box_xy, true_box_wh, pred_box_wh, y_true_conf):
 
     
-    coord_mask  = tf.expand_dims(true_box_conf, axis=-1) * lambdacoord 
-    nb_coord_box = tf.reduce_sum(tf.to_float(coord_mask > 0.0))
-    loss_xy      = tf.reduce_sum(tf.square(true_box_xy-pred_box_xy) * coord_mask) / (nb_coord_box + 1e-6) / 2.
-    loss_wh      = tf.reduce_sum(tf.square(true_box_wh-pred_box_wh) * coord_mask) / (nb_coord_box + 1e-6) / 2.
-    loss_xywh = loss_xy + loss_wh
-    return loss_xywh, coord_mask
+    loss_xy      = K.sum(K.sum(K.square(true_box_xy - pred_box_xy), axis = -1)*y_true_conf, axis = -1)
+    loss_wh      = K.sum(K.sum(K.square(K.sqrt(true_box_wh) - K.sqrt(pred_box_wh)), axis=-1)*y_true_conf, axis=-1)
+    loss_xywh = (loss_xy + loss_wh)
+    loss_xywh = lambdacoord * loss_xywh
+    return loss_xywh
 
-def calc_loss_class(true_box_conf, true_box_class, pred_box_class, entropy):
+def calc_loss_class(true_box_class, pred_box_class, entropy):
 
     
-    class_mask   = true_box_conf  * lambdaclass
-    
-    nb_class_box = tf.reduce_sum(tf.to_float(class_mask > 0.0))
-    
-    
-    if entropy == 'binary':
-        loss_class = K.mean(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
-    if entropy == 'notbinary':
-         
-        loss_class   = K.mean(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
-    loss_class   = tf.reduce_sum(loss_class * class_mask) / (nb_class_box + 1e-6)
+        if entropy == 'binary':
+            loss_class = K.mean(K.binary_crossentropy(true_box_class, pred_box_class), axis=-1)
+        if entropy == 'notbinary':
+            loss_class   = K.mean(K.categorical_crossentropy(true_box_class, pred_box_class), axis=-1)
 
-    return loss_class
+        loss_class   = loss_class * lambdaclass 
+
+        return loss_class
 
 
 def yolo_loss_v0(categories, grid_h, grid_w, nboxes, box_vector, entropy):
@@ -150,9 +101,9 @@ def yolo_loss_v0(categories, grid_h, grid_w, nboxes, box_vector, entropy):
         true_box_xy = y_true[...,categories:categories + 2] 
         
         
-        pred_box_wh = y_pred[...,categories + 2:] 
+        pred_box_wh = y_pred[...,categories + 2:categories + 4] 
         
-        true_box_wh = y_true[...,categories + 2:] 
+        true_box_wh = y_true[...,categories + 2:categories + 4] 
         
 
 
@@ -177,42 +128,23 @@ def yolo_loss_v0(categories, grid_h, grid_w, nboxes, box_vector, entropy):
 
 
 
-def static_yolo_loss(categories, grid_h, grid_w, anchors, box_vector, entropy):
+def static_yolo_loss(categories, grid_h, grid_w, nboxes, box_vector, entropy):
     
     def loss(y_true, y_pred):    
 
-            nboxes = int(len(anchors)/2)
-            # Get the cell grid
-            cell_grid = get_cell_grid(grid_h, grid_w, nboxes)  
-            
-            #Extract the ground truth 
-            true_box_xy, true_box_wh, true_box_conf, true_box_class = extract_ground_truth(y_true, nboxes, grid_h, grid_w, box_vector, categories)
-            
-            #Scale the prediction variables
-            pred_box_xy, pred_box_wh, pred_box_conf, pred_box_class = adjust_scale_prediction(y_pred, cell_grid, anchors,grid_h, grid_w, box_vector, categories)
-        
-            # xyhw loss
-            loss_xywh, coord_mask = calc_loss_xywh(true_box_conf, true_box_xy, pred_box_xy, true_box_wh, pred_box_wh)
-            
-            # class loss
-            loss_class = calc_loss_class(true_box_conf, true_box_class, pred_box_class, entropy)
-            
-            # compute iou
-            true_box_conf_iou = compute_iou(true_box_xy, true_box_wh, pred_box_xy, pred_box_wh)
-            
-            # best ious
-            best_ious = compute_best_ious(pred_box_xy, pred_box_wh, true_box_xy, true_box_wh)
-            
-            #conf loss
-            loss_conf = compute_conf_loss(best_ious, true_box_conf, true_box_conf_iou, pred_box_conf)
-            
-           
+        true_box_class, true_box_xy, true_box_wh, true_box_conf = extract_ground_truth(y_true, categories)
+        pred_box_class, pred_box_xy, pred_box_wh, pred_box_conf = extract_ground_pred(y_pred, categories)
 
-            # Adding it all up   
-            combinedloss = (loss_xywh + loss_conf + loss_class)
-        
+        loss_xywh = calc_loss_xywh(true_box_conf, true_box_xy, pred_box_xy, true_box_wh, pred_box_wh, true_box_conf)
 
-     
-            return combinedloss 
+        loss_class   = calc_loss_class(true_box_class, pred_box_class, entropy)
+
+        loss_conf = compute_conf_loss(pred_box_wh, true_box_wh, pred_box_xy,true_box_xy,true_box_conf,pred_box_conf)
+        # Adding it all up   
+        combinedloss = (loss_xywh + loss_conf + loss_class)
+
+
+
+        return combinedloss 
         
     return loss    
