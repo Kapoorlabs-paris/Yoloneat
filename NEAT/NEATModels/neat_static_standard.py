@@ -186,7 +186,8 @@ class NEATStaticDetection(object):
         if self.yoloV0:
             yololoss = yolo_loss_v0(self.categories, self.gridX, self.gridY, self.nboxes, self.box_vector, self.entropy)
         else:
-            yololoss = static_yolo_loss(self.categories, self.gridX, self.gridY, self.nboxes, self.box_vector, self.entropy)
+            anchors: [0.13,0.15, 0.21,0.21, 0.26,0.31, 0.34,0.29, 0.35,0.41, 0.45,0.36, 0.47,0.50, 0.51,0.80, 0.65,0.58, 0.82,0.83]
+            yololoss = static_yolo_loss(self.categories, self.gridX, self.gridY, anchors, self.box_vector, self.entropy)
         
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
         self.Trainingmodel.compile(optimizer=sgd, loss = yololoss, metrics=['accuracy'])

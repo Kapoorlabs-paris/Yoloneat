@@ -23,7 +23,10 @@ def get_cell_grid(grid_h, grid_w, boxes):
     
     return cell_grid
     
-def adjust_scale_prediction(y_pred, cell_grid, nboxes,grid_h, grid_w, box_vector, categories, version = 1):
+def adjust_scale_prediction(y_pred, cell_grid, anchors,grid_h, grid_w, box_vector, categories, version = 1):
+    
+    
+    nboxes = len(anchors)//2
     
     pred_nboxes = K.reshape(y_pred[...,categories:], (-1, grid_h * grid_w, nboxes, box_vector))
     
@@ -174,11 +177,11 @@ def yolo_loss_v0(categories, grid_h, grid_w, nboxes, box_vector, entropy):
 
 
 
-def static_yolo_loss(categories, grid_h, grid_w, nboxes, box_vector, entropy):
+def static_yolo_loss(categories, grid_h, grid_w, anchors, box_vector, entropy):
     
     def loss(y_true, y_pred):    
 
-            
+            nboxes = int(len(anchors)/2)
             # Get the cell grid
             cell_grid = get_cell_grid(grid_h, grid_w, nboxes)  
             
@@ -186,7 +189,7 @@ def static_yolo_loss(categories, grid_h, grid_w, nboxes, box_vector, entropy):
             true_box_xy, true_box_wh, true_box_conf, true_box_class = extract_ground_truth(y_true, nboxes, grid_h, grid_w, box_vector, categories)
             
             #Scale the prediction variables
-            pred_box_xy, pred_box_wh, pred_box_conf, pred_box_class = adjust_scale_prediction(y_pred, cell_grid, nboxes,grid_h, grid_w, box_vector, categories)
+            pred_box_xy, pred_box_wh, pred_box_conf, pred_box_class = adjust_scale_prediction(y_pred, cell_grid, anchors,grid_h, grid_w, box_vector, categories)
         
             # xyhw loss
             loss_xywh, coord_mask = calc_loss_xywh(true_box_conf, true_box_xy, pred_box_xy, true_box_wh, pred_box_wh)
