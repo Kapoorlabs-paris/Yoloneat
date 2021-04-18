@@ -140,6 +140,10 @@ class NEATStaticDetection(object):
             
             if(self.Y[i,:,:,0] == 1):
                 self.Y[i,:,:,-1] = 0
+        for i in range(0, self.Y_val.shape[0]):
+            
+            if(self.Y_val[i,:,:,0] == 1):
+                self.Y_val[i,:,:,-1] = 0        
         
         d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
         d_class_weights = d_class_weights.reshape(1,d_class_weights.shape[0])
