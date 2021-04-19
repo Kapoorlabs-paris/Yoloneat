@@ -56,19 +56,19 @@ class NEATStaticDetection(object):
     """
     
     
-    def __init__(self, staticconfig, NpzDirectory,KeyCatagories, KeyCord, TrainModelName, ValidationModelName, model_dir, model_name,  show = False, yoloV0 = True ):
+    def __init__(self, staticconfig, model_dir, model_name):
 
-        self.NpzDirectory = NpzDirectory
-        self.TrainModelName = TrainModelName
-        self.ValidationModelName = ValidationModelName
+        self.npz_directory = staticconfig.npz_directory
+        self.npz_name = staticconfig.npz_name
+        self.npz_val_name = staticconfig.npz_val_name
         self.model_dir = model_dir
         self.model_name = model_name
-        self.KeyCatagories = KeyCatagories
+        self.key_catagories = staticconfig.key_catagories
         self.box_vector = staticconfig.box_vector
         self.model_weights = None
-        self.show = show
-        self.KeyCord = KeyCord
-        self.categories = len(KeyCatagories)
+        self.show = staticconfig.show
+        self.KeyCord = staticconfig.key_cord
+        self.categories = len(staticconfig.key_catagories)
         self.depth = staticconfig.depth
         self.start_kernel = staticconfig.start_kernel
         self.mid_kernel = staticconfig.mid_kernel
@@ -83,7 +83,7 @@ class NEATStaticDetection(object):
         self.nboxes = staticconfig.nboxes
         self.gridX = staticconfig.gridX
         self.gridY = staticconfig.gridY
-        self.yoloV0 = yoloV0
+        self.yolo_v0 = staticconfig.yolo_v0
         self.last_activation = None
         self.X = None
         self.Y = None
