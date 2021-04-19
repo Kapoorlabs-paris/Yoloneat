@@ -10,16 +10,16 @@ import random
 class PlotHistory(keras.callbacks.Callback):
     
     
-    def __init__(self, Trainingmodel, X, Y, KeyCatagories, gridX, gridY, plot = False, nboxes = 1):
+    def __init__(self, Trainingmodel, X, Y, key_catagories, gridx, gridy, plot = False, nboxes = 1):
        self.Trainingmodel = Trainingmodel 
        self.X = X
        self.Y = Y
        self.plot = plot
-       self.gridX = gridX
-       self.gridY = gridY
+       self.gridx = gridx
+       self.gridy = gridy
        self.nboxes = nboxes
       
-       self.KeyCatagories = KeyCatagories
+       self.key_catagories = key_catagories
     def on_train_begin(self, logs={}):
         self.i = 0
         self.x = []
@@ -58,17 +58,15 @@ class PlotHistory(keras.callbacks.Callback):
          plt.show()
          #clear_output(True)
         idx = random.randint(1,self.X.shape[0] - 1)
-        Printpredict(idx,self.Trainingmodel, self.X, self.Y, self.KeyCatagories, self.gridX, self.gridY, plot = self.plot, nboxes = self.nboxes)
+        Printpredict(idx,self.Trainingmodel, self.X, self.Y, self.key_catagories, self.gridx, self.gridy, plot = self.plot, nboxes = self.nboxes)
         
-def Printpredict(idx, model, data, Truelabel, KeyCatagories, gridX, gridY, plot = False, nboxes = 1):
+def Printpredict(idx, model, data, Truelabel, key_categories,key_cord, gridx, gridy, plot = False, nboxes = 1):
 
     
     Image = data[idx]
     Truelabel = Truelabel[idx]
     data = np.expand_dims(Image, 0)
     prediction = model.predict(data)
-    prediction = model.predict(data)
-   
     cols = 5
     
     if plot:  
@@ -81,9 +79,25 @@ def Printpredict(idx, model, data, Truelabel, KeyCatagories, gridX, gridY, plot 
             img = Image[j,:,:,0]
             if plot:
               ax[j].imshow(img, cm.Spectral)
-    print('Prediction :', prediction[0,:,:,0:len(KeyCategories) + len(KeyCord) ]) 
+    for i in range(0, prediction.shape[0]):
+        maxevent = np.argmax(prediction[i,:,:,:len(key_categories)], axis = -1)
+        trueevent = np.argmax(Truelabel[0,0,:len(key_categories)], axis = -1)
+        for (k,v) in key_categories.items(): 
+           if v == maxevent: 
+               maxlabel =  k
+           if v == trueevent:
+               truelabel = k
+        
+        print( "Predicted cell:", maxlabel , "Probability:", prediction[i,0,0,maxevent])
+        print('True Cell type:', truelabel)
+        if nboxes > 1:
+            for b in range(1,nboxes-1):
+                    prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] += prediction[i,:,:,len(key_categories) + b*len(key_cord):len(key_categories) + (b + 1)*len(key_cord) ] 
+            prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] = prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] / (nboxes - 1)        
+        for (k,v) in key_cord.items():
             
-    print('True Label : ', Truelabel)
+            print(k, prediction[i,:,:,len(key_categories) + v])
+            print('True positional value', k, Truelabel[0,0,len(key_categories) + v])
 
     if plot:
               plt.show()     
@@ -92,16 +106,16 @@ def Printpredict(idx, model, data, Truelabel, KeyCatagories, gridX, gridY, plot 
 class PlotStaticHistory(keras.callbacks.Callback):
     
     
-    def __init__(self, Trainingmodel, X, Y, KeyCatagories, KeyCord, gridX, gridY, plot = False, nboxes = 1):
+    def __init__(self, Trainingmodel, X, Y, key_catagories, key_cord, gridx, gridy, plot = False, nboxes = 1):
        self.Trainingmodel = Trainingmodel 
        self.X = X
        self.Y = Y
-       self.gridX = gridX
-       self.gridY = gridY
+       self.gridx = gridx
+       self.gridy = gridy
        self.plot = plot
        self.nboxes = nboxes
-       self.KeyCord = KeyCord
-       self.KeyCatagories = KeyCatagories
+       self.key_cord = key_cord
+       self.key_catagories = key_catagories
     def on_train_begin(self, logs={}):
         self.i = 0
         self.x = []
@@ -139,9 +153,9 @@ class PlotStaticHistory(keras.callbacks.Callback):
          plt.show()
          #clear_output(True)
         idx = random.randint(1,self.X.shape[0] - 1)
-        PrintStaticpredict(idx,self.Trainingmodel, self.X, self.Y, self.KeyCatagories, self.KeyCord, self.gridX, self.gridY, plot = self.plot, nboxes = self.nboxes)
+        PrintStaticpredict(idx,self.Trainingmodel, self.X, self.Y, self.key_catagories, self.key_cord, self.gridx, self.gridy, plot = self.plot, nboxes = self.nboxes)
         
-def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, gridX, gridY, plot = False, nboxes = 1):
+def PrintStaticpredict(idx, model, data, Truelabel, key_categories, key_cord, gridx, gridy, plot = False, nboxes = 1):
 
     Image = data[idx]
     Truelabel = Truelabel[idx]
@@ -154,9 +168,9 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
     if plot:
         plt.imshow(img, cm.Spectral)
     for i in range(0, prediction.shape[0]):
-        maxevent = np.argmax(prediction[i,:,:,:len(KeyCategories)], axis = -1)
-        trueevent = np.argmax(Truelabel[0,0,:len(KeyCategories)], axis = -1)
-        for (k,v) in KeyCategories.items(): 
+        maxevent = np.argmax(prediction[i,:,:,:len(key_categories)], axis = -1)
+        trueevent = np.argmax(Truelabel[0,0,:len(key_categories)], axis = -1)
+        for (k,v) in key_categories.items(): 
            if v == maxevent: 
                maxlabel =  k
            if v == trueevent:
@@ -166,12 +180,12 @@ def PrintStaticpredict(idx, model, data, Truelabel, KeyCategories, KeyCord, grid
         print('True Cell type:', truelabel)
         if nboxes > 1:
             for b in range(1,nboxes-1):
-                    prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] += prediction[i,:,:,len(KeyCategories) + b*len(KeyCord):len(KeyCategories) + (b + 1)*len(KeyCord) ] 
-            prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] = prediction[i,:,:,len(KeyCategories):len(KeyCategories) + len(KeyCord)] / (nboxes - 1)        
-        for (k,v) in KeyCord.items():
+                    prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] += prediction[i,:,:,len(key_categories) + b*len(key_cord):len(key_categories) + (b + 1)*len(key_cord) ] 
+            prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] = prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] / (nboxes - 1)        
+        for (k,v) in key_cord.items():
             
-            print(k, prediction[i,:,:,len(KeyCategories) + v])
-            print('True positional value', k, Truelabel[0,0,len(KeyCategories) + v])
+            print(k, prediction[i,:,:,len(key_categories) + v])
+            print('True positional value', k, Truelabel[0,0,len(key_categories) + v])
 
     if plot:
               plt.show()          

@@ -17,8 +17,9 @@ import argparse
 import numpy as np
 class StaticNeatConfig(argparse.Namespace):
     
-    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True, gridx = 1, gridy = 1, Imagex = 128, Imagey = 128, nboxes = 1,  depth = 29, start_kernel = 3, mid_kernel = 3,startfilter = 32, 
-                 epochs =100, box_vector = 5, learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, multievent = True,  **kwargs):
+    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True, gridx = 1, gridy = 1, Imagex = 128, Imagey = 128, nboxes = 1, 
+                 depth = 29, start_kernel = 3, mid_kernel = 3,startfilter = 32, 
+                 epochs =100,  learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, multievent = True,  **kwargs):
         
 
 
@@ -39,8 +40,8 @@ class StaticNeatConfig(argparse.Namespace):
            self.nboxes = nboxes
            self.epochs = epochs
            self.yolo_v0 = yolo_v0
-           self.categories = len(key_categories)
-           self.box_vector = box_vector
+           self.categories = len(self.key_categories)
+           self.box_vector = len(self.key_cord)
            self.learning_rate = learning_rate
            self.batch_size = batch_size
            self.model_name = model_name

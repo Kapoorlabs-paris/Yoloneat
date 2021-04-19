@@ -78,11 +78,11 @@ class NEATStaticDetection(object):
         self.startfilter = staticconfig.startfilter
         self.batch_size = staticconfig.batch_size
         self.multievent = staticconfig.multievent
-        self.ImageX = staticconfig.ImageX
-        self.ImageY = staticconfig.ImageY
+        self.Imagex = staticconfig.Imagex
+        self.Imagey = staticconfig.Imagey
         self.nboxes = staticconfig.nboxes
-        self.gridX = staticconfig.gridX
-        self.gridY = staticconfig.gridY
+        self.gridx = staticconfig.gridx
+        self.gridy = staticconfig.gridy
         self.yolo_v0 = staticconfig.yolo_v0
         self.last_activation = None
         self.X = None
@@ -94,7 +94,25 @@ class NEATStaticDetection(object):
         self.Xoriginal = None
         self.Xoriginal_val = None
         
+        if self.residual:
+            self.model_keras = nets.resnet_v2
+        else:
+            self.model_keras = nets.seqnet_v2
             
+        if self.multievent == True:
+           self.last_activation = 'sigmoid'
+           self.entropy = 'binary'
+           
+           
+        if self.multievent == False:
+           self.last_activation = 'softmax'              
+           self.entropy = 'notbinary' 
+         
+        if self.yoloV0 == False:
+            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy)
+        else:
+            self.yololoss = yolo_loss_v0(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy)
+       
             
    
         
@@ -130,7 +148,6 @@ class NEATStaticDetection(object):
         Path(self.model_dir).mkdir(exist_ok=True)
         
        
-        Y_rest = self.Y[:,:,:,self.categories:]
         Y_main = self.Y[:,:,:,0:self.categories-1]
  
         y_integers = np.argmax(Y_main, axis = -1)
@@ -147,27 +164,6 @@ class NEATStaticDetection(object):
         
         d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
         d_class_weights = d_class_weights.reshape(1,d_class_weights.shape[0])
-        
-        if self.residual:
-            model_keras = nets.resnet_v2
-        else:
-            model_keras = nets.seqnet_v2
-            
-        if self.multievent == True:
-           self.last_activation = 'sigmoid'
-           self.entropy = 'binary'
-           
-           
-        if self.multievent == False:
-           self.last_activation = 'softmax'              
-           self.entropy = 'notbinary' 
-         
-        if self.yoloV0 == False:
-            yololoss = static_yolo_loss(self.categories, self.gridX, self.gridY, self.nboxes, self.box_vector, self.entropy)
-        else:
-            yololoss = yolo_loss_v0(self.categories, self.gridX, self.gridY, self.nboxes, self.box_vector, self.entropy)
-       
-           
         model_weights = self.model_dir + self.model_name
         if os.path.exists(model_weights):
         
@@ -178,11 +174,9 @@ class NEATStaticDetection(object):
             self.model_weights = None
         
         dummyY = np.zeros([self.Y.shape[0],self.Y.shape[1],self.Y.shape[2],self.categories + self.nboxes* self.box_vector])
-        
         dummyY[:,:,:,:self.Y.shape[3]] = self.Y
         
         dummyY_val = np.zeros([self.Y_val.shape[0],self.Y_val.shape[1],self.Y_val.shape[2],self.categories + self.nboxes* self.box_vector])
-        
         dummyY_val[:,:,:,:self.Y_val.shape[3]] = self.Y_val
         for b in range(1, self.nboxes - 1):
             
@@ -194,12 +188,12 @@ class NEATStaticDetection(object):
         
         print(self.Y.shape, self.nboxes)
         
-        self.Trainingmodel = model_keras(input_shape, self.categories, box_vector = self.box_vector ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights, yoloV0 = self.yoloV0)
+        self.Trainingmodel = self.model_keras(input_shape, self.categories, box_vector = self.box_vector ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights, yolo_v0 = self.yolo_v0)
         
         
         
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
-        self.Trainingmodel.compile(optimizer=sgd, loss = yololoss, metrics=['accuracy'])
+        self.Trainingmodel.compile(optimizer=sgd, loss = self.yololoss, metrics=['accuracy'])
         self.Trainingmodel.summary()
         
         
@@ -207,7 +201,7 @@ class NEATStaticDetection(object):
         lrate = callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4, verbose=1)
         hrate = callbacks.History()
         srate = callbacks.ModelCheckpoint(self.model_dir + self.model_name, monitor='loss', verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1)
-        prate = plotters.PlotStaticHistory(self.Trainingmodel, self.X_val, self.Y_val, self.KeyCatagories, self.KeyCord, self.gridX, self.gridY, plot = self.show, nboxes = self.nboxes)
+        prate = plotters.PlotStaticHistory(self.Trainingmodel, self.X_val, self.Y_val, self.key_catagories, self.key_cord, self.gridx, self.gridy, plot = self.show, nboxes = self.nboxes)
         
         
         #Train the model and save as a h5 file
@@ -223,9 +217,6 @@ class NEATStaticDetection(object):
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
         
-    def plot_prediction(self, idx):
-        
-        helpers.Printpredict(idx, self.Trainingmodel, self.X_val, self.Y_val, self.Categories_Name)
 
     
 
