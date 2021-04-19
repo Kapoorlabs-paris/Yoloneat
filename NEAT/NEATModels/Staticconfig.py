@@ -15,9 +15,9 @@ Created on Tue Jul  7 15:25:10 2020
 """
 import argparse
 import numpy as np
-class StaticNeatConfig(argparse.Namespace):
+class static_config(argparse.Namespace):
     
-    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True, gridx = 1, gridy = 1, Imagex = 128, Imagey = 128, nboxes = 1, 
+    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True, gridx = 1, gridy = 1, imagex = 128, imagey = 128, nboxes = 1, 
                  depth = 29, start_kernel = 3, mid_kernel = 3,startfilter = 32, 
                  epochs =100,  learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, multievent = True,  **kwargs):
         
@@ -35,8 +35,8 @@ class StaticNeatConfig(argparse.Namespace):
            self.startfilter = startfilter
            self.gridx = gridx
            self.gridy = gridy
-           self.Imagex = Imagex
-           self.Imagey = Imagey
+           self.imagex = imagex
+           self.imagey = imagey
            self.nboxes = nboxes
            self.epochs = epochs
            self.yolo_v0 = yolo_v0
@@ -57,17 +57,17 @@ class StaticNeatConfig(argparse.Namespace):
                  'start_kernel' : self.start_kernel,
                  'mid_kernel' : self.mid_kernel,
                  'startfilter' : self.startfilter,
-                 'gridX' : self.gridx,
-                 'gridY' : self.gridy,
-                 'ImageX' : self.Imagex,
-                 'ImageY' : self.Imagey,
+                 'gridx' : self.gridx,
+                 'gridy' : self.gridy,
+                 'imagex' : self.imagex,
+                 'imagey' : self.imagey,
                  'nboxes' : self.nboxes,
                  'epochs' : self.epochs,
                  'categories' : self.categories,
                  'box_vector' : self.box_vector,
                  'learning_rate' : self.learning_rate,
                  'batch_size' : self.batch_size,
-                 'ModelName' : self.ModelName,
+                 'model_name' : self.model_name,
                  'multievent' : self.multievent,
                  'yolo_v0': self.yolo_v0
                  
@@ -75,7 +75,7 @@ class StaticNeatConfig(argparse.Namespace):
          for (k,v) in self.key_categories.items():
              config[k] = v
              
-         for (k,v) in self.key_coord.items():
+         for (k,v) in self.key_cord.items():
              config[k] = v    
          
          
@@ -110,8 +110,8 @@ class StaticNeatConfig(argparse.Namespace):
             ok['nboxes']       = _is_int(self.nboxes, 1)
             ok['gridx'] = _is_int(self.gridx, 1)
             ok['gridy'] = _is_int(self.gridy, 1)
-            ok['Imagex'] = _is_int(self.Imagex, 1)
-            ok['Imagey'] = _is_int(self.Imagey, 1)
+            ok['imagex'] = _is_int(self.imagex, 1)
+            ok['imagey'] = _is_int(self.imagey, 1)
             
             ok['learning_rate'] = np.isscalar(self.learning_rate) and self.learning_rate > 0
             ok['multievent'] = isinstance(self.multievent,bool)

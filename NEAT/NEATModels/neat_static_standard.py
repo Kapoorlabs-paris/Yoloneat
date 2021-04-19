@@ -20,7 +20,7 @@ from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 
 
-class NEATStaticDetection(object):
+class NEATStatic(object):
     
 
     """
