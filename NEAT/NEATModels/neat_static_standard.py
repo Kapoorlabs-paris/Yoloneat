@@ -9,6 +9,7 @@ Created on Sat May 23 15:13:01 2020
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
+from NEATUtils.helpers import save_json, load_json
 from keras import callbacks
 import os
 from NEATModels import nets
@@ -58,6 +59,7 @@ class NEATStatic(object):
     
     def __init__(self, staticconfig, model_dir, model_name):
 
+        self.staticconfig = staticconfig 
         self.npz_directory = staticconfig.npz_directory
         self.npz_name = staticconfig.npz_name
         self.npz_val_name = staticconfig.npz_val_name
@@ -218,7 +220,14 @@ class NEATStatic(object):
         
         
 
-    
+    def predict(self):
+           
+           if self.staticconfig == None:
+               
+               try:
+                   self.staticconfig = load_json(self.model_dir + os.path.splitext(self.model_name)[0] + '_Parameter.json')
+               except:
+                   self.staticconfig = load_json(self.model_dir + self.model_name + '_Parameter.json')
 
     
         

@@ -566,7 +566,7 @@ def WatershedwithMask(Image, Label,mask, grid):
 Prediction function for whole image/tile, output is Prediction vector for each image patch it passes over
 """    
 
-def Yoloprediction(image,sY, sX, time_prediction, stride, inputtime, KeyCategories, KeyCord, TrainshapeX, TrainshapeY, TimeFrames, nboxes, Mode, EventType):
+def Yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key_categories, nboxes, mode, event_type):
     
                              LocationBoxes = []
                              j = 0
@@ -580,81 +580,92 @@ def Yoloprediction(image,sY, sX, time_prediction, stride, inputtime, KeyCategori
                                       if k > time_prediction.shape[0]:
                                           break;
 
-                                      Classybox, MaxProbLabel = PredictionLoop(j, k, sX, sY, TrainshapeX, TrainshapeY, TimeFrames, stride, time_prediction, KeyCategories, KeyCord, inputtime, Mode, EventType)
+                                      
+                                      Classybox, MaxProbLabel = PredictionLoop(j, k, sx, sy, stride, time_prediction, config, key_categories, inputtime, mode, event_type)
                                       #Append the box and the maximum likelehood detected class
                                       LocationBoxes.append([Classybox, MaxProbLabel])         
                              return LocationBoxes
-                        
-                        
-def PredictionLoop(j, k, sX, sY, TrainshapeX, TrainshapeY, TimeFrames, nboxes, stride, time_prediction, KeyCategories, KeyCord, inputtime, Mode, EventType):
+                         
+                            
+def PredictionLoop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, inputtime, mode, event_type):
 
-                                          TotalClasses = len(KeyCategories) 
+                                          total_classes = len(key_categories) 
                                           y = (k - 1) * stride
                                           x = (j - 1) * stride
                                           prediction_vector = time_prediction[k-1,j-1,:]
                                           
-                                          Xstart = x + sX
-                                          Ystart = y + sY
+                                          xstart = x + sx
+                                          ystart = y + sy
                                           Class = {}
                                           #Compute the probability of each class
-                                          for (EventName,EventLabel) in KeyCategories.items():
+                                          for (event_name,event_label) in key_categories.items():
                                               
-                                              Class[EventName] = prediction_vector[EventLabel]
-                                          Xcentermean = 0
-                                          Ycentermean = 0
-                                          Widthmean = 0
-                                          Heightmean = 0
-                                          Confidencemean = 0
+                                              Class[event_name] = prediction_vector[event_label]
+                                          xcentermean = 0
+                                          ycentermean = 0
+                                          widthmean = 0
+                                          heightmean = 0
+                                          
+                                          
+                                          trainshapex = config['imagex']
+                                          trainshapey = config['imagey']
+                                          
                                           for b in nboxes:
-                                                  Xcenter = Xstart + prediction_vector[TotalClasses + KeyCord['X'] ] * TrainshapeX
-                                                  Ycenter = Ystart + prediction_vector[TotalClasses + KeyCord['Y'] ] * TrainshapeY
-                                                  Height = prediction_vector[TotalClasses + KeyCord['H']] * TrainshapeX  
-                                                  Width = prediction_vector[TotalClasses + KeyCord['W']] * TrainshapeY
-                                                  Confidence = prediction_vector[TotalClasses + KeyCord['Conf']]
-                                                  #Ignore Yolo boxes with lower than 0.5 confidence
-                                                  if Confidence < 0.5:
-                                                       continue
-                                                  Xcentermean = Xcentermean + Xcenter
-                                                  Ycentermean = Ycentermean + Ycenter
-                                                  Heightmean = Heightmean + Height
-                                                  Widthmean = Widthmean + Width
-                                                  Confidencemean = Confidencemean + Confidence
+                                                  xcenter = xstart + prediction_vector[total_classes + config['x'] ] * trainshapex
+                                                  ycenter = ystart + prediction_vector[total_classes + config['y'] ] * trainshapey
+                                                  height = prediction_vector[total_classes + config['h']] * trainshapex  
+                                                  width = prediction_vector[total_classes + config['w']] * trainshapey
+                                                  if config['yolo_v0'] == False:
+                                                           confidence = prediction_vector[total_classes + config['c']]
+                                                  else:
+                                                           confidence = 1         
+                                                           #Ignore Yolo boxes with lower than 0.5 confidence
+                                                  if config['yolo_v0'] == False and confidence < 0.5:
+                                                           continue
+                                                  xcentermean = xcentermean + xcenter
+                                                  ycentermean = ycentermean + ycenter
+                                                  heightmean = heightmean + height
+                                                  widthmean = widthmean + width
                                          
                                           
-                                          Xcentermean = Xcentermean/nboxes
-                                          Ycentermean = Ycentermean/nboxes
-                                          Heightmean = Heightmean/nboxes
-                                          Widthmean = Widthmean/nboxes
-                                          Confidencemean = Confidencemean/nboxes
-                                          MaxProbLabel = np.argmax(prediction_vector[:TotalClasses])
+                                          xcentermean = xcentermean/nboxes
+                                          ycentermean = ycentermean/nboxes
+                                          heightmean = heightmean/nboxes
+                                          widthmean = widthmean/nboxes
+                                          max_prob_label = np.argmax(prediction_vector[:total_classes])
+                                          max_prob_class = prediction_vector[max_prob_label]
                                           
                                           if EventType == 'Dynamic':
                                                   if Mode == 'Detection':
-                                                          RealTimeevent = int(inputtime + prediction_vector[TotalClasses + KeyCord['T']] * TimeFrames)
-                                                          BoxTimeevent = prediction_vector[TotalClasses + KeyCord['T']]    
+                                                          time_frames = config['size_tminus'] + config['size_tplus'] + 1
+                                                          real_time_event = int(inputtime + prediction_vector[total_classes + config['t']] * time_frames)
+                                                          box_time_event = prediction_vector[total_classes + config['t']]    
                                                   if Mode == 'Prediction':
-                                                          RealTimeevent = int(inputtime)
-                                                          BoxTimeevent = int(inputtime)
-                                                  RealAngle = math.pi * (prediction_vector[TotalClasses + KeyCord['Angle']] - 0.5)
-                                                  RawAngle = prediction_vector[TotalClasses + KeyCord['Angle']]
+                                                          real_time_event = int(inputtime)
+                                                          box_time_event = int(inputtime)
+                                                  realangle = math.pi * (prediction_vector[total_classes + config['angle']] - 0.5)
+                                                  rawangle = prediction_vector[total_classes + config['angle']]
                                           
                                           if EventType == 'Static':
-                                                          RealTimeevent = int(inputtime)
-                                                          BoxTimeevent = int(inputtime)
-                                                          RealAngle = 0
-                                                          RawAngle = 0
+                                                          real_time_event = int(inputtime)
+                                                          box_time_event = int(inputtime)
+                                                          realangle = 0
+                                                          rawangle = 0
                                           #Compute the box vectors 
-                                          box = {'Xstart' : Xstart, 'Ystart' : Ystart, 'Xcenter' : Xcenter, 'Ycenter' : Ycenter, 'RealTimeevent' : RealTimeevent, 'BoxTimeevent' : BoxTimeevent,
-                                                 'Height' : Height, 'Width' : Width, 'Confidence' : Confidence, 'RealAngle' : RealAngle, 'RawAngle' : RawAngle}
+                                          box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
+                                                 'height' : heightmean, 'width' : widthmean, 'confidence' : confidence, 'realangle' : realangle, 'rawangle' : rawangle}
                                           
                                           
                                           
-                                          #Make a single dict object containing the class and the box vectors
+                                          #Make a single dict object containing the class and the box vectors return also the max prob label
                                           Classybox = {}
                                           for d in [Class,box]:
                                               Classybox.update(d) 
                                           
-                                          return Classybox, MaxProbLabel
+                                          return Classybox, max_prob_label, max_prob_class
+                                      
+                                        
+                                      
 def draw_labelimages(image, location, time, timelocation ):
 
      cv2.circle(image, location, 2,(255,0,0), thickness = -1 )
