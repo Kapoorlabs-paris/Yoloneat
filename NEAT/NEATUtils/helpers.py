@@ -566,7 +566,7 @@ def WatershedwithMask(Image, Label,mask, grid):
 Prediction function for whole image/tile, output is Prediction vector for each image patch it passes over
 """    
 
-def Yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key_categories, nboxes, mode, event_type):
+def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key_categories, nboxes, mode, event_type):
     
                              LocationBoxes = []
                              j = 0
@@ -587,7 +587,7 @@ def Yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key
                              return LocationBoxes
                          
                             
-def PredictionLoop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, inputtime, mode, event_type):
+def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, inputtime, mode, event_type):
 
                                           total_classes = len(key_categories) 
                                           y = (k - 1) * stride
@@ -634,37 +634,41 @@ def PredictionLoop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           widthmean = widthmean/nboxes
                                           max_prob_label = np.argmax(prediction_vector[:total_classes])
                                           max_prob_class = prediction_vector[max_prob_label]
-                                          
-                                          if EventType == 'dynamic':
-                                                  if Mode == 'detection':
-                                                          time_frames = config['size_tminus'] + config['size_tplus'] + 1
-                                                          real_time_event = int(inputtime + prediction_vector[total_classes + config['t']] * time_frames)
-                                                          box_time_event = prediction_vector[total_classes + config['t']]    
-                                                  if Mode == 'prediction':
-                                                          real_time_event = int(inputtime)
-                                                          box_time_event = int(inputtime)
-                                                  realangle = math.pi * (prediction_vector[total_classes + config['angle']] - 0.5)
-                                                  rawangle = prediction_vector[total_classes + config['angle']]
-                                          
-                                          if EventType == 'static':
-                                                          real_time_event = int(inputtime)
-                                                          box_time_event = int(inputtime)
-                                                          realangle = 0
-                                                          rawangle = 0
-                                          #Compute the box vectors 
-                                          box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
-                                                 'height' : heightmean, 'width' : widthmean, 'confidence' : confidence, 'realangle' : realangle, 'rawangle' : rawangle}
-                                          
-                                          
-                                          
-                                          #Make a single dict object containing the class and the box vectors return also the max prob label
-                                          Classybox = {}
-                                          for d in [Class,box]:
-                                              Classybox.update(d) 
-                                          
-                                          return Classybox, max_prob_label, max_prob_class
+                                          if max_prob_label > 0:
+                                                  if EventType == 'dynamic':
+                                                          if Mode == 'detection':
+                                                                  time_frames = config['size_tminus'] + config['size_tplus'] + 1
+                                                                  real_time_event = int(inputtime + prediction_vector[total_classes + config['t']] * time_frames)
+                                                                  box_time_event = prediction_vector[total_classes + config['t']]    
+                                                          if Mode == 'prediction':
+                                                                  real_time_event = int(inputtime)
+                                                                  box_time_event = int(inputtime)
+                                                          realangle = math.pi * (prediction_vector[total_classes + config['angle']] - 0.5)
+                                                          rawangle = prediction_vector[total_classes + config['angle']]
+                                                          #Compute the box vectors 
+                                                          box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
+                                                            'height' : heightmean, 'width' : widthmean, 'confidence' : confidence, 'realangle' : realangle, 'rawangle' : rawangle}
+                                                  
+                                                  if EventType == 'static':
+                                                                  real_time_event = int(inputtime)
+                                                                  box_time_event = int(inputtime)
+                                                                  realangle = 0
+                                                                  rawangle = 0
+                                                                  box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
+                                                            'height' : heightmean, 'width' : widthmean, 'confidence' : confidence}
+                                                  
+                                                  
+                                                  
+                                                  #Make a single dict object containing the class and the box vectors return also the max prob label
+                                                  classybox = {}
+                                                  for d in [Class,box]:
+                                                      classybox.update(d) 
+                                                  
+                                                  return classybox
                                       
-                                        
+                                          else:
+                                            
+                                                  return None
                                       
 def draw_labelimages(image, location, time, timelocation ):
 

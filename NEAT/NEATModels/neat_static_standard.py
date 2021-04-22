@@ -9,7 +9,7 @@ Created on Sat May 23 15:13:01 2020
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, Yoloprediction, normalizeFloatZeroOne
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
 from NEATModels import nets
@@ -270,7 +270,8 @@ class NEATStatic(object):
             self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
             
             
-        EventBoxes = []
+        eventboxes = []
+        classedboxes = {}
         self.image = normalizeFloatZeroOne(self.image,1,99.8)          
         #Break image into tiles if neccessary
         predictions, allx, ally = self.predict_main(self.image)
@@ -280,15 +281,87 @@ class NEATStatic(object):
           sum_time_prediction = predictions[p]
           
           if sum_time_prediction is not None:
-             #For each tile the prediction vector has shape N H W Categories + Trainng Vecotr labels
+             #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
              for i in range(0, sum_time_prediction.shape[0]):
                   time_prediction =  sum_time_prediction[i]
-                  EventBoxes = EventBoxes + Yoloprediction(self.image, ally[p], allx[p], time_prediction, self.stride, self.inputtime, self.staticconfig, self.key_categories, self.nboxes, 'detection', 'static')
+                  boxprediction = yoloprediction(self.image, ally[p], allx[p], time_prediction, self.stride, self.inputtime, self.staticconfig, self.key_categories, self.nboxes, 'detection', 'static')
+                  
+                  if boxprediction is not None:
+                          eventboxes = eventboxes + boxprediction
+                     
+        for (event_name,event_label) in self.key_categories.items(): 
+                 
+                 current_event_box = []
+                 for box in eventboxes:
+            
+                  event_prob = box[event_name]
+                  if event_prob > 0.5:
+                       
+                      current_event_box.append(box)
+                 classedboxes[event_name] = [current_event_box]
+             
+        self.classedboxes = classedboxes    
+        self.eventboxes =  eventboxes  
         
-        self.EventBoxes =  EventBoxes    
+    def bbox_iou(self,box1, box2):
+        intersect_w = self._interval_overlap([box1['xstart'], box1['xstart'] + box1['xcenter']], [box2['xstart'], box2['xstart'] + box2['xcenter']])
+        intersect_h = self._interval_overlap([box1['ystart'], box1['ystart'] + box1['ycenter']], [box2['ystart'], box2['ystart'] + box2['ycenter']])
+
+        intersect = intersect_w * intersect_h
+
+        w1, h1 = box1['width'], box1['height']
+        w2, h2 = box2['width'], box2['height']
+
+        union = w1*h1 + w2*h2 - intersect
+
+        return float(intersect) / union  
+    
+    
+    def _interval_overlap(self,interval_a, interval_b):
+        x1, x2 = interval_a
+        x3, x4 = interval_b
+        if x3 < x1:
+            if x4 < x1:
+                return 0
+            else:
+                return min(x2,x4) - x1
+        else:
+            if x2 < x3:
+                 return 0
+            else:
+                return min(x2,x4) - x3
+        
+    def nms(self):
+        
+        for (event_name,event_label) in self.key_categories.items():
+            
+               current_event_box =  self.classedboxes.event_name
+            
+                if current_event_box is not None:
+                    
+                    if len(current_event_box) == 0 :
+                        
+                        return []
+                    else:
+                        
+                        current_event_box = np.array(current_event_box, dtype = float)
+                        assert current_event_box.shape[0] > 0
+                        if current_event_box.dtype.kind!="f":
+                            current_event_box = current_event_box.astype(np.float16)
+        
+                       idxs = current_event_box[:,event_name].argsort([::-1])
+        
+    def to_csv(self):
+        
+        for (event_name,event_label) in self.key_categories.items():
+                   
+                   
+                       
+                      Class[event_name] = prediction_vector[event_label]
+        
             
           
-    def OverlapTiles(self):
+    def overlaptiles(self):
         
             if self.n_tiles == 1:
                 
@@ -371,7 +444,7 @@ class NEATStatic(object):
         
     def predict_main(self,sliceregion):
             try:
-                self.OverlapTiles()
+                self.overlaptiles()
                 predictions = []
                 allx = []
                 ally = []
