@@ -12,15 +12,17 @@ from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
-from NEATModels import nets
+from NEATModels import nets, Concat
 from NEATModels.loss import static_yolo_loss, yolo_loss_v0
 from keras import backend as K
+import tensorflow as tf
 #from IPython.display import clear_output
 from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 from keras.models import load_model
-
+from tifffile import imread, imwrite
+import csv
 class NEATStatic(object):
     
 
@@ -92,9 +94,9 @@ class NEATStatic(object):
                 
         if self.staticconfig == None:
                
-               try:
+                try:
                    self.staticconfig = load_json(self.model_dir + os.path.splitext(self.model_name)[0] + '_Parameter.json')
-               except:
+                except:
                    self.staticconfig = load_json(self.model_dir + self.model_name + '_Parameter.json')  
                    
                 self.npz_directory = staticconfig['npz_directory']
@@ -259,11 +261,13 @@ class NEATStatic(object):
         
         
 
-    def predict(self, image, n_tiles = (1,1), overlap_percent = 0.8):
+    def predict(self, imagename, n_tiles = (1,1), overlap_percent = 0.8, iou_threshold = 0.01):
         
-        self.image = image
+        self.imagename = imagename
+        self.image = imread(imagename)
         self.n_tiles = n_tiles
         self.overlap_percent = overlap_percent
+        self.iou_threshold = iou_threshold
         try:
             self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
         except:
@@ -291,6 +295,7 @@ class NEATStatic(object):
                      
         for (event_name,event_label) in self.key_categories.items(): 
                  
+            if event_label > 0:
                  current_event_box = []
                  for box in eventboxes:
             
@@ -303,6 +308,10 @@ class NEATStatic(object):
         self.classedboxes = classedboxes    
         self.eventboxes =  eventboxes  
         
+        self.nms()
+        self.to_csv()
+        
+        
     def bbox_iou(self,box1, box2):
         intersect_w = self._interval_overlap([box1['xstart'], box1['xstart'] + box1['xcenter']], [box2['xstart'], box2['xstart'] + box2['xcenter']])
         intersect_h = self._interval_overlap([box1['ystart'], box1['ystart'] + box1['ycenter']], [box2['ystart'], box2['ystart'] + box2['ycenter']])
@@ -314,7 +323,7 @@ class NEATStatic(object):
 
         union = w1*h1 + w2*h2 - intersect
 
-        return float(intersect) / union  
+        return float(np.true_divide(intersect, union))
     
     
     def _interval_overlap(self,interval_a, interval_b):
@@ -333,32 +342,80 @@ class NEATStatic(object):
         
     def nms(self):
         
+        
+        iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
-            
+            if event_label > 0:
                current_event_box =  self.classedboxes.event_name
-            
-                if current_event_box is not None:
+               iou_current_event_box = []
+               if current_event_box is not None:
                     
                     if len(current_event_box) == 0 :
                         
                         return []
                     else:
                         
+                        index_boxes = []  
                         current_event_box = np.array(current_event_box, dtype = float)
                         assert current_event_box.shape[0] > 0
                         if current_event_box.dtype.kind!="f":
                             current_event_box = current_event_box.astype(np.float16)
         
-                       idxs = current_event_box[:,event_name].argsort([::-1])
+                        idxs = current_event_box[:,event_name].argsort()[::-1]
+                        
+                        for i in range(len(idxs)):
+                            
+                            index_i = idxs[i]
+                            index_boxes.append(index_i)
+                            for j in range(i + 1, len(idxs)):
+                                
+                                index_j = idxs[j]
+                                bbox_iou = self.bbox_iou(current_event_box[index_i], current_event_box[index_j])
+                                if bbox_iou >= self.iou_threshold:
+                                    
+                                    iou_current_event_box.append(current_event_box[index_j])
+                                    
+               iou_classedboxes[event_name] = [iou_current_event_box]
+                                
+        self.iou_classedboxes = iou_classedboxes                
         
     def to_csv(self):
         
         for (event_name,event_label) in self.key_categories.items():
                    
-                   
-                       
-                      Class[event_name] = prediction_vector[event_label]
-        
+                   if event_label > 0:
+                              xlocations = []
+                              ylocations = []
+                              scores = []
+                              confidences = []
+                              tlocations = []   
+                              radiuses = []
+                              
+                              iou_current_event_boxes = self.iou_classedboxes.event_name
+                              
+                              for iou_current_event_box in iou_current_event_boxes:
+                                      xcenter = iou_current_event_box['xcenter']
+                                      ycenter = iou_current_event_box['ycenter']
+                                      tcenter = iou_current_event_box['real_time_event']
+                                      confidence = iou_current_event_box['confidence']
+                                      score = iou_current_event_box['event_name']
+                                      radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                      xlocations.append(xcenter)
+                                      ylocations.append(ycenter)
+                                      scores.append(score)
+                                      confidences.append(confidence)
+                                      tlocations.append(tcenter)
+                                      radiuses.append(radius)
+                              
+                              
+                              event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences]) 
+                              event_data = []
+                              for line in event_count:
+                                 event_data.append(line)
+                                 writer = csv.writer(open(os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])  +".csv", "a"))
+                                 writer.writerows(event_data)
+                                 event_data = []           
+                              
             
           
     def overlaptiles(self):
@@ -408,12 +465,12 @@ class NEATStatic(object):
               colstart = 0
               while colstart < self.image.shape[1] - patchx:
                             pairs.append([rowstart, colstart])
-                            colstart+=jumpX
+                            colstart+=jumpx
               rowstart = 0
               colstart = self.image.shape[1] - patchx
               while rowstart < self.image.shape[0] - patchy:
-                            Pairs.append([rowstart, colstart])
-                            rowstart+=jumpY              
+                            pairs.append([rowstart, colstart])
+                            rowstart+=jumpy              
                             
               if self.image.shape[0] >= self.imagey and self.image.shape[1]>= self.imagex :          
                   
@@ -477,4 +534,55 @@ class NEATStatic(object):
        prediction_vector = self.model.predict(np.expand_dims(predict_im,-1), verbose = 0)
          
             
-       return prediction_vectorStatic 
+       return prediction_vector
+   
+    
+def zero_pad(patch, jumpx, jumpy):
+
+        
+          sizey = patch.shape[0]
+          sizex = patch.shape[1]
+
+          sizexextend = sizex
+          sizeyextend = sizey
+
+
+          while sizexextend%jumpx!=0:
+              sizexextend = sizexextend + 1
+
+          while sizeyextend%jumpy!=0:
+              sizeyextend = sizeyextend + 1
+
+          extendimage = np.zeros([sizeyextend, sizexextend])
+
+          extendimage[0:sizey, 0:sizex] = patch
+
+
+          return extendimage  
+      
+        
+def chunk_list(image, patchshape, stride, pair):
+            rowstart = pair[0]
+            colstart = pair[1]
+
+            endrow = rowstart + patchshape[0]
+            endcol = colstart + patchshape[1]
+
+            if endrow > image.shape[0]:
+                endrow = image.shape[0]
+            if endcol > image.shape[1]:
+                endcol = image.shape[1]
+
+
+            region = (slice(rowstart, endrow),
+                      slice(colstart, endcol))
+
+            # The actual pixels in that region.
+            patch = image[region]
+
+            # Always normalize patch that goes into the netowrk for getting a prediction score 
+            patch = zero_pad(patch, stride, stride)
+
+
+            return patch, rowstart, colstart   
+    
