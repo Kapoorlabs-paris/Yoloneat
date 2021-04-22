@@ -12,6 +12,7 @@ from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
+from tqdm import tqdm
 from NEATModels import nets, Concat
 from NEATModels.loss import static_yolo_loss, yolo_loss_v0
 from keras import backend as K
@@ -261,55 +262,58 @@ class NEATStatic(object):
         
         
 
-    def predict(self, imagename, n_tiles = (1,1), overlap_percent = 0.8, iou_threshold = 0.01):
+    def predict(self, imagename, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
         
         self.imagename = imagename
         self.image = imread(imagename)
         self.n_tiles = n_tiles
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
+        self.event_threshold = event_threshold
         try:
             self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
         except:
             self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
             
+        for inputtime in tqdm(0, self.image.shape[0]):
             
-        eventboxes = []
-        classedboxes = {}
-        self.image = normalizeFloatZeroOne(self.image,1,99.8)          
-        #Break image into tiles if neccessary
-        predictions, allx, ally = self.predict_main(self.image)
-        #Iterate over tiles
-        for p in range(0,len(predictions)):   
-
-          sum_time_prediction = predictions[p]
-          
-          if sum_time_prediction is not None:
-             #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
-             for i in range(0, sum_time_prediction.shape[0]):
-                  time_prediction =  sum_time_prediction[i]
-                  boxprediction = yoloprediction(self.image, ally[p], allx[p], time_prediction, self.stride, self.inputtime, self.staticconfig, self.key_categories, self.nboxes, 'detection', 'static')
-                  
-                  if boxprediction is not None:
-                          eventboxes = eventboxes + boxprediction
+            smallimage = self.image[inputtime,:]
+            eventboxes = []
+            classedboxes = {}
+            smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
+            #Break image into tiles if neccessary
+            predictions, allx, ally = self.predict_main(smallimage)
+            #Iterate over tiles
+            for p in range(0,len(predictions)):   
+    
+              sum_time_prediction = predictions[p]
+              
+              if sum_time_prediction is not None:
+                 #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
+                 for i in range(0, sum_time_prediction.shape[0]):
+                      time_prediction =  sum_time_prediction[i]
+                      boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.nboxes, 'detection', 'static')
+                      
+                      if boxprediction is not None:
+                              eventboxes = eventboxes + boxprediction
+                         
+            for (event_name,event_label) in self.key_categories.items(): 
                      
-        for (event_name,event_label) in self.key_categories.items(): 
+                if event_label > 0:
+                     current_event_box = []
+                     for box in eventboxes:
+                
+                      event_prob = box[event_name]
+                      if event_prob > self.event_threshold:
+                           
+                          current_event_box.append(box)
+                     classedboxes[event_name] = [current_event_box]
                  
-            if event_label > 0:
-                 current_event_box = []
-                 for box in eventboxes:
+            self.classedboxes = classedboxes    
+            self.eventboxes =  eventboxes  
             
-                  event_prob = box[event_name]
-                  if event_prob > 0.5:
-                       
-                      current_event_box.append(box)
-                 classedboxes[event_name] = [current_event_box]
-             
-        self.classedboxes = classedboxes    
-        self.eventboxes =  eventboxes  
-        
-        self.nms()
-        self.to_csv()
+            self.nms()
+            self.to_csv()
         
         
     def bbox_iou(self,box1, box2):
