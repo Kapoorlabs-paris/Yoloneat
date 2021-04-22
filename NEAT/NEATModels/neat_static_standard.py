@@ -59,33 +59,72 @@ class NEATStatic(object):
     
     def __init__(self, staticconfig, model_dir, model_name):
 
+        
+
+        
         self.staticconfig = staticconfig 
-        self.npz_directory = staticconfig.npz_directory
-        self.npz_name = staticconfig.npz_name
-        self.npz_val_name = staticconfig.npz_val_name
+        
+        if self.staticconfig !=None:
+                self.npz_directory = staticconfig.npz_directory
+                self.npz_name = staticconfig.npz_name
+                self.npz_val_name = staticconfig.npz_val_name
+                self.key_catagories = staticconfig.key_catagories
+                self.box_vector = staticconfig.box_vector
+                self.show = staticconfig.show
+                self.KeyCord = staticconfig.key_cord
+                self.categories = len(staticconfig.key_catagories)
+                self.depth = staticconfig.depth
+                self.start_kernel = staticconfig.start_kernel
+                self.mid_kernel = staticconfig.mid_kernel
+                self.learning_rate = staticconfig.learning_rate
+                self.epochs = staticconfig.epochs
+                self.residual = staticconfig.residual
+                self.startfilter = staticconfig.startfilter
+                self.batch_size = staticconfig.batch_size
+                self.multievent = staticconfig.multievent
+                self.imagex = staticconfig.imagex
+                self.imagey = staticconfig.imagey
+                self.nboxes = staticconfig.nboxes
+                self.gridx = staticconfig.gridx
+                self.gridy = staticconfig.gridy
+                self.yolo_v0 = staticconfig.yolo_v0
+                self.stride = staticconfig.stride
+                
+        if self.staticconfig == None:
+               
+               try:
+                   self.staticconfig = load_json(self.model_dir + os.path.splitext(self.model_name)[0] + '_Parameter.json')
+               except:
+                   self.staticconfig = load_json(self.model_dir + self.model_name + '_Parameter.json')  
+                   
+                self.npz_directory = staticconfig['npz_directory']
+                self.npz_name = staticconfig['npz_name']
+                self.npz_val_name = staticconfig['npz_val_name']
+                self.key_catagories = staticconfig['key_catagories']
+                self.box_vector = staticconfig['box_vector']
+                self.show = staticconfig['show']
+                self.KeyCord = staticconfig['key_cord']
+                self.categories = len(staticconfig['key_catagories'])
+                self.depth = staticconfig['depth']
+                self.start_kernel = staticconfig['start_kernel']
+                self.mid_kernel = staticconfig['mid_kernel']
+                self.learning_rate = staticconfig['learning_rate']
+                self.epochs = staticconfig['epochs']
+                self.residual = staticconfig['residual']
+                self.startfilter = staticconfig['startfilter']
+                self.batch_size = staticconfig['batch_size']
+                self.multievent = staticconfig['multievent']
+                self.imagex = staticconfig['imagex']
+                self.imagey = staticconfig['imagey']
+                self.nboxes = staticconfig['nboxes']
+                self.gridx = staticconfig['gridx']
+                self.gridy = staticconfig['gridy']
+                self.yolo_v0 = staticconfig['yolo_v0']
+                self.stride = staticconfig['stride']    
+                
         self.model_dir = model_dir
-        self.model_name = model_name
-        self.key_catagories = staticconfig.key_catagories
-        self.box_vector = staticconfig.box_vector
-        self.model_weights = None
-        self.show = staticconfig.show
-        self.KeyCord = staticconfig.key_cord
-        self.categories = len(staticconfig.key_catagories)
-        self.depth = staticconfig.depth
-        self.start_kernel = staticconfig.start_kernel
-        self.mid_kernel = staticconfig.mid_kernel
-        self.learning_rate = staticconfig.learning_rate
-        self.epochs = staticconfig.epochs
-        self.residual = staticconfig.residual
-        self.startfilter = staticconfig.startfilter
-        self.batch_size = staticconfig.batch_size
-        self.multievent = staticconfig.multievent
-        self.Imagex = staticconfig.Imagex
-        self.Imagey = staticconfig.Imagey
-        self.nboxes = staticconfig.nboxes
-        self.gridx = staticconfig.gridx
-        self.gridy = staticconfig.gridy
-        self.yolo_v0 = staticconfig.yolo_v0
+        self.model_name = model_name        
+        self.model_weights = None        
         self.last_activation = None
         self.X = None
         self.Y = None
@@ -222,12 +261,7 @@ class NEATStatic(object):
 
     def predict(self):
            
-           if self.staticconfig == None:
-               
-               try:
-                   self.staticconfig = load_json(self.model_dir + os.path.splitext(self.model_name)[0] + '_Parameter.json')
-               except:
-                   self.staticconfig = load_json(self.model_dir + self.model_name + '_Parameter.json')
+          
 
-    
+          
         

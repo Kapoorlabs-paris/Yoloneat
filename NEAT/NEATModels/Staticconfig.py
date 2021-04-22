@@ -17,7 +17,7 @@ import argparse
 import numpy as np
 class static_config(argparse.Namespace):
     
-    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True, gridx = 1, gridy = 1, imagex = 128, imagey = 128, nboxes = 1, 
+    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True, stride = 4, gridx = 1, gridy = 1, imagex = 128, imagey = 128, nboxes = 1, 
                  depth = 29, start_kernel = 3, mid_kernel = 3,startfilter = 32, 
                  epochs =100,  learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, multievent = True,  **kwargs):
         
@@ -39,6 +39,7 @@ class static_config(argparse.Namespace):
            self.imagey = imagey
            self.nboxes = nboxes
            self.epochs = epochs
+           self.stride = stride,
            self.yolo_v0 = yolo_v0
            self.categories = len(self.key_categories)
            self.box_vector = len(self.key_cord)
@@ -52,6 +53,10 @@ class static_config(argparse.Namespace):
     def to_json(self):
 
          config = {
+             
+                 'npz_directory' : self.npz_directory,
+                 'npz_name' : self.npz_name,
+                 'npz_val_name' : self.npz_val_name,
                  'residual' : self.residual,
                  'depth' : self.depth,
                  'start_kernel' : self.start_kernel,
@@ -62,6 +67,7 @@ class static_config(argparse.Namespace):
                  'imagex' : self.imagex,
                  'imagey' : self.imagey,
                  'nboxes' : self.nboxes,
+                 'stride' : self.stride,
                  'epochs' : self.epochs,
                  'categories' : self.categories,
                  'box_vector' : self.box_vector,
@@ -100,9 +106,13 @@ class static_config(argparse.Namespace):
               )
 
             ok = {}
+            ok['npz_directory'] = isinstance(self.npz_directory, str)
+            ok['npz_name'] = isinstance(self.npz_name, str)
+            ok['npz_val_name'] = isinstance(self.npz_val_name, str)
             ok['residual'] = isinstance(self.residual,bool)
             ok['yolo_v0'] = isinstance(self.yolo_v0,bool)
             ok['depth']         = _is_int(self.depth,1)
+            ok['stride']         = _is_int(self.stride,1)
             ok['start_kernel']       = _is_int(self.start_kernel,1)
             ok['mid_kernel']         = _is_int(self.mid_kernel,1)
             ok['startfilter']        = _is_int(self.startfilter, 1)
@@ -117,6 +127,8 @@ class static_config(argparse.Namespace):
             ok['multievent'] = isinstance(self.multievent,bool)
             ok['categories'] =  _is_int(len(self.key_categories), 1)
             ok['box_vector'] =  _is_int(self.box_vector, 1)
+            
+            
             if return_invalid:
                 return all(ok.values()), tuple(k for (k,v) in ok.items() if not v)
             else:

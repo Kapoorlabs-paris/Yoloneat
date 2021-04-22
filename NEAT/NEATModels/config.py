@@ -10,8 +10,8 @@ import numpy as np
 
 class NeatConfig(argparse.Namespace):
     
-    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None,  residual = True, imagex = 128, imagey = 128, imaget = 9, nboxes = 1,
-                 depth = 29, start_kernel = 7, mid_kernel = 3, startfilter = 48, lstm = 16, epochs =100, 
+    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None,  residual = True, stride = 4, imagex = 128, imagey = 128, imaget = 9, nboxes = 1,
+                 depth = 29, start_kernel = 3, mid_kernel = 3, startfilter = 48, lstm = 16, epochs =100, 
                  learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, yolo_v1 = False, yolo_v2 = False, multievent = True,  **kwargs):
         
         
@@ -35,6 +35,7 @@ class NeatConfig(argparse.Namespace):
            self.startfilter = startfilter
            self.lstm = lstm
            self.epochs = epochs
+           self.stride = stride
            self.learning_rate = learning_rate
            self.batch_size = batch_size
            self.model_name = model_name
@@ -44,6 +45,9 @@ class NeatConfig(argparse.Namespace):
     def to_json(self):
 
          config = {
+                 'npz_directory' : self.npz_directory,
+                 'npz_name' : self.npz_name,
+                 'npz_val_name' : self.npz_val_name,
                  'model_name' : self.model_name,
                  'residual' : self.residual,
                  'multievent' : self.multievent,
@@ -54,7 +58,10 @@ class NeatConfig(argparse.Namespace):
                  'imagey' : self.imagey,
                  'imaget' : self.imaget,
                  'nboxes' : self.nboxes,
+                 'stride' : self.stride,
                  'depth' : self.depth,
+                 'categories' : self.categories,
+                 'box_vector' : self.box_vector,
                  'start_kernel' : self.start_kernel,
                  'mid_kernel' : self.mid_kernel,
                  'startfilter' : self.startfilter,
@@ -92,11 +99,15 @@ class NeatConfig(argparse.Namespace):
               )
 
             ok = {}
+            ok['npz_directory'] = isinstance(self.npz_directory, str)
+            ok['npz_name'] = isinstance(self.npz_name, str)
+            ok['npz_val_name'] = isinstance(self.npz_val_name, str)
             ok['residual'] = isinstance(self.residual,bool)
             ok['yolo_v0'] = isinstance(self.yolo_v0,bool)
             ok['yolo_v1'] = isinstance(self.yolo_v1,bool)
             ok['yolo_v2'] = isinstance(self.yolo_v2,bool)
             ok['depth']         = _is_int(self.depth,1)
+            ok['stride']         = _is_int(self.stride,1)
             ok['start_kernel']       = _is_int(self.start_kernel,1)
             ok['mid_kernel']         = _is_int(self.mid_kernel,1)
             ok['startfilter']        = _is_int(self.startfilter, 1)
