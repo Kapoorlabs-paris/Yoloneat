@@ -635,18 +635,18 @@ def PredictionLoop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           max_prob_label = np.argmax(prediction_vector[:total_classes])
                                           max_prob_class = prediction_vector[max_prob_label]
                                           
-                                          if EventType == 'Dynamic':
-                                                  if Mode == 'Detection':
+                                          if EventType == 'dynamic':
+                                                  if Mode == 'detection':
                                                           time_frames = config['size_tminus'] + config['size_tplus'] + 1
                                                           real_time_event = int(inputtime + prediction_vector[total_classes + config['t']] * time_frames)
                                                           box_time_event = prediction_vector[total_classes + config['t']]    
-                                                  if Mode == 'Prediction':
+                                                  if Mode == 'prediction':
                                                           real_time_event = int(inputtime)
                                                           box_time_event = int(inputtime)
                                                   realangle = math.pi * (prediction_vector[total_classes + config['angle']] - 0.5)
                                                   rawangle = prediction_vector[total_classes + config['angle']]
                                           
-                                          if EventType == 'Static':
+                                          if EventType == 'static':
                                                           real_time_event = int(inputtime)
                                                           box_time_event = int(inputtime)
                                                           realangle = 0

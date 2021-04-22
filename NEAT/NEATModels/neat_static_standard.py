@@ -9,7 +9,7 @@ Created on Sat May 23 15:13:01 2020
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json
+from NEATUtils.helpers import save_json, load_json, Yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
 from NEATModels import nets
@@ -19,7 +19,7 @@ from keras import backend as K
 from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
-
+from keras.models import load_model
 
 class NEATStatic(object):
     
@@ -121,7 +121,7 @@ class NEATStatic(object):
                 self.gridy = staticconfig['gridy']
                 self.yolo_v0 = staticconfig['yolo_v0']
                 self.stride = staticconfig['stride']    
-                
+        
         self.model_dir = model_dir
         self.model_name = model_name        
         self.model_weights = None        
@@ -259,9 +259,149 @@ class NEATStatic(object):
         
         
 
-    def predict(self):
-           
-          
+    def predict(self, image, n_tiles = (1,1), overlap_percent = 0.8):
+        
+        self.image = image
+        self.n_tiles = n_tiles
+        self.overlap_percent = overlap_percent
+        try:
+            self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
+        except:
+            self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
+            
+            
+        EventBoxes = []
+        self.image = normalizeFloatZeroOne(self.image,1,99.8)          
+        #Break image into tiles if neccessary
+        predictions, allx, ally = self.predict_main(self.image)
+        #Iterate over tiles
+        for p in range(0,len(predictions)):   
 
+          sum_time_prediction = predictions[p]
+          
+          if sum_time_prediction is not None:
+             #For each tile the prediction vector has shape N H W Categories + Trainng Vecotr labels
+             for i in range(0, sum_time_prediction.shape[0]):
+                  time_prediction =  sum_time_prediction[i]
+                  EventBoxes = EventBoxes + Yoloprediction(self.image, ally[p], allx[p], time_prediction, self.stride, self.inputtime, self.staticconfig, self.key_categories, self.nboxes, 'detection', 'static')
+        
+        self.EventBoxes =  EventBoxes    
+            
+          
+    def OverlapTiles(self):
+        
+            if self.n_tiles == 1:
+                
+                       patchshape = (self.image.shape[0], self.image.shape[1])  
+                      
+                       image = zero_pad(self.image, self.stride,self.stride)
+        
+                       patch = []
+                       rowout = []
+                       column = []
+                       
+                       patch.append(image)
+                       rowout.append(0)
+                       column.append(0)
+                     
+            else:
+                  
+             patchx = self.image.shape[1] // self.n_tiles
+             patchy = self.image.shape[0] // self.n_tiles
+        
+             if patchx > self.imagex and patchy > self.imagey:
+              if self.overlap_percent > 1 or self.overlap_percent < 0:
+                 self.overlap_percent = 0.8
+             
+              jumpx = int(self.overlap_percent * patchx)
+              jumpy = int(self.overlap_percent * patchy)
+             
+              patchshape = (patchy, patchx)   
+              rowstart = 0; colstart = 0
+              pairs = []  
+              #row is y, col is x
+              
+              while rowstart < self.image.shape[0] - patchy:
+                 colstart = 0
+                 while colstart < self.image.shape[1] - patchx:
+                    
+                     # Start iterating over the tile with jumps = stride of the fully convolutional network.
+                     pairs.append([rowstart, colstart])
+                     colstart+=jumpx
+                 rowstart+=jumpy 
+                
+              #Include the last patch   
+              rowstart = self.image.shape[0] - patchy
+              colstart = 0
+              while colstart < self.image.shape[1] - patchx:
+                            pairs.append([rowstart, colstart])
+                            colstart+=jumpX
+              rowstart = 0
+              colstart = self.image.shape[1] - patchx
+              while rowstart < self.image.shape[0] - patchy:
+                            Pairs.append([rowstart, colstart])
+                            rowstart+=jumpY              
+                            
+              if self.image.shape[0] >= self.imagey and self.image.shape[1]>= self.imagex :          
+                  
+                    patch = []
+                    rowout = []
+                    column = []
+                    for pair in pairs: 
+                       smallpatch, smallrowout, smallcolumn =  chunk_list(self.image, patchshape, self.stride, pair)
+                       patch.append(smallpatch)
+                       rowout.append(smallrowout)
+                       column.append(smallcolumn) 
+                
+             else:
+                 
+                       patch = []
+                       rowout = []
+                       column = []
+                       image = zero_pad(self.image, self.stride,self.stride)
+                       
+                       patch.append(image)
+                       rowout.append(0)
+                       column.append(0)
+                       
+            self.patch = patch          
+            self.sy = rowout
+            self.sx = column            
           
         
+    def predict_main(self,sliceregion):
+            try:
+                self.OverlapTiles()
+                predictions = []
+                allx = []
+                ally = []
+                for i in range(0,len(self.patch)):   
+                   
+                   sum_time_prediction = self.make_patches(self.patch[i])
+
+                   predictions.append(sum_time_prediction)
+                   allx.append(self.sx[i])
+                   ally.append(self.sy[i])
+           
+            except tf.errors.ResourceExhaustedError:
+                
+                print('Out of memory, increasing overlapping tiles for prediction')
+                
+                self.n_tiles = self.n_tiles  + 1
+                
+                print('Tiles: ', self.n_tiles)
+                
+                self.predict_main(sliceregion)
+                
+            return predictions, allx, ally
+        
+    def make_patches(self, sliceregion):
+       
+       
+       predict_im = np.expand_dims(sliceregion,0)
+       
+       
+       prediction_vector = self.model.predict(np.expand_dims(predict_im,-1), verbose = 0)
+         
+            
+       return prediction_vectorStatic 
