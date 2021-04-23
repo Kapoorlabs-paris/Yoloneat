@@ -4,7 +4,8 @@ from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
-from NEATModels import nets
+from NEATModels import nets, Concat
+from NEATModels.loss import dynamic_yolo_loss
 from keras import backend as K
 #from IPython.display import clear_output
 from keras import optimizers
@@ -79,6 +80,7 @@ class NEATDetection(object):
                 self.nboxes = config.nboxes
                 self.gridx = config.gridx
                 self.gridy = config.gridy
+                self.gridt = config.gridt
                 self.yolo_v0 = config.yolo_v0
                 self.yolo_v1 = config.yolo_v1
                 self.yolo_v2 = config.yolo_v2
@@ -115,6 +117,7 @@ class NEATDetection(object):
                 self.nboxes = config['nboxes']
                 self.gridx = config['gridx']
                 self.gridy = config['gridy']
+                self.gridt = config['gridt']
                 self.yolo_v0 = config['yolo_v0']
                 self.yolo_v1 = config['yolo_v1']
                 self.yolo_v2 = config['yolo_v2']
@@ -147,14 +150,14 @@ class NEATDetection(object):
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
         
-        
+        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.grid_t, self.nboxes, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
         
         
     def loadData(self):
         
-        (X,Y),  axes = helpers.load_full_training_data(self.NpzDirectory, self.TrainModelName, verbose= True)
+        (X,Y),  axes = helpers.load_full_training_data(self.npz_directory, self.npz_name, verbose= True)
 
-        (X_val,Y_val), axes = helpers.load_full_training_data(self.NpzDirectory, self.ValidationModelName,  verbose= True)
+        (X_val,Y_val), axes = helpers.load_full_training_data(self.npz_directory, self.npz_val_name,  verbose= True)
         
         
         self.Xoriginal = X
@@ -192,21 +195,13 @@ class NEATDetection(object):
         d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
         d_class_weights = d_class_weights.reshape(1,d_class_weights.shape[0])
         
-         
-        self.Trainingmodel = model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
+        self.Trainingmodel = self.model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, lstm_kernel = self.lstm_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
         
             
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
-        if self.simple == False:
-          self.Trainingmodel.compile(optimizer=sgd, loss=mid_yolo_loss(Ncat = self.categories), metrics=['accuracy'])
-        if self.simple == True and self.catsimple == False:
-          self.Trainingmodel.compile(optimizer=sgd, loss=simple_yolo_loss(Ncat = self.categories), metrics=['accuracy'])  
-        if self.simple == False and self.catsimple == True:
-          self.Trainingmodel.compile(optimizer=sgd, loss=cat_simple_yolo_loss(Ncat = self.categories), metrics=['accuracy'])    
-
+        self.Trainingmodel.compile(optimizer=sgd, loss = self.yololoss, metrics=['accuracy'])
         
         self.Trainingmodel.summary()
-        print('Training Model:', model_keras)
         
         #Keras callbacks
         lrate = callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4, verbose=1)
@@ -227,90 +222,4 @@ class NEATDetection(object):
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
         
-    def plot_prediction(self, idx):
-        
-        helpers.Printpredict(idx, self.Trainingmodel, self.X_val, self.Y_val, self.Categories_Name)
-
-    
-def yolo_loss(Ncat):
-
-    def loss(y_true, y_pred):
-        
-       
-        y_true_class = y_true[...,0:Ncat]
-        y_pred_class = y_pred[...,0:Ncat]
-        
-        
-        y_pred_xyt = y_pred[...,Ncat:] 
-        
-        y_true_xyt = y_true[...,Ncat:] 
-        
-        
-        class_loss = K.mean(K.categorical_crossentropy(y_true_class, y_pred_class), axis=-1)
-        xy_loss = K.sum(K.sum(K.square(y_true_xyt - y_pred_xyt), axis = -1), axis = -1)
-        
-      
-
-        d =  class_loss + xy_loss
-        return d 
-    return loss
- 
-def simple_yolo_loss(Ncat):
-
-    def loss(y_true, y_pred):
-        
-       
-        y_true_class = y_true[...,0:Ncat]
-        y_pred_class = y_pred[...,0:Ncat]
-        
-        
-        class_loss = K.mean(K.binary_crossentropy(y_true_class, y_pred_class), axis=-1)
-      
-
-        d =  class_loss 
-        return d 
-    return loss       
-      
-def cat_simple_yolo_loss(Ncat):
-
-    def loss(y_true, y_pred):
-         
-
-           y_true_class = y_true[...,0:Ncat]
-           y_pred_class = y_pred[...,0:Ncat]
-
-           class_loss = K.mean(K.categorical_crossentropy(y_true_class, y_pred_class), axis = -1)
-
-           d = class_loss
-           return d
-    return loss   
-
-def mid_yolo_loss(Ncat):
-    
-    def loss(y_true, y_pred):
-        
-       
-        y_true_class = y_true[...,0:Ncat]
-        y_pred_class = y_pred[...,0:Ncat]
-        
-        
-        y_pred_xyt = y_pred[...,Ncat:Ncat + 3] 
-        
-        y_true_xyt = y_true[...,Ncat:Ncat + 3] 
-        
-        y_pred_hw = y_pred[...,Ncat + 3:]
-        
-        y_true_hw = y_true[...,Ncat + 3:]
-        
-        
-        class_loss = K.mean(K.categorical_crossentropy(y_true_class, y_pred_class), axis=-1)
-        xy_loss = K.sum(K.sum(K.square(y_true_xyt - y_pred_xyt), axis = -1), axis = -1)
-        hw_loss =     K.sum(K.sum(K.square(K.sqrt(y_true_hw) - K.sqrt(y_pred_hw)), axis = -1))
-      
-
-        d =  class_loss + 2 * xy_loss + hw_loss
-        
-        return d 
-    return loss
-    
-        
+   

@@ -152,7 +152,7 @@ class NEATStatic(object):
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
          
-           self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy, self.yolo_v0)
+        self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy, self.yolo_v0)
        
             
    
@@ -160,9 +160,9 @@ class NEATStatic(object):
 
     def loadData(self):
         
-        (X,Y),  axes = helpers.load_full_training_data(self.NpzDirectory, self.TrainModelName, verbose= True)
+        (X,Y),  axes = helpers.load_full_training_data(self.npz_directory, self.npz_name, verbose= True)
 
-        (X_val,Y_val), axes = helpers.load_full_training_data(self.NpzDirectory, self.ValidationModelName,  verbose= True)
+        (X_val,Y_val), axes = helpers.load_full_training_data(self.npz_directory, self.npz_val_name,  verbose= True)
         
         
         self.Xoriginal = X
@@ -228,7 +228,7 @@ class NEATStatic(object):
         
         print(self.Y.shape, self.nboxes)
         
-        self.Trainingmodel = self.model_keras(input_shape, self.categories, box_vector = self.box_vector ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights, yolo_v0 = self.yolo_v0)
+        self.Trainingmodel = self.model_keras(input_shape, self.categories, box_vector = self.box_vector ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights)
         
         
         

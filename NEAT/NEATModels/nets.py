@@ -340,8 +340,7 @@ def ThreeDresnet_v2(input_shape, categories,unit, box_vector,depth = 29, start_k
     block = Concat(-1)
     outputs = block([output_cat,output_box]) 
     
-    if yoloV0 == False:
-       outputs = Reshape((1, 1, nboxes, box_vector + categories),name="final_output")(outputs)
+ 
     inputs = img_input
    
     # Create model.
@@ -360,7 +359,7 @@ def ThreeDresnet_v2(input_shape, categories,unit, box_vector,depth = 29, start_k
 
 
 
-def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start_kernel = 7, mid_kernel = 3, startfilter = 48,  input_weights = None,last_activation = 'softmax', yoloV0 = True):
+def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 48,  input_weights = None,last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     depth of 29 == max pooling of 28 for image patch of 55
     depth of 56 == max pooling of 14 for image patch of 55
@@ -461,7 +460,7 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
     
 
     
-    x = ConvLSTM2D(filters = unit, kernel_size = (start_kernel, start_kernel),  activation='relu', data_format = 'channels_last', return_sequences = False, padding = "same", name = "newlstmdeep")(branchAdd)
+    x = ConvLSTM2D(filters = unit, kernel_size = (lstm_kernel, lstm_kernel),  activation='relu', data_format = 'channels_last', return_sequences = False, padding = "same", name = "newlstmdeep")(branchAdd)
 
 
 
@@ -493,7 +492,7 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
     return model
 
 
-def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_kernel = 7, mid_kernel = 3, startfilter = 48,  input_weights = None,last_activation = 'softmax', yoloV0 = True):
+def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     depth of 29 == max pooling of 28 for image patch of 55
     depth of 56 == max pooling of 14 for image patch of 55
@@ -710,7 +709,7 @@ def ThreeDresnet_layer(inputs,
 
 
 
-def resnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38,  start_kernel = 7, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax', yoloV0 = True):
+def resnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38,  start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
@@ -824,7 +823,7 @@ def resnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38,  start
         
     return model
   
-def seqnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38, start_kernel = 7, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax', yoloV0 = True):
+def seqnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38, start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
