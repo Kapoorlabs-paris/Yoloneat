@@ -14,7 +14,7 @@ from keras import callbacks
 import os
 from tqdm import tqdm
 from NEATModels import nets, Concat
-from NEATModels.loss import static_yolo_loss, yolo_loss_v0
+from NEATModels.loss import static_yolo_loss
 from keras import backend as K
 import tensorflow as tf
 #from IPython.display import clear_output
@@ -152,10 +152,7 @@ class NEATStatic(object):
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
          
-        if self.yoloV0 == False:
-            self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy)
-        else:
-            self.yololoss = yolo_loss_v0(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy)
+           self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy, self.yolo_v0)
        
             
    
@@ -181,7 +178,6 @@ class NEATStatic(object):
         self.axes = axes
         self.Y = self.Y.reshape( (self.Y.shape[0],1,1,self.Y.shape[1]))
         self.Y_val = self.Y_val.reshape( (self.Y_val.shape[0],1,1,self.Y_val.shape[1]))
-        print(self.Y.shape)   
 
               
     def TrainModel(self):

@@ -67,6 +67,7 @@ class NEATDetection(object):
                 self.depth = config.depth
                 self.start_kernel = config.start_kernel
                 self.mid_kernel = config.mid_kernel
+                self.lstm_kernel = config.lstm_kernel
                 self.learning_rate = config.learning_rate
                 self.epochs = config.epochs
                 self.residual = config.residual
@@ -79,8 +80,10 @@ class NEATDetection(object):
                 self.gridx = config.gridx
                 self.gridy = config.gridy
                 self.yolo_v0 = config.yolo_v0
+                self.yolo_v1 = config.yolo_v1
+                self.yolo_v2 = config.yolo_v2
                 self.stride = config.stride
-                self.lstm_hidden_unit = config.lstm
+                self.lstm_hidden_unit = config.lstm_hidden_unit
         if self.config == None:
                
                 try:
@@ -99,6 +102,8 @@ class NEATDetection(object):
                 self.depth = config['depth']
                 self.start_kernel = config['start_kernel']
                 self.mid_kernel = config['mid_kernel']
+                self.lstm_kernel = config['lstm_kernel']
+                self.lstm_hidden_unit = config['lstm_hidden_unit']
                 self.learning_rate = config['learning_rate']
                 self.epochs = config['epochs']
                 self.residual = config['residual']
@@ -111,7 +116,11 @@ class NEATDetection(object):
                 self.gridx = config['gridx']
                 self.gridy = config['gridy']
                 self.yolo_v0 = config['yolo_v0']
-                self.stride = config['stride']         
+                self.yolo_v1 = config['yolo_v1']
+                self.yolo_v2 = config['yolo_v2']
+                self.stride = config['stride']   
+                
+                
                 
         self.model_dir = model_dir
         self.model_name = model_name 
@@ -123,7 +132,24 @@ class NEATDetection(object):
         self.Trainingmodel = None
         self.Xoriginal = None
         self.Xoriginal_val = None
-        print(self.startfilter)
+        
+        if self.residual:
+            self.model_keras = nets.ORNET
+        else:
+            self.model_keras = nets.OSNET
+            
+        if self.multievent == True:
+           self.last_activation = 'sigmoid'
+           self.entropy = 'binary'
+           
+           
+        if self.multievent == False:
+           self.last_activation = 'softmax'              
+           self.entropy = 'notbinary' 
+        
+        
+        
+        
     def loadData(self):
         
         (X,Y),  axes = helpers.load_full_training_data(self.NpzDirectory, self.TrainModelName, verbose= True)
@@ -166,19 +192,6 @@ class NEATDetection(object):
         d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
         d_class_weights = d_class_weights.reshape(1,d_class_weights.shape[0])
         
-        if self.residual == True and self.simple == False:
-            model_keras = nets.ORNET
-        if self.residual == False and self.simple == False: 
-            model_keras = nets.OSNET
-        if self.residual == True and self.simple == True:
-            model_keras = nets.SimpleORNET
-        if self.residual == False and self.simple == True:
-            model_keras = nets.SimpleOSNET
-        if self.residual == False and self.catsimple == True:
-            model_keras = nets.CatSimpleOSNET
-        if self.residual == True and self.catsimple == True:
-            model_keras = nets.CatSimpleORNET
-            
          
         self.Trainingmodel = model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
         
