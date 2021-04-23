@@ -513,13 +513,15 @@ def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key
                                       
                                       Classybox, MaxProbLabel = predictionloop(j, k, sx, sy, stride, time_prediction, config, key_categories, inputtime, mode, event_type)
                                       #Append the box and the maximum likelehood detected class
-                                      LocationBoxes.append([Classybox, MaxProbLabel])         
+                                      if Classybox['confidence'] > 0.5:
+                                          LocationBoxes.append([Classybox, MaxProbLabel])         
                              return LocationBoxes
                          
                             
-def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, inputtime, mode, event_type):
+def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputtime, mode, event_type):
 
                                           total_classes = len(key_categories) 
+                                          total_coords = len(key_cord)
                                           y = (k - 1) * stride
                                           x = (j - 1) * stride
                                           prediction_vector = time_prediction[k-1,j-1,:]
@@ -533,41 +535,58 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                               Class[event_name] = prediction_vector[event_label]
                                           xcentermean = 0
                                           ycentermean = 0
+                                          tcentermean = 0
                                           widthmean = 0
                                           heightmean = 0
-                                          
-                                          
+                                          anglemean = 0
+                                          angle = 0
+                                          confidencemean = 0
                                           trainshapex = config['imagex']
                                           trainshapey = config['imagey']
                                           
                                           for b in nboxes:
-                                                  xcenter = xstart + prediction_vector[total_classes + config['x'] ] * trainshapex
-                                                  ycenter = ystart + prediction_vector[total_classes + config['y'] ] * trainshapey
-                                                  height = prediction_vector[total_classes + config['h']] * trainshapex  
-                                                  width = prediction_vector[total_classes + config['w']] * trainshapey
-                                                  if config['yolo_v0'] == False:
-                                                           confidence = prediction_vector[total_classes + config['c']]
+                                                  xcenter = xstart + prediction_vector[total_classes + config['x'] + b * total_coords ] * trainshapex
+                                                  ycenter = ystart + prediction_vector[total_classes + config['y'] + b * total_coords ] * trainshapey
+                                                  if event_type == 'dynamic' and mode == 'detection':
+                                                      time_frames = config['size_tminus'] + config['size_tplus'] + 1
+                                                      tcenter = int(inputtime + prediction_vector[total_classes + config['t'] + b * total_coords] * time_frames)
                                                   else:
+                                                      
+                                                      tcenter = int(inputtime)
+                                                  if  event_type == 'dynamic' and mode == 'detection' and config['yolo_v2']:
+                                                          angle = prediction_vector[total_classes + config['angle'] + b * total_coords]
+                                                  height = prediction_vector[total_classes + config['h'] + b * total_coords] * trainshapex  
+                                                  width = prediction_vector[total_classes + config['w'] + b * total_coords] * trainshapey
+                                                  if config['yolo_v0'] == False:
+                                                           confidence = prediction_vector[total_classes + config['c'] + b * total_coords]
+                                                  if config['yolo_v0']:
                                                            confidence = 1         
                                                            #Ignore Yolo boxes with lower than 0.5 confidence
-                                                  if config['yolo_v0'] == False and confidence < 0.5:
+                                                  if confidence < 0.5:
                                                            continue
                                                   xcentermean = xcentermean + xcenter
                                                   ycentermean = ycentermean + ycenter
                                                   heightmean = heightmean + height
                                                   widthmean = widthmean + width
-                                         
-                                          
+                                                  confidencemean = confidencemean + confidence
+                                                  tcentermean = tcentermean + tcenter
+                                                  anglemean = anglemean + angle
+                                                  
                                           xcentermean = xcentermean/nboxes
                                           ycentermean = ycentermean/nboxes
                                           heightmean = heightmean/nboxes
                                           widthmean = widthmean/nboxes
+                                          confidencemean = confidencemean/nboxes
+                                          tcentermean = tcentermean/nboxes
+                                          anglemean = anglemean/nboxes
+                                          
+                                          
                                           max_prob_label = np.argmax(prediction_vector[:total_classes])
                                           max_prob_class = prediction_vector[max_prob_label]
                                           if max_prob_label > 0:
                                                   if event_type == 'dynamic':
                                                           if mode == 'detection':
-                                                                  time_frames = config['size_tminus'] + config['size_tplus'] + 1
+                                                                  
                                                                   real_time_event = int(inputtime + prediction_vector[total_classes + config['t']] * time_frames)
                                                                   box_time_event = prediction_vector[total_classes + config['t']]    
                                                           if mode == 'prediction':
@@ -577,7 +596,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                           rawangle = prediction_vector[total_classes + config['angle']]
                                                           #Compute the box vectors 
                                                           box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
-                                                            'height' : heightmean, 'width' : widthmean, 'confidence' : confidence, 'realangle' : realangle, 'rawangle' : rawangle}
+                                                            'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean, 'realangle' : realangle, 'rawangle' : rawangle}
                                                   
                                                   if event_type == 'static':
                                                                   real_time_event = int(inputtime)
@@ -585,7 +604,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                                   realangle = 0
                                                                   rawangle = 0
                                                                   box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
-                                                            'height' : heightmean, 'width' : widthmean, 'confidence' : confidence}
+                                                            'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean}
                                                   
                                                   
                                                   
