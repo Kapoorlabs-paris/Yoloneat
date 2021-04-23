@@ -1,6 +1,7 @@
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
 from NEATModels import nets
@@ -8,18 +9,10 @@ from keras import backend as K
 #from IPython.display import clear_output
 from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
-try:
-    from pathlib import Path
-    Path().expanduser()
-except (ImportError,AttributeError):
-    from pathlib2 import Path
-
-try:
-    import tempfile
-    tempfile.TemporaryDirectory
-
-except (ImportError,AttributeError):
-    from backports import tempfile
+from pathlib import Path
+from keras.models import load_model
+from tifffile import imread, imwrite
+import csv
 
 
 class NEATDetection(object):
@@ -58,30 +51,70 @@ class NEATDetection(object):
     """
     
     
-    def __init__(self, config, NpzDirectory, TrainModelName, ValidationModelName, Categories_Name, model_dir, model_name, model_weights = None,  show = False ):
+    def __init__(self, config, model_dir, model_name):
 
-        self.NpzDirectory = NpzDirectory
-        self.TrainModelName = TrainModelName
-        self.ValidationModelName = ValidationModelName
+        
+        self.config = config
+        if self.config !=None:
+                self.npz_directory = config.npz_directory
+                self.npz_name = config.npz_name
+                self.npz_val_name = config.npz_val_name
+                self.key_catagories = config.key_catagories
+                self.box_vector = config.box_vector
+                self.show = config.show
+                self.key_cord = config.key_cord
+                self.categories = len(config.key_catagories)
+                self.depth = config.depth
+                self.start_kernel = config.start_kernel
+                self.mid_kernel = config.mid_kernel
+                self.learning_rate = config.learning_rate
+                self.epochs = config.epochs
+                self.residual = config.residual
+                self.startfilter = config.startfilter
+                self.batch_size = config.batch_size
+                self.multievent = config.multievent
+                self.imagex = config.imagex
+                self.imagey = config.imagey
+                self.nboxes = config.nboxes
+                self.gridx = config.gridx
+                self.gridy = config.gridy
+                self.yolo_v0 = config.yolo_v0
+                self.stride = config.stride
+                self.lstm_hidden_unit = config.lstm
+        if self.config == None:
+               
+                try:
+                   self.config = load_json(self.model_dir + os.path.splitext(self.model_name)[0] + '_Parameter.json')
+                except:
+                   self.config = load_json(self.model_dir + self.model_name + '_Parameter.json')  
+                   
+                self.npz_directory = config['npz_directory']
+                self.npz_name = config['npz_name']
+                self.npz_val_name = config['npz_val_name']
+                self.key_catagories = config['key_catagories']
+                self.box_vector = config['box_vector']
+                self.show = config['show']
+                self.KeyCord = config['key_cord']
+                self.categories = len(config['key_catagories'])
+                self.depth = config['depth']
+                self.start_kernel = config['start_kernel']
+                self.mid_kernel = config['mid_kernel']
+                self.learning_rate = config['learning_rate']
+                self.epochs = config['epochs']
+                self.residual = config['residual']
+                self.startfilter = config['startfilter']
+                self.batch_size = config['batch_size']
+                self.multievent = config['multievent']
+                self.imagex = config['imagex']
+                self.imagey = config['imagey']
+                self.nboxes = config['nboxes']
+                self.gridx = config['gridx']
+                self.gridy = config['gridy']
+                self.yolo_v0 = config['yolo_v0']
+                self.stride = config['stride']         
+                
         self.model_dir = model_dir
-        self.model_name = model_name
-        self.Categories_Name = Categories_Name
-        self.model_weights = model_weights
-        self.show = show
-        
-        self.categories = len(Categories_Name)
-        self.depth = config.depth
-        self.lstm_hidden_unit = config.lstm
-        self.start_kernel = config.start_kernel
-        self.mid_kernel = config.mid_kernel
-        self.learning_rate = config.learning_rate
-        self.epochs = config.epochs
-        self.residual = config.residual
-        self.simple = config.simple
-        self.catsimple = config.catsimple
-        self.startfilter = config.startfilter
-        self.batch_size = config.batch_size
-        
+        self.model_name = model_name 
         self.X = None
         self.Y = None
         self.axes = None
