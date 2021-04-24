@@ -533,13 +533,18 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           for (event_name,event_label) in key_categories.items():
                                               
                                               Class[event_name] = prediction_vector[event_label]
+                                              
+                                              
                                           xcentermean = 0
                                           ycentermean = 0
                                           tcentermean = 0
+                                          boxtcentermean = 0
                                           widthmean = 0
                                           heightmean = 0
                                           anglemean = 0
                                           angle = 0
+                                          tcenter = 0
+                                          boxtcenter = 0
                                           confidencemean = 0
                                           trainshapex = config['imagex']
                                           trainshapey = config['imagey']
@@ -547,29 +552,39 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           for b in nboxes:
                                                   xcenter = xstart + prediction_vector[total_classes + config['x'] + b * total_coords ] * trainshapex
                                                   ycenter = ystart + prediction_vector[total_classes + config['y'] + b * total_coords ] * trainshapey
+                                                  height = prediction_vector[total_classes + config['h'] + b * total_coords] * trainshapex  
+                                                  width = prediction_vector[total_classes + config['w'] + b * total_coords] * trainshapey
+                                                  
                                                   if event_type == 'dynamic' and mode == 'detection':
                                                       time_frames = config['size_tminus'] + config['size_tplus'] + 1
                                                       tcenter = int(inputtime + prediction_vector[total_classes + config['t'] + b * total_coords] * time_frames)
-                                                  else:
+                                                      boxtcenter = int(prediction_vector[total_classes + config['t'] + b * total_coords] )
+                                                      if config['yolo_v2']:
+                                                          angle = prediction_vector[total_classes + config['angle'] + b * total_coords]
+                                                          confidence = prediction_vector[total_classes + config['c'] + b * total_coords]    
+                                                      if config['yolo_v1']:
+                                                          angle = 2        
+                                                          confidence = prediction_vector[total_classes + config['c'] + b * total_coords]   
+                                                      if config['yolo_v0']:
+                                                          angle = 2
+                                                          confidence = 1
+                                                          
+                                                      
+                                                  if event_type == 'static':
                                                       
                                                       tcenter = int(inputtime)
-                                                  if  event_type == 'dynamic' and mode == 'detection' and config['yolo_v2']:
-                                                          angle = prediction_vector[total_classes + config['angle'] + b * total_coords]
-                                                  height = prediction_vector[total_classes + config['h'] + b * total_coords] * trainshapex  
-                                                  width = prediction_vector[total_classes + config['w'] + b * total_coords] * trainshapey
-                                                  if config['yolo_v0'] == False:
+                                                      if config['yolo_v0'] == False:
                                                            confidence = prediction_vector[total_classes + config['c'] + b * total_coords]
-                                                  if config['yolo_v0']:
+                                                      if config['yolo_v0']:
                                                            confidence = 1         
-                                                           #Ignore Yolo boxes with lower than 0.5 confidence
-                                                  if confidence < 0.5:
-                                                           continue
+                                                
                                                   xcentermean = xcentermean + xcenter
                                                   ycentermean = ycentermean + ycenter
                                                   heightmean = heightmean + height
                                                   widthmean = widthmean + width
                                                   confidencemean = confidencemean + confidence
                                                   tcentermean = tcentermean + tcenter
+                                                  boxtcentermean = boxtcentermean + boxtcenter
                                                   anglemean = anglemean + angle
                                                   
                                           xcentermean = xcentermean/nboxes
@@ -579,7 +594,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           confidencemean = confidencemean/nboxes
                                           tcentermean = tcentermean/nboxes
                                           anglemean = anglemean/nboxes
-                                          
+                                          boxtcentermean = boxtcentermean/nboxes                                          
                                           
                                           max_prob_label = np.argmax(prediction_vector[:total_classes])
                                           max_prob_class = prediction_vector[max_prob_label]
@@ -587,13 +602,13 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                   if event_type == 'dynamic':
                                                           if mode == 'detection':
                                                                   
-                                                                  real_time_event = int(inputtime + prediction_vector[total_classes + config['t']] * time_frames)
-                                                                  box_time_event = prediction_vector[total_classes + config['t']]    
+                                                                  real_time_event = tcentermean
+                                                                  box_time_event = boxtcentermean   
                                                           if mode == 'prediction':
                                                                   real_time_event = int(inputtime)
                                                                   box_time_event = int(inputtime)
-                                                          realangle = math.pi * (prediction_vector[total_classes + config['angle']] - 0.5)
-                                                          rawangle = prediction_vector[total_classes + config['angle']]
+                                                          realangle = math.pi * (anglemean - 0.5)
+                                                          rawangle = anglemean
                                                           #Compute the box vectors 
                                                           box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
                                                             'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean, 'realangle' : realangle, 'rawangle' : rawangle}

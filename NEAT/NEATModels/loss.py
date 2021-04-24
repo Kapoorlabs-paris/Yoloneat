@@ -92,11 +92,11 @@ def extract_ground_cell_pred(y_pred, categories, grid_h, grid_w, cell_grid, nbox
         
         if yolo_v0:
             
-             pred_box_conf = 1
+                pred_box_conf = 1
          
         else: 
         
-               pred_box_conf = pred_nboxes[...,4]
+                pred_box_conf = pred_nboxes[...,4]
         
         return pred_box_class, pred_box_xy, pred_box_wh, pred_box_conf
 
@@ -112,7 +112,7 @@ def extract_ground_cell_truth(y_truth, categories, grid_h, grid_w, cell_grid, nb
         
         if yolo_v0:
              
-             true_box_conf = 1
+               true_box_conf = 1
          
         else: 
         
@@ -181,7 +181,7 @@ def dynamic_yolo_loss(categories, grid_h, grid_w, grid_t, nboxes, box_vector, en
         if yolo_v0:
                     combinedloss = (loss_xywht + loss_class)
 
-        if yolo_v1 and yolo_v2==False:
+        if yolo_v1:
                     loss_conf = compute_conf_loss(pred_box_wh, true_box_wh, pred_box_xyt,true_box_xyt,true_box_conf,pred_box_conf)
                     # Adding it all up   
                     combinedloss = (loss_xywht + loss_conf + loss_class)
