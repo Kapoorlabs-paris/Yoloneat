@@ -41,7 +41,7 @@ Total categories for cell classification part of vanilla ONEAT are:
 csv file containing time, ylocation, xlocation of that event/cell type
 """    
     
-def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = True):
+def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = True, yolo_v1 = False, yolo_v2 = False):
     
     
             raw_path = os.path.join(image_dir, '*tif')
@@ -93,28 +93,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                                                count = count + 1
                                                 
 
-def CreateTrainingMovies(csv_file, image, segimage, crop_size, total_categories, trainlabel, save_dir, gridX = 1, gridY = 1, offset = 0, defname = "" ):
 
-            Path(save_dir).mkdir(exist_ok=True)
-            name = 1
-            #Check if the csv file exists
-            if os.path.exists(csv_file):
-                    dataset = pd.read_csv(csv_file)
-                    # The csv files contain TYX or TYX + Angle
-                    if len(dataset.keys() >= 3):
-                        
-                        time = dataset[dataset.keys()[0]][1:]
-                        y = dataset[dataset.keys()[1]][1:]
-                        x = dataset[dataset.keys()[2]][1:]
-                        angle = np.full(time.shape, 2)                        
-                    if len(dataset.keys() > 3):
-                        
-                        angle = dataset[dataset.keys()[3]][1:]      
-                    
-                    #Categories + XYTHW + Confidence + Angle
-                    for t in time:
-                       MovieMaker(time[t], y[t], x[t], angle[t], image, segimage, crop_size, gridX, gridY, offset, total_categories, trainlabel, defname + str(name), save_dir)
-                       name = name + 1
                
 
             
@@ -199,7 +178,28 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offs
                                    Event_data.append([Label[i] for i in range(0,len(Label))])
                                    if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
                                                 os.remove(save_dir + '/' + (newname) + ".csv")
-                                   writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
+                                   writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))def CreateTrainingMovies(csv_file, image, segimage, crop_size, total_categories, trainlabel, save_dir, gridX = 1, gridY = 1, offset = 0, defname = "" ):
+
+            Path(save_dir).mkdir(exist_ok=True)
+            name = 1
+            #Check if the csv file exists
+            if os.path.exists(csv_file):
+                    dataset = pd.read_csv(csv_file)
+                    # The csv files contain TYX or TYX + Angle
+                    if len(dataset.keys() >= 3):
+                        
+                        time = dataset[dataset.keys()[0]][1:]
+                        y = dataset[dataset.keys()[1]][1:]
+                        x = dataset[dataset.keys()[2]][1:]
+                        angle = np.full(time.shape, 2)                        
+                    if len(dataset.keys() > 3):
+                        
+                        angle = dataset[dataset.keys()[3]][1:]      
+                    
+                    #Categories + XYTHW + Confidence + Angle
+                    for t in time:
+                       MovieMaker(time[t], y[t], x[t], angle[t], image, segimage, crop_size, gridX, gridY, offset, total_categories, trainlabel, defname + str(name), save_dir)
+                       name = name + 1
                                    writer.writerows(Event_data)
 
        
