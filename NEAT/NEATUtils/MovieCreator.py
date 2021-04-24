@@ -89,7 +89,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                                                 angle = dataset[dataset.keys()[3]][1:]                          
                                             #Categories + XYHW + Confidence 
                                             for t in range(1, len(time)):
-                                               MovieMaker(time[t], y[t], x[t], angle[t], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0)
+                                               MovieMaker(time[t], y[t], x[t], angle[t], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
                                                count = count + 1
                                                 
 
@@ -97,7 +97,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                
 
             
-def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name, save_dir, yolo_v0):
+def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name, save_dir, yolo_v0, yolo_v1, yolo_v2):
     
        sizex, sizey, size_tminus, size_tplus = crop_size
        
@@ -164,12 +164,21 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offs
                         Label[total_categories + 4] = width/imagesizex
                
                           
-                        Label[total_categories + 5] = angle  
-                        if yolo_v0 == False:
+                       
+                        if yolo_v1:
                                 if seg_label > 0:
-                                  Label[total_categories + 6] = 1 
+                                  Label[total_categories + 5] = 1 
                                 else:
-                                  Label[total_categories + 6] = 0   
+                                  Label[total_categories + 5] = 0   
+                                  
+                        if yolo_v2:
+                             
+                             if seg_label > 0:
+                                  Label[total_categories + 5] = 1 
+                             else:
+                                  Label[total_categories + 5] = 0   
+                            
+                             Label[total_categories + 6] = angle        
                       
                         #Write the image as 32 bit tif file 
                         if(crop_image.shape[0] == size_tplus + size_tminus + 1 and crop_image.shape[1]== imagesizey and crop_image.shape[2]== imagesizex):
@@ -178,29 +187,9 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offs
                                    Event_data.append([Label[i] for i in range(0,len(Label))])
                                    if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
                                                 os.remove(save_dir + '/' + (newname) + ".csv")
-                                   writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))def CreateTrainingMovies(csv_file, image, segimage, crop_size, total_categories, trainlabel, save_dir, gridX = 1, gridY = 1, offset = 0, defname = "" ):
-
-            Path(save_dir).mkdir(exist_ok=True)
-            name = 1
-            #Check if the csv file exists
-            if os.path.exists(csv_file):
-                    dataset = pd.read_csv(csv_file)
-                    # The csv files contain TYX or TYX + Angle
-                    if len(dataset.keys() >= 3):
-                        
-                        time = dataset[dataset.keys()[0]][1:]
-                        y = dataset[dataset.keys()[1]][1:]
-                        x = dataset[dataset.keys()[2]][1:]
-                        angle = np.full(time.shape, 2)                        
-                    if len(dataset.keys() > 3):
-                        
-                        angle = dataset[dataset.keys()[3]][1:]      
-                    
-                    #Categories + XYTHW + Confidence + Angle
-                    for t in time:
-                       MovieMaker(time[t], y[t], x[t], angle[t], image, segimage, crop_size, gridX, gridY, offset, total_categories, trainlabel, defname + str(name), save_dir)
-                       name = name + 1
+                                   writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
                                    writer.writerows(Event_data)
+                                   
 
        
    
