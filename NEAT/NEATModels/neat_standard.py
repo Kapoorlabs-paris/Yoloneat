@@ -4,6 +4,8 @@ from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
+import tf
+from tqdm import tqdm
 from NEATModels import nets, Concat
 from NEATModels.loss import dynamic_yolo_loss
 from keras import backend as K
@@ -223,5 +225,329 @@ class NEATDynamic(object):
         
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
+    def predict(self, imagename, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
         
+        self.imagename = imagename
+        self.image = imread(imagename)
+        self.n_tiles = n_tiles
+        self.overlap_percent = overlap_percent
+        self.iou_threshold = iou_threshold
+        self.event_threshold = event_threshold
+        try:
+            self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
+        except:
+            self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
+            
+        for inputtime in tqdm(0, self.image.shape[0]):
+            
+            smallimage = self.image[inputtime,:]
+            eventboxes = []
+            classedboxes = {}
+            smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
+            #Break image into tiles if neccessary
+            predictions, allx, ally = self.predict_main(smallimage)
+            #Iterate over tiles
+            for p in range(0,len(predictions)):   
+    
+              sum_time_prediction = predictions[p]
+              
+              if sum_time_prediction is not None:
+                 #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
+                 for i in range(0, sum_time_prediction.shape[0]):
+                      time_prediction =  sum_time_prediction[i]
+                      boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.nboxes, 'detection', 'static')
+                      
+                      if boxprediction is not None:
+                              eventboxes = eventboxes + boxprediction
+                         
+            for (event_name,event_label) in self.key_categories.items(): 
+                     
+                if event_label > 0:
+                     current_event_box = []
+                     for box in eventboxes:
+                
+                        event_prob = box[event_name]
+                        if event_prob > self.event_threshold:
+                           
+                            current_event_box.append(box)
+                     classedboxes[event_name] = [current_event_box]
+                 
+            self.classedboxes = classedboxes    
+            self.eventboxes =  eventboxes  
+            
+            self.nms()
+            self.to_csv()
+        
+        
+    def bbox_iou(self,box1, box2):
+        intersect_w = self._interval_overlap([box1['xstart'], box1['xstart'] + box1['xcenter']], [box2['xstart'], box2['xstart'] + box2['xcenter']])
+        intersect_h = self._interval_overlap([box1['ystart'], box1['ystart'] + box1['ycenter']], [box2['ystart'], box2['ystart'] + box2['ycenter']])
+
+        intersect = intersect_w * intersect_h
+
+        w1, h1 = box1['width'], box1['height']
+        w2, h2 = box2['width'], box2['height']
+
+        union = w1*h1 + w2*h2 - intersect
+
+        return float(np.true_divide(intersect, union))
+    
+    
+    def _interval_overlap(self,interval_a, interval_b):
+        x1, x2 = interval_a
+        x3, x4 = interval_b
+        if x3 < x1:
+            if x4 < x1:
+                return 0
+            else:
+                return min(x2,x4) - x1
+        else:
+            if x2 < x3:
+                 return 0
+            else:
+                return min(x2,x4) - x3
+        
+    def nms(self):
+        
+        
+        iou_classedboxes = {}
+        for (event_name,event_label) in self.key_categories.items():
+            if event_label > 0:
+               current_event_box =  self.classedboxes.event_name
+               iou_current_event_box = []
+               if current_event_box is not None:
+                    
+                    if len(current_event_box) == 0 :
+                        
+                        return []
+                    else:
+                        
+                        index_boxes = []  
+                        current_event_box = np.array(current_event_box, dtype = float)
+                        assert current_event_box.shape[0] > 0
+                        if current_event_box.dtype.kind!="f":
+                            current_event_box = current_event_box.astype(np.float16)
+        
+                        idxs = current_event_box[:,event_name].argsort()[::-1]
+                        
+                        for i in range(len(idxs)):
+                            
+                            index_i = idxs[i]
+                            index_boxes.append(index_i)
+                            for j in range(i + 1, len(idxs)):
+                                
+                                index_j = idxs[j]
+                                bbox_iou = self.bbox_iou(current_event_box[index_i], current_event_box[index_j])
+                                if bbox_iou >= self.iou_threshold:
+                                    
+                                    iou_current_event_box.append(current_event_box[index_j])
+                                    
+               iou_classedboxes[event_name] = [iou_current_event_box]
+                                
+        self.iou_classedboxes = iou_classedboxes                
+        
+    def to_csv(self):
+        
+        for (event_name,event_label) in self.key_categories.items():
+                   
+                   if event_label > 0:
+                              xlocations = []
+                              ylocations = []
+                              scores = []
+                              confidences = []
+                              tlocations = []   
+                              radiuses = []
+                              
+                              iou_current_event_boxes = self.iou_classedboxes.event_name
+                              
+                              for iou_current_event_box in iou_current_event_boxes:
+                                      xcenter = iou_current_event_box['xcenter']
+                                      ycenter = iou_current_event_box['ycenter']
+                                      tcenter = iou_current_event_box['real_time_event']
+                                      confidence = iou_current_event_box['confidence']
+                                      score = iou_current_event_box['event_name']
+                                      radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                      xlocations.append(xcenter)
+                                      ylocations.append(ycenter)
+                                      scores.append(score)
+                                      confidences.append(confidence)
+                                      tlocations.append(tcenter)
+                                      radiuses.append(radius)
+                              
+                              
+                              event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences]) 
+                              event_data = []
+                              for line in event_count:
+                                 event_data.append(line)
+                                 writer = csv.writer(open(os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])  +".csv", "a"))
+                                 writer.writerows(event_data)
+                                 event_data = []           
+                              
+            
+          
+    def overlaptiles(self):
+        
+            if self.n_tiles == 1:
+                
+                       patchshape = (self.image.shape[0], self.image.shape[1])  
+                      
+                       image = zero_pad(self.image, self.stride,self.stride)
+        
+                       patch = []
+                       rowout = []
+                       column = []
+                       
+                       patch.append(image)
+                       rowout.append(0)
+                       column.append(0)
+                     
+            else:
+                  
+             patchx = self.image.shape[1] // self.n_tiles
+             patchy = self.image.shape[0] // self.n_tiles
+        
+             if patchx > self.imagex and patchy > self.imagey:
+              if self.overlap_percent > 1 or self.overlap_percent < 0:
+                 self.overlap_percent = 0.8
+             
+              jumpx = int(self.overlap_percent * patchx)
+              jumpy = int(self.overlap_percent * patchy)
+             
+              patchshape = (patchy, patchx)   
+              rowstart = 0; colstart = 0
+              pairs = []  
+              #row is y, col is x
+              
+              while rowstart < self.image.shape[0] - patchy:
+                 colstart = 0
+                 while colstart < self.image.shape[1] - patchx:
+                    
+                     # Start iterating over the tile with jumps = stride of the fully convolutional network.
+                     pairs.append([rowstart, colstart])
+                     colstart+=jumpx
+                 rowstart+=jumpy 
+                
+              #Include the last patch   
+              rowstart = self.image.shape[0] - patchy
+              colstart = 0
+              while colstart < self.image.shape[1] - patchx:
+                            pairs.append([rowstart, colstart])
+                            colstart+=jumpx
+              rowstart = 0
+              colstart = self.image.shape[1] - patchx
+              while rowstart < self.image.shape[0] - patchy:
+                            pairs.append([rowstart, colstart])
+                            rowstart+=jumpy              
+                            
+              if self.image.shape[0] >= self.imagey and self.image.shape[1]>= self.imagex :          
+                  
+                    patch = []
+                    rowout = []
+                    column = []
+                    for pair in pairs: 
+                       smallpatch, smallrowout, smallcolumn =  chunk_list(self.image, patchshape, self.stride, pair)
+                       patch.append(smallpatch)
+                       rowout.append(smallrowout)
+                       column.append(smallcolumn) 
+                
+             else:
+                 
+                       patch = []
+                       rowout = []
+                       column = []
+                       image = zero_pad(self.image, self.stride,self.stride)
+                       
+                       patch.append(image)
+                       rowout.append(0)
+                       column.append(0)
+                       
+            self.patch = patch          
+            self.sy = rowout
+            self.sx = column            
+          
+        
+    def predict_main(self,sliceregion):
+            try:
+                self.overlaptiles()
+                predictions = []
+                allx = []
+                ally = []
+                for i in range(0,len(self.patch)):   
+                   
+                   sum_time_prediction = self.make_patches(self.patch[i])
+
+                   predictions.append(sum_time_prediction)
+                   allx.append(self.sx[i])
+                   ally.append(self.sy[i])
+           
+            except tf.errors.ResourceExhaustedError:
+                
+                print('Out of memory, increasing overlapping tiles for prediction')
+                
+                self.n_tiles = self.n_tiles  + 1
+                
+                print('Tiles: ', self.n_tiles)
+                
+                self.predict_main(sliceregion)
+                
+            return predictions, allx, ally
+        
+    def make_patches(self, sliceregion):
+       
+       
+       predict_im = np.expand_dims(sliceregion,0)
+       
+       
+       prediction_vector = self.model.predict(np.expand_dims(predict_im,-1), verbose = 0)
+         
+            
+       return prediction_vector
+   
+    
+def zero_pad(patch, jumpx, jumpy):
+
+          time = patch.shape[0]
+          sizeY = patch.shape[1]
+          sizeX = patch.shape[2]
+          sizeXextend = sizeX
+          sizeYextend = sizeY
+         
+ 
+          while sizeXextend%jumpx!=0:
+              sizeXextend = sizeXextend + 1
+        
+          while sizeYextend%jumpy!=0:
+              sizeYextend = sizeYextend + 1
+
+          extendimage = np.zeros([time, sizeYextend, sizeXextend])
+          
+          extendimage[0:time, 0:sizeY, 0:sizeX] = patch
+              
+          return extendimage
+      
+        
+def chunk_list(image, patchshape, stride, pair):
+            rowstart = pair[0]
+            colstart = pair[1]
+
+            endrow = rowstart + patchshape[0]
+            endcol = colstart + patchshape[1]
+
+            if endrow > image.shape[1]:
+                endrow = image.shape[1]
+            if endcol > image.shape[2]:
+                endcol = image.shape[2]
+
+
+            region = (slice(rowstart, endrow),
+                      slice(colstart, endcol))
+
+            # The actual pixels in that region.
+            patch = image[region]
+
+            # Always normalize patch that goes into the netowrk for getting a prediction score 
+            patch = zero_pad(patch, stride, stride)
+
+
+            return patch, rowstart, colstart       
    
