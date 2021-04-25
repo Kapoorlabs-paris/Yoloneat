@@ -8,20 +8,20 @@ Created on Sun Apr 25 13:32:04 2021
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne
+from NEATUtils.helpers import  load_json, yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
 import tf
-from tqdm import tqdm
+
 from NEATModels import nets, Concat
 from NEATModels.loss import dynamic_yolo_loss
-from keras import backend as K
+
 #from IPython.display import clear_output
 from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 from keras.models import load_model
-from tifffile import imread, imwrite
+from tifffile import imread
 import csv
 from natsort import natsorted
 import glob
@@ -300,7 +300,6 @@ class NEATPredict(object):
                                                       sum_time_prediction = predictions[p]
                                                       
                                                       if sum_time_prediction is not None:
-                                                         #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
                                                          for i in range(0, sum_time_prediction.shape[0]):
                                                               time_prediction =  sum_time_prediction[i]
                                                               
