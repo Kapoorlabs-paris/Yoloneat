@@ -17,7 +17,7 @@ import argparse
 import numpy as np
 class static_config(argparse.Namespace):
     
-    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True, stride = 4, gridx = 1, gridy = 1, imagex = 128, imagey = 128, nboxes = 1, 
+    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True, stride = 4, gridx = 1, gridy = 1, nboxes = 1, 
                  depth = 29, start_kernel = 3, mid_kernel = 3,startfilter = 32, 
                  epochs =100,  learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, multievent = True,  **kwargs):
         
@@ -35,8 +35,6 @@ class static_config(argparse.Namespace):
            self.startfilter = startfilter
            self.gridx = gridx
            self.gridy = gridy
-           self.imagex = imagex
-           self.imagey = imagey
            self.nboxes = nboxes
            self.epochs = epochs
            self.stride = stride,
@@ -64,8 +62,6 @@ class static_config(argparse.Namespace):
                  'startfilter' : self.startfilter,
                  'gridx' : self.gridx,
                  'gridy' : self.gridy,
-                 'imagex' : self.imagex,
-                 'imagey' : self.imagey,
                  'nboxes' : self.nboxes,
                  'stride' : self.stride,
                  'epochs' : self.epochs,
@@ -120,8 +116,6 @@ class static_config(argparse.Namespace):
             ok['nboxes']       = _is_int(self.nboxes, 1)
             ok['gridx'] = _is_int(self.gridx, 1)
             ok['gridy'] = _is_int(self.gridy, 1)
-            ok['imagex'] = _is_int(self.imagex, 1)
-            ok['imagey'] = _is_int(self.imagey, 1)
             
             ok['learning_rate'] = np.isscalar(self.learning_rate) and self.learning_rate > 0
             ok['multievent'] = isinstance(self.multievent,bool)

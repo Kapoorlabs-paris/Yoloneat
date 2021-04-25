@@ -8,10 +8,10 @@ Created on Tue Jul  7 15:25:10 2020
 import argparse
 import numpy as np
 
-class NeatConfig(argparse.Namespace):
+class dynamic_config(argparse.Namespace):
     
-    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None,  residual = True, stride = 4, imagex = 128, imagey = 128, imaget = 9, nboxes = 1,
-                 depth = 29, start_kernel = 3, mid_kernel = 3, startfilter = 48, lstm = 16, epochs =100, 
+    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None,  residual = True, stride = 4,  nboxes = 1,
+                 depth = 29, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 48, lstm_hidden_unit = 16, epochs =100, 
                  learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, yolo_v1 = False, yolo_v2 = False, multievent = True,  **kwargs):
         
         
@@ -26,14 +26,12 @@ class NeatConfig(argparse.Namespace):
            self.yolo_v2 = yolo_v2
            self.categories = len(self.key_categories)
            self.box_vector = len(self.key_cord)
-           self.imagex = imagex
-           self.imagey = imagey
-           self.imaget = imaget
            self.depth = depth
            self.start_kernel = start_kernel
            self.mid_kernel = mid_kernel
+           self.lstm_kernel = lstm_kernel
            self.startfilter = startfilter
-           self.lstm = lstm
+           self.lstm_hidden_unit = lstm_hidden_unit
            self.epochs = epochs
            self.stride = stride
            self.learning_rate = learning_rate
@@ -54,18 +52,16 @@ class NeatConfig(argparse.Namespace):
                  'yolo_v0': self.yolo_v0,
                  'yolo_v1': self.yolo_v1,
                  'yolo_v2': self.yolo_v2,
-                 'imagex' : self.imagex,
-                 'imagey' : self.imagey,
-                 'imaget' : self.imaget,
                  'nboxes' : self.nboxes,
                  'stride' : self.stride,
                  'depth' : self.depth,
                  'categories' : self.categories,
                  'box_vector' : self.box_vector,
                  'start_kernel' : self.start_kernel,
+                 'lstm_kernel' : self.lstm_kernel,
                  'mid_kernel' : self.mid_kernel,
                  'startfilter' : self.startfilter,
-                 'lstm' : self.lstm,
+                 'lstm_hidden_unit' : self.lstm_hidden_unit,
                  'epochs' : self.epochs,
                  'learning_rate' : self.learning_rate,
                  'batch_size' : self.batch_size
@@ -110,14 +106,12 @@ class NeatConfig(argparse.Namespace):
             ok['stride']         = _is_int(self.stride,1)
             ok['start_kernel']       = _is_int(self.start_kernel,1)
             ok['mid_kernel']         = _is_int(self.mid_kernel,1)
+            ok['lstm_kernel']         = _is_int(self.lstm_kernel,1)
             ok['startfilter']        = _is_int(self.startfilter, 1)
-            ok['lstm']         = _is_int(self.lstm,1)
+            ok['lstm_hidden_unit']         = _is_int(self.lstm_hidden_unit,1)
             ok['epochs']        = _is_int(self.epochs, 1)
             ok['nboxes']       = _is_int(self.nboxes, 1)
             
-            ok['imagex'] = _is_int(self.imagex, 1)
-            ok['imagey'] = _is_int(self.imagey, 1)
-            ok['imaget'] = _is_int(self.imaget, 1)
             
             ok['learning_rate'] = np.isscalar(self.learning_rate) and self.learning_rate > 0
             ok['multievent'] = isinstance(self.multievent,bool)

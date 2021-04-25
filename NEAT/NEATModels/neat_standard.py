@@ -16,7 +16,7 @@ from tifffile import imread, imwrite
 import csv
 
 
-class NEATDetection(object):
+class NEATDynamic(object):
     
 
     """
@@ -77,6 +77,7 @@ class NEATDetection(object):
                 self.multievent = config.multievent
                 self.imagex = config.imagex
                 self.imagey = config.imagey
+                self.imaget = config.size_tminus + config.size_tplus + 1
                 self.nboxes = config.nboxes
                 self.gridx = config.gridx
                 self.gridy = config.gridy
@@ -114,6 +115,7 @@ class NEATDetection(object):
                 self.multievent = config['multievent']
                 self.imagex = config['imagex']
                 self.imagey = config['imagey']
+                self.imaget = config['size_tminus'] + config['size_tplus'] + 1
                 self.nboxes = config['nboxes']
                 self.gridx = config['gridx']
                 self.gridy = config['gridy']
