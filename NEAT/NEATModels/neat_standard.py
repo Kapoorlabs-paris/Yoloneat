@@ -255,7 +255,7 @@ class NEATDynamic(object):
                  #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
                  for i in range(0, sum_time_prediction.shape[0]):
                       time_prediction =  sum_time_prediction[i]
-                      boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.nboxes, 'detection', 'static')
+                      boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
                       
                       if boxprediction is not None:
                               eventboxes = eventboxes + boxprediction
@@ -357,6 +357,7 @@ class NEATDynamic(object):
                               confidences = []
                               tlocations = []   
                               radiuses = []
+                              angles = []
                               
                               iou_current_event_boxes = self.iou_classedboxes.event_name
                               
@@ -365,6 +366,7 @@ class NEATDynamic(object):
                                       ycenter = iou_current_event_box['ycenter']
                                       tcenter = iou_current_event_box['real_time_event']
                                       confidence = iou_current_event_box['confidence']
+                                      angle = iou_current_event_box['angle']
                                       score = iou_current_event_box['event_name']
                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                       xlocations.append(xcenter)
@@ -373,13 +375,15 @@ class NEATDynamic(object):
                                       confidences.append(confidence)
                                       tlocations.append(tcenter)
                                       radiuses.append(radius)
+                                      angles.append(angle)
                               
                               
-                              event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences]) 
+                              event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
                               event_data = []
+                              writer = csv.writer(open(os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])  +".csv", "a"))
+                              writer.writerow(['T','Y','X','Score','Size','Confidence','Angle'])
                               for line in event_count:
                                  event_data.append(line)
-                                 writer = csv.writer(open(os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])  +".csv", "a"))
                                  writer.writerows(event_data)
                                  event_data = []           
                               
@@ -389,7 +393,7 @@ class NEATDynamic(object):
         
             if self.n_tiles == 1:
                 
-                       patchshape = (self.image.shape[0], self.image.shape[1])  
+                       patchshape = (self.image.shape[1], self.image.shape[2])  
                       
                        image = zero_pad(self.image, self.stride,self.stride)
         
@@ -403,8 +407,8 @@ class NEATDynamic(object):
                      
             else:
                   
-             patchx = self.image.shape[1] // self.n_tiles
-             patchy = self.image.shape[0] // self.n_tiles
+             patchx = self.image.shape[2] // self.n_tiles
+             patchy = self.image.shape[1] // self.n_tiles
         
              if patchx > self.imagex and patchy > self.imagey:
               if self.overlap_percent > 1 or self.overlap_percent < 0:
@@ -418,9 +422,9 @@ class NEATDynamic(object):
               pairs = []  
               #row is y, col is x
               
-              while rowstart < self.image.shape[0] - patchy:
+              while rowstart < self.image.shape[1] - patchy:
                  colstart = 0
-                 while colstart < self.image.shape[1] - patchx:
+                 while colstart < self.image.shape[2] - patchx:
                     
                      # Start iterating over the tile with jumps = stride of the fully convolutional network.
                      pairs.append([rowstart, colstart])
@@ -428,18 +432,18 @@ class NEATDynamic(object):
                  rowstart+=jumpy 
                 
               #Include the last patch   
-              rowstart = self.image.shape[0] - patchy
+              rowstart = self.image.shape[1] - patchy
               colstart = 0
-              while colstart < self.image.shape[1] - patchx:
+              while colstart < self.image.shape[2] - patchx:
                             pairs.append([rowstart, colstart])
                             colstart+=jumpx
               rowstart = 0
-              colstart = self.image.shape[1] - patchx
-              while rowstart < self.image.shape[0] - patchy:
+              colstart = self.image.shape[2] - patchx
+              while rowstart < self.image.shape[1] - patchy:
                             pairs.append([rowstart, colstart])
                             rowstart+=jumpy              
                             
-              if self.image.shape[0] >= self.imagey and self.image.shape[1]>= self.imagex :          
+              if self.image.shape[1] >= self.imagey and self.image.shape[2]>= self.imagex :          
                   
                     patch = []
                     rowout = []

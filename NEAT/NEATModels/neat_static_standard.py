@@ -288,7 +288,7 @@ class NEATStatic(object):
                  #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
                  for i in range(0, sum_time_prediction.shape[0]):
                       time_prediction =  sum_time_prediction[i]
-                      boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.nboxes, 'detection', 'static')
+                      boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
                       
                       if boxprediction is not None:
                               eventboxes = eventboxes + boxprediction
@@ -410,9 +410,10 @@ class NEATStatic(object):
                               
                               event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences]) 
                               event_data = []
+                              writer = csv.writer(open(os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])  +".csv", "a"))
+                              writer.writerow(['T','Y','X','Score','Size','Confidence'])
                               for line in event_count:
                                  event_data.append(line)
-                                 writer = csv.writer(open(os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])  +".csv", "a"))
                                  writer.writerows(event_data)
                                  event_data = []           
                               

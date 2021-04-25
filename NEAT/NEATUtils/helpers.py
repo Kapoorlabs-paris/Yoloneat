@@ -496,7 +496,7 @@ def WatershedwithMask(Image, Label,mask, grid):
 Prediction function for whole image/tile, output is Prediction vector for each image patch it passes over
 """    
 
-def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key_categories, nboxes, mode, event_type):
+def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type):
     
                              LocationBoxes = []
                              j = 0
@@ -511,7 +511,7 @@ def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key
                                           break;
 
                                       
-                                      Classybox, MaxProbLabel = predictionloop(j, k, sx, sy, stride, time_prediction, config, key_categories, inputtime, mode, event_type)
+                                      Classybox, MaxProbLabel = predictionloop(j, k, sx, sy, stride, time_prediction, config, key_categories,key_cord, inputtime, mode, event_type)
                                       #Append the box and the maximum likelehood detected class
                                       if Classybox['confidence'] > 0.5:
                                           LocationBoxes.append([Classybox, MaxProbLabel])         
