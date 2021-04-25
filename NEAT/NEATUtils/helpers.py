@@ -607,8 +607,14 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                           if mode == 'prediction':
                                                                   real_time_event = int(inputtime)
                                                                   box_time_event = int(inputtime)
-                                                          realangle = math.pi * (anglemean - 0.5)
-                                                          rawangle = anglemean
+                                                          if config['yolo_v2']:        
+                                                                     realangle = math.pi * (anglemean - 0.5)
+                                                                     rawangle = anglemean
+                                                          else:
+                                                              
+                                                               realangle = 2
+                                                               rawangle = 2
+                                                               
                                                           #Compute the box vectors 
                                                           box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
                                                             'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean, 'realangle' : realangle, 'rawangle' : rawangle}

@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Apr 25 13:32:04 2021
+
+@author: vkapoor
+"""
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
@@ -16,9 +23,10 @@ from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite
 import csv
+from natsort import natsorted
+import glob
 
-
-class NEATDynamic(object):
+class NEATPredict(object):
     
 
     """
@@ -79,7 +87,7 @@ class NEATDynamic(object):
                 self.multievent = config.multievent
                 self.imagex = config.imagex
                 self.imagey = config.imagey
-                self.imaget = config.size_tminus + config.size_tplus + 1
+                self.imaget = config.size_tminus
                 self.size_tminus = config.size_tminus
                 self.size_tplus = config.size_tplus
                 self.nboxes = config.nboxes
@@ -119,7 +127,7 @@ class NEATDynamic(object):
                 self.multievent = config['multievent']
                 self.imagex = config['imagex']
                 self.imagey = config['imagey']
-                self.imaget = config['size_tminus'] + config['size_tplus'] + 1
+                self.imaget = config['size_tminus']
                 self.size_tminus = config['size_tminus']
                 self.size_tplus = config['size_tplus']
                 self.nboxes = config['nboxes']
@@ -229,10 +237,13 @@ class NEATDynamic(object):
         
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
-    def predict(self, imagename, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
+    def predict(self, imagedir, movie_name_list, movie_input, start, fileextension = '*TIF', n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
         
-        self.imagename = imagename
-        self.image = imread(imagename)
+        self.imagedir = imagedir
+        self.movie_name_list = movie_name_list
+        self.movie_input = movie_input
+        self.start = start
+        self.fileextension = fileextension
         self.n_tiles = n_tiles
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
@@ -242,45 +253,80 @@ class NEATDynamic(object):
         except:
             self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
             
-        for inputtime in tqdm(0, self.image.shape[0]):
             
-            smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
-            eventboxes = []
-            classedboxes = {}
-            smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
-            #Break image into tiles if neccessary
-            predictions, allx, ally = self.predict_main(smallimage)
-            #Iterate over tiles
-            for p in range(0,len(predictions)):   
-    
-              sum_time_prediction = predictions[p]
-              
-              if sum_time_prediction is not None:
-                 #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
-                 for i in range(0, sum_time_prediction.shape[0]):
-                      time_prediction =  sum_time_prediction[i]
-                      boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
-                      
-                      if boxprediction is not None:
-                              eventboxes = eventboxes + boxprediction
-                         
-            for (event_name,event_label) in self.key_categories.items(): 
-                     
-                if event_label > 0:
-                     current_event_box = []
-                     for box in eventboxes:
-                
-                        event_prob = box[event_name]
-                        if event_prob > self.event_threshold:
-                           
-                            current_event_box.append(box)
-                     classedboxes[event_name] = [current_event_box]
-                 
-            self.classedboxes = classedboxes    
-            self.eventboxes =  eventboxes  
+        while 1:
             
-            self.nms()
-            self.to_csv()
+              Raw_path = os.path.join(self.imagedir, self.fileextension)
+              filesRaw = glob.glob(Raw_path)
+              filesRaw = natsorted(filesRaw)
+            
+              for movie_name in filesRaw:  
+                          Name = os.path.basename(os.path.splitext(movie_name)[0])
+                          Extension = os.path.basename(os.path.splitext(movie_name)[1])
+                          
+                          #Check for unique filename
+                          if Name not in self.movie_name_list and Extension == self.fileextension:
+                              
+                              try:
+                                  
+                                  
+                                  image = imread(movie_name)
+                                  movie_name_list.append(Name)
+                                  sizey = image.shape[0]
+                                  sizex = image.shape[1]
+                                  movie_input.append(image)
+                                  total_movies = len(movie_input)
+                                  if total_movies >= self.size_tminus + self.start:
+                                      
+                                              current_movies = movie_input[self.start:self.start + self.size_tminus]
+                                              print('Predicting on Movies:',movie_name_list[self.start:self.start + self.size_tminus]) 
+                                              inputtime = self.start + self.size_tminus
+                                              smallimage = np.zeros([self.size_tminus, sizey, sizex])
+                                              for i in range(0, self.size_tminus):
+                                                   smallimage[i,:] = current_movies[i]
+                                              eventboxes = []
+                                              classedboxes = {}
+                                              smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
+                                              #Break image into tiles if neccessary
+                                              predictions, allx, ally = self.predict_main(smallimage)
+                                              #Iterate over tiles
+                                              for p in range(0,len(predictions)):   
+                                    
+                                                      sum_time_prediction = predictions[p]
+                                                      
+                                                      if sum_time_prediction is not None:
+                                                         #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
+                                                         for i in range(0, sum_time_prediction.shape[0]):
+                                                              time_prediction =  sum_time_prediction[i]
+                                                              
+                                                              boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'prediction', 'dynamic')
+                                                              
+                                                              if boxprediction is not None:
+                                                                      eventboxes = eventboxes + boxprediction
+                                                         
+                                              for (event_name,event_label) in self.key_categories.items(): 
+                                                     
+                                                  if event_label > 0:
+                                                       current_event_box = []
+                                                       for box in eventboxes:
+                                                
+                                                          event_prob = box[event_name]
+                                                          if event_prob > self.event_threshold:
+                                                           
+                                                              current_event_box.append(box)
+                                                       classedboxes[event_name] = [current_event_box]
+                                                 
+                                              self.classedboxes = classedboxes    
+                                              self.eventboxes =  eventboxes  
+                                            
+                                              self.nms()
+                                              self.to_csv()
+        
+                              except:
+                                     if Name in self.movie_name_list:
+                                         movie_name_list.remove(Name) 
+                                     pass 
+        
         
         
     def bbox_iou(self,box1, box2):
@@ -557,18 +603,8 @@ def chunk_list(image, patchshape, stride, pair):
             patch = zero_pad(patch, stride, stride)
 
 
-            return patch, rowstart, colstart
+            return patch, rowstart, colstart  
         
+       
         
-def CreateVolume(patch, imaget, timepoint, imagey, imagex):
-    
-               finalend = patch.shape[0]
-               starttime = timepoint
-               endtime = timepoint + imaget
-               if endtime > finalend:
-                   endtime = finalend
-                   starttime = finalend - imaget
-               smallimg = patch[starttime:endtime, :]
-       
-               return smallimg         
-       
+   
