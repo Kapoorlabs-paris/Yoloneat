@@ -237,12 +237,17 @@ class NEATPredict(object):
         
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
-    def predict(self, imagedir, movie_name_list, movie_input, start, fileextension = '*TIF', n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
+    def predict(self, imagedir, movie_name_list, movie_input, start, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
         
         self.imagedir = imagedir
+        self.basedirResults = self.imagedir + '/' + "live_results"
+        Path(self.basedirResults).mkdir(exist_ok = True)
+        #Recurrsion variables
         self.movie_name_list = movie_name_list
         self.movie_input = movie_input
         self.start = start
+        
+        self.nb_prediction = nb_prediction
         self.fileextension = fileextension
         self.n_tiles = n_tiles
         self.overlap_percent = overlap_percent
@@ -321,6 +326,8 @@ class NEATPredict(object):
                                             
                                               self.nms()
                                               self.to_csv()
+                                              self.predict(self.imagedir, self.movie_name_list, self.movie_input, start + 1, fileextension = self.fileextension, nb_prediction = self.nb_prediction, n_tiles = 
+                                                           self.n_tiles, overlap_percent = self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold)
         
                               except:
                                      if Name in self.movie_name_list:
@@ -411,6 +418,8 @@ class NEATPredict(object):
                               
                               iou_current_event_boxes = self.iou_classedboxes.event_name
                               
+                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x['event_name'], reverse = True) 
+                              iou_current_event_boxes = iou_current_event_boxes[:self.nb_prediction,:]
                               for iou_current_event_box in iou_current_event_boxes:
                                       xcenter = iou_current_event_box['xcenter']
                                       ycenter = iou_current_event_box['ycenter']
@@ -428,15 +437,23 @@ class NEATPredict(object):
                                       angles.append(angle)
                               
                               
-                              event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
-                              event_data = []
-                              writer = csv.writer(open(os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])  +".csv", "a"))
-                              writer.writerow(['T','Y','X','Score','Size','Confidence','Angle'])
-                              for line in event_count:
-                                 event_data.append(line)
-                                 writer.writerows(event_data)
-                                 event_data = []           
-                              
+                              event_count = np.column_stack([xlocations,ylocations])
+                              event_count = np.unique(event_count, axis = 0)
+                                 
+                              with open(self.basedirResults + "/" + event_name +".ini", "w") as csvfile:
+                                       writer = csv.writer(csvfile, 'a' )
+                                       writer.write('[main]\n')  
+                                       writer.write('nbPredictions='+str(self.nb_prediction)+'\n')
+                                       live_event_data = []
+                                       count = 1
+                                       for line in event_count:
+                                          if count > 1:
+                                              live_event_data.append(line)
+                                              writer.write('['+str(count - 1)+']'+'\n')
+                                              writer.write('x='+str(live_event_data[0][0])+'\n')
+                                              writer.write('y='+str(live_event_data[0][1])+'\n')
+                                              live_event_data = []  
+                                          count = count + 1
             
           
     def overlaptiles(self):
