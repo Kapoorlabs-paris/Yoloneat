@@ -51,10 +51,10 @@ def remove_big_objects(ar, max_size=6400, connectivity=1, in_place=False):
 
     return out
 
-def IntergerLabelGen(fname, savedir):
+def IntergerLabelGen(BinaryImage, Name, savedir):
             
-            BinaryImage = imread(fname)
-            Name = os.path.basename(os.path.splitext(fname)[0])
+            
+           
             InputBinaryImage = BinaryImage.astype('uint8')
             IntegerImage = np.zeros([BinaryImage.shape[0],BinaryImage.shape[1], BinaryImage.shape[2]])
             for i in tqdm(range(0, InputBinaryImage.shape[0])):
