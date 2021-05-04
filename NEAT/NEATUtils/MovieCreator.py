@@ -410,6 +410,26 @@ def save_full_training_data(directory, filename, data, label, axes):
     len(axes) == data.ndim or _raise(ValueError())
     np.savez(directory + filename, data = data, label = label, axes = axes)
     
+def InterchangeTXY(TXYCSV, save_dir):
+
+    
+     dataset = pd.read_csv(TXYCSV)
+     time = dataset[dataset.keys()[0]][1:]
+     x = dataset[dataset.keys()[1]][1:]
+     y = dataset[dataset.keys()[2]][1:]
+ 
+     Event_data = []
+     
+     Name = os.path.basename(os.path.splitext(TXYCSV)[0])
+
+     for (key, t) in time.items():
+         
+         Event_data.append([t, y[key], x[key]])
+         
+     writer = csv.writer(open(save_dir + '/' + (Name) + ".csv", "a"))
+     writer.writerows(Event_data)    
+         
+    
 def  AngleAppender(AngleCSV, ONTCSV, save_dir, ColumnA = 'Y'):
 
      dataset = pd.read_csv(AngleCSV)
