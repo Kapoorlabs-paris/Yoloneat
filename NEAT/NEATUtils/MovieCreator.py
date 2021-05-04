@@ -88,8 +88,8 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                                                 
                                                 angle = dataset[dataset.keys()[3]][1:]                          
                                             #Categories + XYHW + Confidence 
-                                            for t in range(1, len(time)):
-                                               MovieMaker(time[t], y[t], x[t], angle[t], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
+                                            for (key, t) in time.items():
+                                               MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
                                                count = count + 1
                                                 
 
@@ -240,8 +240,8 @@ def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, s
                                             x = dataset[dataset.keys()[2]][1:]     
                                             
                                             #Categories + XYHW + Confidence 
-                                            for t in range(1, len(time)):
-                                               ImageMaker(time[t], y[t], x[t], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0)    
+                                            for (key, t) in time.items():
+                                               ImageMaker(t, y[key], x[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0)    
                                                count = count + 1
     
 
@@ -408,4 +408,45 @@ def save_full_training_data(directory, filename, data, label, axes):
   
 
     len(axes) == data.ndim or _raise(ValueError())
-    np.savez(directory + filename, data = data, label = label, axes = axes) 
+    np.savez(directory + filename, data = data, label = label, axes = axes)
+    
+def  AngleAppender(AngleCSV, ONTCSV, save_dir, ColumnA = 'Y'):
+
+     dataset = pd.read_csv(AngleCSV)
+     time = dataset[dataset.keys()[0]][1:]
+     if ColumnA == 'Y':
+       y = dataset[dataset.keys()[1]][1:]
+       x = dataset[dataset.keys()[2]][1:]
+       angle = dataset[dataset.keys()[3]][1:]
+     else:
+       x = dataset[dataset.keys()[1]][1:]
+       y = dataset[dataset.keys()[2]][1:]
+       angle = dataset[dataset.keys()[3]][1:]  
+       
+     clickeddataset = pd.read_csv(ONTCSV)  
+     
+     clickedtime = clickeddataset[clickeddataset.keys()[0]][1:]
+     clickedy = clickeddataset[clickeddataset.keys()[1]][1:]
+     clickedx = clickeddataset[clickeddataset.keys()[2]][1:]
+                               
+     Event_data = []
+     
+     Name = os.path.basename(os.path.splitext(ONTCSV)[0])
+     
+
+     
+     for (clickedkey, clickedt) in clickedtime.items():
+                
+                       
+                for (key, t) in time.items(): 
+                         
+                          if t == clickedt and y[key] == clickedy[clickedkey] and x[key] == clickedx[clickedkey]:
+                              
+                                Event_data.append([t,y[key],x[key],angle[key]])
+                              
+                                     
+                              
+                               
+     writer = csv.writer(open(save_dir + '/' + (Name) + ".csv", "a"))
+     writer.writerows(Event_data)
+         
