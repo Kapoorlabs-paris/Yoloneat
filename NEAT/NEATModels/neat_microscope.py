@@ -416,7 +416,7 @@ class NEATPredict(object):
                               angles = []
                               
                               iou_current_event_boxes = self.iou_classedboxes.event_name
-                              
+                              # Sort boxes with probability and keep nb_prediction boxes only
                               iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x['event_name'], reverse = True) 
                               iou_current_event_boxes = iou_current_event_boxes[:self.nb_prediction,:]
                               for iou_current_event_box in iou_current_event_boxes:
