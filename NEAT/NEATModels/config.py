@@ -10,9 +10,7 @@ import numpy as np
 
 class dynamic_config(argparse.Namespace):
     
-    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None,  residual = True, stride = 4,  nboxes = 1,
-                 depth = 29, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 48, lstm_hidden_unit = 16, epochs =100, 
-                 learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, yolo_v1 = False, yolo_v2 = False, multievent = True,  **kwargs):
+    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None,  residual = True, stride = 4,  nboxes = 1, depth = 29, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 48, lstm_hidden_unit = 16, epochs =100, learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, yolo_v1 = False, yolo_v2 = False, multievent = False, show = True, **kwargs):
         
         
            self.npz_directory = npz_directory
@@ -37,6 +35,7 @@ class dynamic_config(argparse.Namespace):
            self.learning_rate = learning_rate
            self.batch_size = batch_size
            self.model_name = model_name
+           self.show = show
            self.is_valid()
     
 
@@ -64,7 +63,8 @@ class dynamic_config(argparse.Namespace):
                  'lstm_hidden_unit' : self.lstm_hidden_unit,
                  'epochs' : self.epochs,
                  'learning_rate' : self.learning_rate,
-                 'batch_size' : self.batch_size
+                 'batch_size' : self.batch_size,
+                 'show' : self.show
                  }
          
          for (k,v) in self.key_categories.items():
@@ -115,6 +115,7 @@ class dynamic_config(argparse.Namespace):
             
             ok['learning_rate'] = np.isscalar(self.learning_rate) and self.learning_rate > 0
             ok['multievent'] = isinstance(self.multievent,bool)
+            ok['show'] = isinstance(self.show,bool)
             ok['categories'] =  _is_int(len(self.key_categories), 1)
             ok['box_vector'] =  _is_int(self.box_vector, 1)
             

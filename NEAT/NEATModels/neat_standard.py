@@ -130,7 +130,7 @@ class NEATDynamic(object):
                 self.yolo_v1 = config['yolo_v1']
                 self.yolo_v2 = config['yolo_v2']
                 self.stride = config['stride']   
-                
+                self.lstm_hidden_unit = config['lstm_hidden_unit']
                 
                 
         self.model_dir = model_dir

@@ -51,7 +51,7 @@ class NEATPredict(object):
     
     model_weights : If re-training model_weights = model_dir + model_name else None as default
     
-    lstm_hidden_units : Number of hidden uniots for LSTm layer, 64 by default
+    lstm_hidden_units : Number of hidden units for LSTm layer, 64 by default
     
     epochs :  Number of training epochs, 55 by default
     
@@ -138,7 +138,7 @@ class NEATPredict(object):
                 self.yolo_v1 = config['yolo_v1']
                 self.yolo_v2 = config['yolo_v2']
                 self.stride = config['stride']   
-                
+                self.lstm_hidden_unit = config['lstm_hidden_unit']
                 
                 
         self.model_dir = model_dir
