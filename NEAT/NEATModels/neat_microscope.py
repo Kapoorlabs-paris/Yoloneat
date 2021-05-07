@@ -11,9 +11,10 @@ from NEATUtils import helpers
 from NEATUtils.helpers import  load_json, yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
-import tf
+import tensorflow as tf
 
-from NEATModels import nets, Concat
+from NEATModels import nets
+from NEATModels.nets import Concat
 from NEATModels.loss import dynamic_yolo_loss
 
 #from IPython.display import clear_output

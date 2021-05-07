@@ -13,7 +13,8 @@ from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFlo
 from keras import callbacks
 import os
 from tqdm import tqdm
-from NEATModels import nets, Concat
+from NEATModels import nets
+from NEATModels.nets import Concat
 from NEATModels.loss import static_yolo_loss
 from keras import backend as K
 import tensorflow as tf

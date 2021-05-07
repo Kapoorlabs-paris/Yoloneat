@@ -58,7 +58,6 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
             
             for csvfname in filesCsv:
               count = 0  
-              print(csvfname)
               Csvname =  os.path.basename(os.path.splitext(csvfname)[0])
             
               for fname in files_raw:
@@ -77,14 +76,15 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                              event_name = static_name[i]
                              trainlabel = static_label[i]
                              if Csvname == csv_name_diff + name + event_name:
+                                            print(Csvname)
                                             dataset = pd.read_csv(csvfname)
-                                            if len(dataset.keys() >= 3):
+                                            if len(dataset.keys()) >= 3:
                         
                                                 time = dataset[dataset.keys()[0]][1:]
                                                 y = dataset[dataset.keys()[1]][1:]
                                                 x = dataset[dataset.keys()[2]][1:]
                                                 angle = np.full(time.shape, 2)                        
-                                            if len(dataset.keys() > 3):
+                                            if len(dataset.keys()) > 3:
                                                 
                                                 angle = dataset[dataset.keys()[3]][1:]                          
                                             #Categories + XYHW + Confidence 
@@ -121,74 +121,75 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offs
           AllShifts = [shiftNone]
 
 
-       
-       currentsegimage = segimage[time,:].astype('uint16')
-       height, width, center, seg_label = getHW(x, y, trainlabel, currentsegimage)
-       for shift in AllShifts:
-           
-                newname = name + 'shift' + str(shift)
-                Event_data = []
-                newcenter = (center[0] - shift[1],center[1] - shift[0] )
-                x = center[1]
-                y = center[0]
-                if yolo_v0:
-                    Label = np.zeros([total_categories + 6])
-                else:    
-                    Label = np.zeros([total_categories + 7])
-                Label[trainlabel] = 1
-                #T co ordinate
-                Label[total_categories + 2] = (size_tminus) / (size_tminus + size_tplus)
-                if x + shift[0]> sizex/2 and y + shift[1] > sizey/2 and x + shift[0] + int(imagesizex/2) < image.shape[2] and y + shift[1]+ int(imagesizey/2) < image.shape[1] and time > size_tminus and time + size_tplus + 1 < image.shape[0]:
-                        crop_xminus = x  - int(imagesizex/2)
-                        crop_xplus = x  + int(imagesizex/2)
-                        crop_yminus = y  - int(imagesizey/2)
-                        crop_yplus = y   + int(imagesizey/2)
-                        # Cut off the region for training movie creation
-                        region =(slice(int(time - size_tminus),int(time + size_tplus  + 1)),slice(int(crop_yminus)+ shift[1], int(crop_yplus)+ shift[1]),
-                              slice(int(crop_xminus) + shift[0], int(crop_xplus) + shift[0]))
-                        #Define the movie region volume that was cut
-                        crop_image = image[region]   
-                        
-                        seglocationx = (newcenter[1] - crop_xminus)
-                        seglocationy = (newcenter[0] - crop_yminus)
-                         
-                        Label[total_categories] =  seglocationx/sizex
-                        Label[total_categories + 1] = seglocationy/sizey
-                        if height >= imagesizey:
-                                        height = 0.5 * imagesizey
-                        if width >= imagesizex:
-                                        width = 0.5 * imagesizex
-                        #Height
-                        Label[total_categories + 3] = height/imagesizey
-                        #Width
-                        Label[total_categories + 4] = width/imagesizex
-               
-                          
-                       
-                        if yolo_v1:
-                                if seg_label > 0:
-                                  Label[total_categories + 5] = 1 
-                                else:
-                                  Label[total_categories + 5] = 0   
-                                  
-                        if yolo_v2:
-                             
-                             if seg_label > 0:
-                                  Label[total_categories + 5] = 1 
-                             else:
-                                  Label[total_categories + 5] = 0   
-                            
-                             Label[total_categories + 6] = angle        
-                      
-                        #Write the image as 32 bit tif file 
-                        if(crop_image.shape[0] == size_tplus + size_tminus + 1 and crop_image.shape[1]== imagesizey and crop_image.shape[2]== imagesizex):
-                                  
-                                   imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))    
-                                   Event_data.append([Label[i] for i in range(0,len(Label))])
-                                   if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
-                                                os.remove(save_dir + '/' + (newname) + ".csv")
-                                   writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
-                                   writer.writerows(Event_data)
+       time = time - 1
+       if time > 0:
+               currentsegimage = segimage[time,:].astype('uint16')
+               height, width, center, seg_label = getHW(x, y, trainlabel, currentsegimage)
+               for shift in AllShifts:
+
+                        newname = name + 'shift' + str(shift)
+                        Event_data = []
+                        newcenter = (center[0] - shift[1],center[1] - shift[0] )
+                        x = center[1]
+                        y = center[0]
+                        if yolo_v0:
+                            Label = np.zeros([total_categories + 5])
+                        else:    
+                            Label = np.zeros([total_categories + 7])
+                        Label[trainlabel] = 1
+                        #T co ordinate
+                        Label[total_categories + 2] = (size_tminus) / (size_tminus + size_tplus)
+                        if x + shift[0]> sizex/2 and y + shift[1] > sizey/2 and x + shift[0] + int(imagesizex/2) < image.shape[2] and y + shift[1]+ int(imagesizey/2) < image.shape[1] and time > size_tminus and time + size_tplus + 1 < image.shape[0]:
+                                crop_xminus = x  - int(imagesizex/2)
+                                crop_xplus = x  + int(imagesizex/2)
+                                crop_yminus = y  - int(imagesizey/2)
+                                crop_yplus = y   + int(imagesizey/2)
+                                # Cut off the region for training movie creation
+                                region =(slice(int(time - size_tminus),int(time + size_tplus  + 1)),slice(int(crop_yminus)+ shift[1], int(crop_yplus)+ shift[1]),
+                                      slice(int(crop_xminus) + shift[0], int(crop_xplus) + shift[0]))
+                                #Define the movie region volume that was cut
+                                crop_image = image[region]   
+
+                                seglocationx = (newcenter[1] - crop_xminus)
+                                seglocationy = (newcenter[0] - crop_yminus)
+
+                                Label[total_categories] =  seglocationx/sizex
+                                Label[total_categories + 1] = seglocationy/sizey
+                                if height >= imagesizey:
+                                                height = 0.5 * imagesizey
+                                if width >= imagesizex:
+                                                width = 0.5 * imagesizex
+                                #Height
+                                Label[total_categories + 3] = height/imagesizey
+                                #Width
+                                Label[total_categories + 4] = width/imagesizex
+
+
+
+                                if yolo_v1:
+                                        if seg_label > 0:
+                                          Label[total_categories + 5] = 1 
+                                        else:
+                                          Label[total_categories + 5] = 0   
+
+                                if yolo_v2:
+
+                                     if seg_label > 0:
+                                          Label[total_categories + 5] = 1 
+                                     else:
+                                          Label[total_categories + 5] = 0   
+
+                                     Label[total_categories + 6] = angle        
+
+                                #Write the image as 32 bit tif file 
+                                if(crop_image.shape[0] == size_tplus + size_tminus + 1 and crop_image.shape[1]== imagesizey and crop_image.shape[2]== imagesizex):
+
+                                           imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))    
+                                           Event_data.append([Label[i] for i in range(0,len(Label))])
+                                           if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
+                                                        os.remove(save_dir + '/' + (newname) + ".csv")
+                                           writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
+                                           writer.writerows(Event_data)
                                    
 
        
