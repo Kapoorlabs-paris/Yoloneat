@@ -123,7 +123,7 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offs
 
        time = time - 1
        if time > 0:
-               currentsegimage = segimage[time,:].astype('uint16')
+               currentsegimage = segimage[int(time),:].astype('uint16')
                height, width, center, seg_label = getHW(x, y, trainlabel, currentsegimage)
                for shift in AllShifts:
 
