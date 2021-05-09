@@ -55,12 +55,11 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
             filesCsv.sort
             Path(save_dir).mkdir(exist_ok=True)
             total_categories = len(static_name)
+                
+            othercsvlist = []    
             
-            for csvfname in filesCsv:
-              count = 0  
-              Csvname =  os.path.basename(os.path.splitext(csvfname)[0])
             
-              for fname in files_raw:
+            for fname in files_raw:
                   
                  name = os.path.basename(os.path.splitext(fname)[0])   
                  for Segfname in filesSeg:
@@ -72,27 +71,54 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                           
                          image = imread(fname)
                          segimage = imread(Segfname)
-                         for i in  range(0, len(static_name)):
-                             event_name = static_name[i]
-                             trainlabel = static_label[i]
-                             if Csvname == csv_name_diff + name + event_name:
-                                            print(Csvname)
-                                            dataset = pd.read_csv(csvfname)
-                                            if len(dataset.keys()) >= 3:
                         
-                                                time = dataset[dataset.keys()[0]][1:]
-                                                y = dataset[dataset.keys()[1]][1:]
-                                                x = dataset[dataset.keys()[2]][1:]
-                                                angle = np.full(time.shape, 2)                        
-                                            if len(dataset.keys()) > 3:
-                                                
-                                                angle = dataset[dataset.keys()[3]][1:]                          
-                                            #Categories + XYHW + Confidence 
-                                            for (key, t) in time.items():
-                                               MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
-                                               count = count + 1
-                                                
+                         for csvfname in filesCsv:
+                                 count = 0  
+                                 Csvname =  os.path.basename(os.path.splitext(csvfname)[0])
+                                 for i in  range(0, len(static_name)):
+                                     event_name = static_name[i]
+                                     trainlabel = static_label[i]
+                                     classfound = (Csvname == csv_name_diff + name + event_name)   
+                                     if classfound:
+                                                    print(Csvname)
+                                                    dataset = pd.read_csv(csvfname)
+                                                    if len(dataset.keys()) >= 3:
 
+                                                        time = dataset[dataset.keys()[0]][1:]
+                                                        y = dataset[dataset.keys()[1]][1:]
+                                                        x = dataset[dataset.keys()[2]][1:]
+                                                        angle = np.full(time.shape, 2)                        
+                                                    if len(dataset.keys()) > 3:
+
+                                                        angle = dataset[dataset.keys()[3]][1:]                          
+                                                    #Categories + XYHW + Confidence 
+                                                    for (key, t) in time.items():
+                                                       MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
+                                                       count = count + 1
+                                     elif Csvname in name:
+                                        if csvfname not in othercsvlist:
+                                           othercsvlist.append(csvfname)
+                                
+                         for csvfname in othercsvlist:       
+                             eventname = 'Normal'
+                             trainlabel = 0
+                             print(Csvname , 'making normal class with movie', name)
+                             dataset = pd.read_csv(csvfname)
+                             if len(dataset.keys()) >= 3:
+
+                                time = dataset[dataset.keys()[0]][1:]
+                                y = dataset[dataset.keys()[1]][1:]
+                                x = dataset[dataset.keys()[2]][1:]
+                                angle = np.full(time.shape, 2)                        
+                             if len(dataset.keys()) > 3:
+
+                                angle = dataset[dataset.keys()[3]][1:]                          
+                             #Categories + XYHW + Confidence 
+                             for (key, t) in time.items():
+                               MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
+                               count = count + 1
+                                 
+                             
 
                
 
