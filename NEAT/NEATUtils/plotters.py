@@ -38,8 +38,8 @@ class PlotHistory(keras.callbacks.Callback):
         self.x.append(self.i)
         self.losses.append(logs.get('loss'))
         self.val_losses.append(logs.get('val_loss'))
-        self.acc.append(logs.get('acc'))
-        self.val_acc.append(logs.get('val_acc'))
+        self.acc.append(logs.get('accuracy'))
+        self.val_acc.append(logs.get('val_accuracy'))
       
         self.i += 1
         if self.plot:
@@ -52,8 +52,8 @@ class PlotHistory(keras.callbacks.Callback):
          ax1.plot(self.x, self.val_losses, label="val_loss")
          ax1.legend()
         
-         ax2.plot(self.x, self.acc, label="acc")
-         ax2.plot(self.x, self.val_acc, label="val_acc")
+         ax2.plot(self.x, self.acc, label="accuracy")
+         ax2.plot(self.x, self.val_acc, label="val_accuracy")
          ax2.legend()
          plt.show()
          #clear_output(True)
@@ -134,8 +134,8 @@ class PlotStaticHistory(keras.callbacks.Callback):
         self.x.append(self.i)
         self.losses.append(logs.get('loss'))
         self.val_losses.append(logs.get('val_loss'))
-        self.acc.append(logs.get('acc'))
-        self.val_acc.append(logs.get('val_acc'))
+        self.acc.append(logs.get('accuracy'))
+        self.val_acc.append(logs.get('val_accuracy'))
         
         self.i += 1
         if self.plot:
@@ -147,8 +147,8 @@ class PlotStaticHistory(keras.callbacks.Callback):
          ax1.plot(self.x, self.losses, label="loss")
          ax1.plot(self.x, self.val_losses, label="val_loss")
          ax1.legend()
-         ax2.plot(self.x, self.acc, label="acc")
-         ax2.plot(self.x, self.val_acc, label="val_acc")
+         ax2.plot(self.x, self.acc, label="accuracy")
+         ax2.plot(self.x, self.val_acc, label="val_accuracy")
          ax2.legend()
          plt.show()
          #clear_output(True)
