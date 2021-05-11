@@ -72,11 +72,11 @@ class NEATStatic(object):
                 self.npz_directory = staticconfig.npz_directory
                 self.npz_name = staticconfig.npz_name
                 self.npz_val_name = staticconfig.npz_val_name
-                self.key_catagories = staticconfig.key_catagories
+                self.key_categories = staticconfig.key_categories
                 self.box_vector = staticconfig.box_vector
                 self.show = staticconfig.show
                 self.KeyCord = staticconfig.key_cord
-                self.categories = len(staticconfig.key_catagories)
+                self.categories = len(staticconfig.key_categories)
                 self.depth = staticconfig.depth
                 self.start_kernel = staticconfig.start_kernel
                 self.mid_kernel = staticconfig.mid_kernel
@@ -104,11 +104,11 @@ class NEATStatic(object):
                 self.npz_directory = staticconfig['npz_directory']
                 self.npz_name = staticconfig['npz_name']
                 self.npz_val_name = staticconfig['npz_val_name']
-                self.key_catagories = staticconfig['key_catagories']
+                self.key_categories = staticconfig['key_categories']
                 self.box_vector = staticconfig['box_vector']
                 self.show = staticconfig['show']
                 self.KeyCord = staticconfig['key_cord']
-                self.categories = len(staticconfig['key_catagories'])
+                self.categories = len(staticconfig['key_categories'])
                 self.depth = staticconfig['depth']
                 self.start_kernel = staticconfig['start_kernel']
                 self.mid_kernel = staticconfig['mid_kernel']
@@ -242,7 +242,7 @@ class NEATStatic(object):
         lrate = callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4, verbose=1)
         hrate = callbacks.History()
         srate = callbacks.ModelCheckpoint(self.model_dir + self.model_name, monitor='loss', verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1)
-        prate = plotters.PlotStaticHistory(self.Trainingmodel, self.X_val, self.Y_val, self.key_catagories, self.key_cord, self.gridx, self.gridy, plot = self.show, nboxes = self.nboxes)
+        prate = plotters.PlotStaticHistory(self.Trainingmodel, self.X_val, self.Y_val, self.key_categories, self.key_cord, self.gridx, self.gridy, plot = self.show, nboxes = self.nboxes)
         
         
         #Train the model and save as a h5 file

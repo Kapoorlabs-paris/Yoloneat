@@ -10,7 +10,7 @@ import random
 class PlotHistory(keras.callbacks.Callback):
     
     
-    def __init__(self, Trainingmodel, X, Y, key_catagories, gridx, gridy, plot = False, nboxes = 1):
+    def __init__(self, Trainingmodel, X, Y, key_categories, key_cord, gridx, gridy, plot = False, nboxes = 1):
        self.Trainingmodel = Trainingmodel 
        self.X = X
        self.Y = Y
@@ -18,8 +18,8 @@ class PlotHistory(keras.callbacks.Callback):
        self.gridx = gridx
        self.gridy = gridy
        self.nboxes = nboxes
-      
-       self.key_catagories = key_catagories
+       self.key_cord = key_cord
+       self.key_categories = key_categories
     def on_train_begin(self, logs={}):
         self.i = 0
         self.x = []
@@ -58,7 +58,7 @@ class PlotHistory(keras.callbacks.Callback):
          plt.show()
          #clear_output(True)
         idx = random.randint(1,self.X.shape[0] - 1)
-        Printpredict(idx,self.Trainingmodel, self.X, self.Y, self.key_catagories, self.gridx, self.gridy, plot = self.plot, nboxes = self.nboxes)
+        Printpredict(idx,self.Trainingmodel, self.X, self.Y, self.key_categories, self.key_cord, self.gridx, self.gridy, plot = self.plot, nboxes = self.nboxes)
         
 def Printpredict(idx, model, data, Truelabel, key_categories,key_cord, gridx, gridy, plot = False, nboxes = 1):
 
@@ -106,7 +106,7 @@ def Printpredict(idx, model, data, Truelabel, key_categories,key_cord, gridx, gr
 class PlotStaticHistory(keras.callbacks.Callback):
     
     
-    def __init__(self, Trainingmodel, X, Y, key_catagories, key_cord, gridx, gridy, plot = False, nboxes = 1):
+    def __init__(self, Trainingmodel, X, Y, key_categories, key_cord, gridx, gridy, plot = False, nboxes = 1):
        self.Trainingmodel = Trainingmodel 
        self.X = X
        self.Y = Y
@@ -115,7 +115,7 @@ class PlotStaticHistory(keras.callbacks.Callback):
        self.plot = plot
        self.nboxes = nboxes
        self.key_cord = key_cord
-       self.key_catagories = key_catagories
+       self.key_categories = key_categories
     def on_train_begin(self, logs={}):
         self.i = 0
         self.x = []
@@ -153,7 +153,7 @@ class PlotStaticHistory(keras.callbacks.Callback):
          plt.show()
          #clear_output(True)
         idx = random.randint(1,self.X.shape[0] - 1)
-        PrintStaticpredict(idx,self.Trainingmodel, self.X, self.Y, self.key_catagories, self.key_cord, self.gridx, self.gridy, plot = self.plot, nboxes = self.nboxes)
+        PrintStaticpredict(idx,self.Trainingmodel, self.X, self.Y, self.key_categories, self.key_cord, self.gridx, self.gridy, plot = self.plot, nboxes = self.nboxes)
         
 def PrintStaticpredict(idx, model, data, Truelabel, key_categories, key_cord, gridx, gridy, plot = False, nboxes = 1):
 

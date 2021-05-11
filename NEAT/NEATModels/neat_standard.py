@@ -78,11 +78,11 @@ class NEATDynamic(object):
                 self.startfilter = config.startfilter
                 self.batch_size = config.batch_size
                 self.multievent = config.multievent
-                self.imagex = config.key_cord['imagex']
-                self.imagey = config.key_cord['imagey']
-                self.imaget = config.key_cord['size_tminus'] + config.key_cord['size_tplus'] + 1
-                self.size_tminus = config.key_cord['size_tminus']
-                self.size_tplus = config.key_cord['size_tplus']
+                self.imagex = config.imagex
+                self.imagey = config.imagey
+                self.imaget = config.size_tminus + config.size_tplus + 1
+                self.size_tminus = config.size_tminus
+                self.size_tplus = config.size_tplus
                 self.nboxes = config.nboxes
                 self.gridx = 1
                 self.gridy = 1
@@ -124,9 +124,9 @@ class NEATDynamic(object):
                 self.size_tminus = config['size_tminus']
                 self.size_tplus = config['size_tplus']
                 self.nboxes = config['nboxes']
-                self.gridx = config['gridx']
-                self.gridy = config['gridy']
-                self.gridt = config['gridt']
+                self.gridx = 1
+                self.gridy = 1
+                self.gridt = 1
                 self.yolo_v0 = config['yolo_v0']
                 self.yolo_v1 = config['yolo_v1']
                 self.yolo_v2 = config['yolo_v2']
@@ -204,6 +204,32 @@ class NEATDynamic(object):
         d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
         d_class_weights = d_class_weights.reshape(1,d_class_weights.shape[0])
         
+        model_weights = self.model_dir + self.model_name
+        if os.path.exists(model_weights):
+        
+            self.model_weights = model_weights
+            print('loading weights')
+        else:
+           
+            self.model_weights = None
+        
+        print(self.box_vector)
+        dummyY = np.zeros([self.Y.shape[0],self.Y.shape[1],self.Y.shape[2],self.categories + self.nboxes* self.box_vector])
+        dummyY[:,:,:,:self.Y.shape[3]] = self.Y
+        
+        dummyY_val = np.zeros([self.Y_val.shape[0],self.Y_val.shape[1],self.Y_val.shape[2],self.categories + self.nboxes* self.box_vector])
+        dummyY_val[:,:,:,:self.Y_val.shape[3]] = self.Y_val
+        for b in range(1, self.nboxes - 1):
+            
+            dummyY[:,:,:,self.categories + b * self.box_vector:self.categories + (b + 1) * self.box_vector] = self.Y[:,:,:, self.categories: self.categories + self.box_vector]
+            dummyY_val[:,:,:,self.categories + b * self.box_vector:self.categories + (b + 1) * self.box_vector] = self.Y_val[:,:,:, self.categories: self.categories + self.box_vector]
+            
+        self.Y = dummyY
+        self.Y_val = dummyY_val
+        
+        print(self.Y.shape, self.nboxes)
+        
+        
         self.Trainingmodel = self.model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, lstm_kernel = self.lstm_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
         
             
@@ -216,7 +242,7 @@ class NEATDynamic(object):
         lrate = callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4, verbose=1)
         hrate = callbacks.History()
         srate = callbacks.ModelCheckpoint(self.model_dir + self.model_name, monitor='loss', verbose=1, save_best_only=False, save_weights_only=False, mode='auto', period=1)
-        prate = plotters.PlotHistory(self.Trainingmodel, self.X_val, self.Y_val, self.Categories_Name, plot = self.show, simple = self.simple, catsimple = self.catsimple)
+        prate = plotters.PlotHistory(self.Trainingmodel, self.X_val, self.Y_val, self.key_categories, self.key_cord, self.gridx, self.gridy, plot = self.show, nboxes = self.nboxes)
         
         
         #Train the model and save as a h5 file
