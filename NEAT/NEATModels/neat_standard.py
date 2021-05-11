@@ -63,11 +63,11 @@ class NEATDynamic(object):
                 self.npz_directory = config.npz_directory
                 self.npz_name = config.npz_name
                 self.npz_val_name = config.npz_val_name
-                self.key_catagories = config.key_catagories
+                self.key_categories = config.key_categories
                 self.box_vector = config.box_vector
                 self.show = config.show
                 self.key_cord = config.key_cord
-                self.categories = len(config.key_catagories)
+                self.categories = len(config.key_categories)
                 self.depth = config.depth
                 self.start_kernel = config.start_kernel
                 self.mid_kernel = config.mid_kernel
@@ -78,15 +78,15 @@ class NEATDynamic(object):
                 self.startfilter = config.startfilter
                 self.batch_size = config.batch_size
                 self.multievent = config.multievent
-                self.imagex = config.imagex
-                self.imagey = config.imagey
-                self.imaget = config.size_tminus + config.size_tplus + 1
-                self.size_tminus = config.size_tminus
-                self.size_tplus = config.size_tplus
+                self.imagex = config.key_cord['imagex']
+                self.imagey = config.key_cord['imagey']
+                self.imaget = config.key_cord['size_tminus'] + config.key_cord['size_tplus'] + 1
+                self.size_tminus = config.key_cord['size_tminus']
+                self.size_tplus = config.key_cord['size_tplus']
                 self.nboxes = config.nboxes
-                self.gridx = config.gridx
-                self.gridy = config.gridy
-                self.gridt = config.gridt
+                self.gridx = 1
+                self.gridy = 1
+                self.gridt = 1
                 self.yolo_v0 = config.yolo_v0
                 self.yolo_v1 = config.yolo_v1
                 self.yolo_v2 = config.yolo_v2
@@ -159,7 +159,7 @@ class NEATDynamic(object):
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
         
-        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.grid_t, self.nboxes, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
+        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
         
         
     def loadData(self):

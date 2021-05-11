@@ -93,8 +93,14 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                                                         angle = dataset[dataset.keys()[3]][1:]                          
                                                     #Categories + XYHW + Confidence 
                                                     for (key, t) in time.items():
-                                                       MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
-                                                       count = count + 1
+                                                       try: 
+                                                          MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
+                                                          count = count + 1
+                                                        
+                                                       except:
+                                                        
+                                                           pass
+                                                        
                                      elif Csvname in name:
                                         if csvfname not in othercsvlist:
                                            othercsvlist.append(csvfname)
@@ -285,7 +291,7 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
             files_raw = glob.glob(raw_path)
             files_raw.sort
             
-            Images= [imread(fname)[0,:] for fname in files_raw]
+            Images= [imread(fname) for fname in files_raw]
             names = [Readname(fname)  for fname in files_raw]
             #Normalize everything before it goes inside the training
             NormalizeImages = [normalizeFloatZeroOne(image.astype('uint16'),1,99.8) for image in tqdm(Images)]
@@ -475,7 +481,7 @@ def  AngleAppender(AngleCSV, ONTCSV, save_dir, ColumnA = 'Y'):
      clickedtime = clickeddataset[clickeddataset.keys()[0]][1:]
      clickedy = clickeddataset[clickeddataset.keys()[1]][1:]
      clickedx = clickeddataset[clickeddataset.keys()[2]][1:]
-                               
+     print(angle)                          
      Event_data = []
      
      Name = os.path.basename(os.path.splitext(ONTCSV)[0])

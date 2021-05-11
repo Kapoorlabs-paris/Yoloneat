@@ -22,6 +22,8 @@ class dynamic_config(argparse.Namespace):
            self.yolo_v0 = yolo_v0
            self.yolo_v1 = yolo_v1
            self.yolo_v2 = yolo_v2
+           self.nboxes = nboxes
+           self.multievent = multievent
            self.categories = len(self.key_categories)
            self.box_vector = len(self.key_cord)
            self.depth = depth
