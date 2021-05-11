@@ -75,7 +75,7 @@ class NEATStatic(object):
                 self.key_categories = staticconfig.key_categories
                 self.box_vector = staticconfig.box_vector
                 self.show = staticconfig.show
-                self.KeyCord = staticconfig.key_cord
+                self.key_cord = staticconfig.key_cord
                 self.categories = len(staticconfig.key_categories)
                 self.depth = staticconfig.depth
                 self.start_kernel = staticconfig.start_kernel
@@ -107,7 +107,7 @@ class NEATStatic(object):
                 self.key_categories = staticconfig['key_categories']
                 self.box_vector = staticconfig['box_vector']
                 self.show = staticconfig['show']
-                self.KeyCord = staticconfig['key_cord']
+                self.key_cord = staticconfig['key_cord']
                 self.categories = len(staticconfig['key_categories'])
                 self.depth = staticconfig['depth']
                 self.start_kernel = staticconfig['start_kernel']
@@ -219,7 +219,7 @@ class NEATStatic(object):
         
         dummyY_val = np.zeros([self.Y_val.shape[0],self.Y_val.shape[1],self.Y_val.shape[2],self.categories + self.nboxes* self.box_vector])
         dummyY_val[:,:,:,:self.Y_val.shape[3]] = self.Y_val
-        for b in range(1, self.nboxes - 1):
+        for b in range(1, self.nboxes):
             
             dummyY[:,:,:,self.categories + b * self.box_vector:self.categories + (b + 1) * self.box_vector] = self.Y[:,:,:, self.categories: self.categories + self.box_vector]
             dummyY_val[:,:,:,self.categories + b * self.box_vector:self.categories + (b + 1) * self.box_vector] = self.Y_val[:,:,:, self.categories: self.categories + self.box_vector]
