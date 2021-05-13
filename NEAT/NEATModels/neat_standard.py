@@ -271,8 +271,7 @@ class NEATDynamic(object):
             self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
         except:
             self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yololoss, 'Concat':Concat})
-            
-        for inputtime in tqdm(0, self.image.shape[0]):
+        for inputtime in tqdm(range(0, self.image.shape[0])):
             
             smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
             eventboxes = []
@@ -441,8 +440,8 @@ class NEATDynamic(object):
                      
             else:
                   
-             patchx = self.image.shape[2] // self.n_tiles
-             patchy = self.image.shape[1] // self.n_tiles
+             patchx = self.image.shape[2] // self.n_tiles[0]
+             patchy = self.image.shape[1] // self.n_tiles[1]
         
              if patchx > self.imagex and patchy > self.imagey:
               if self.overlap_percent > 1 or self.overlap_percent < 0:

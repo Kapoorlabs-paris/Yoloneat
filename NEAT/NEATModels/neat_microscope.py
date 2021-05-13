@@ -479,8 +479,8 @@ class NEATPredict(object):
                      
             else:
                   
-             patchx = self.image.shape[2] // self.n_tiles
-             patchy = self.image.shape[1] // self.n_tiles
+             patchx = self.image.shape[2] // self.n_tiles[0]
+             patchy = self.image.shape[1] // self.n_tiles[1]
         
              if patchx > self.imagex and patchy > self.imagey:
               if self.overlap_percent > 1 or self.overlap_percent < 0:
