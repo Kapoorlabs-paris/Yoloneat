@@ -398,8 +398,8 @@ class NEATPredict(object):
                                 
                                 bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
                                 if bbox_iou >= self.iou_threshold:
-                                    
-                                    iou_current_event_box.append(sorted_event_box[j])
+                                    if sorted_event_box[j] not in iou_current_event_box:
+                                        iou_current_event_box.append(sorted_event_box[j])
                                     
                iou_classedboxes[event_name] = [iou_current_event_box]
                                 
@@ -419,7 +419,7 @@ class NEATPredict(object):
                               
                               iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                               # Sort boxes with probability and keep nb_prediction boxes only
-                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x['event_name'], reverse = True) 
+                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
                               predcount = 0
                               for iou_current_event_box in iou_current_event_boxes:
                                       if predcount > self.nb_prediction:

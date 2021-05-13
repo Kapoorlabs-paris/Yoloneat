@@ -370,7 +370,8 @@ class NEATDynamic(object):
                                 bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
                                 if bbox_iou >= self.iou_threshold:
                                     
-                                    iou_current_event_box.append(sorted_event_box[j])
+                                    if sorted_event_box[j] not in iou_current_event_box:
+                                        iou_current_event_box.append(sorted_event_box[j])
                                     
                iou_classedboxes[event_name] = [iou_current_event_box]
                                 
@@ -390,6 +391,7 @@ class NEATDynamic(object):
                               angles = []
                               
                               iou_current_event_boxes = self.iou_classedboxes[event_name][0]
+                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
                               for iou_current_event_box in iou_current_event_boxes:
                                       print(iou_current_event_box)
                                       xcenter = iou_current_event_box['xcenter']
