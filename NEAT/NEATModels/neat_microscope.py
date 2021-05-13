@@ -119,7 +119,7 @@ class NEATPredict(object):
                 self.key_categories = self.catconfig
                 self.box_vector = self.config['box_vector']
                 self.show = self.config['show']
-                self.KeyCord = self.cordconfig
+                self.key_cord = self.cordconfig
                 self.categories = len(self.catconfig)
                 self.depth = self.config['depth']
                 self.start_kernel = self.config['start_kernel']
@@ -461,13 +461,13 @@ class NEATPredict(object):
                                           count = count + 1
             
           
-    def overlaptiles(self):
+    def overlaptiles(self, sliceregion):
         
             if self.n_tiles == 1:
                 
-                       patchshape = (self.image.shape[1], self.image.shape[2])  
+                       patchshape = (sliceregion.shape[1], sliceregion.shape[2])  
                       
-                       image = zero_pad(self.image, self.stride,self.stride)
+                       image = zero_pad(sliceregion, self.stride,self.stride)
         
                        patch = []
                        rowout = []
@@ -479,8 +479,8 @@ class NEATPredict(object):
                      
             else:
                   
-             patchx = self.image.shape[2] // self.n_tiles[0]
-             patchy = self.image.shape[1] // self.n_tiles[1]
+             patchx = sliceregion.shape[2] // self.n_tiles[0]
+             patchy = sliceregion.shape[1] // self.n_tiles[1]
         
              if patchx > self.imagex and patchy > self.imagey:
               if self.overlap_percent > 1 or self.overlap_percent < 0:
@@ -494,9 +494,9 @@ class NEATPredict(object):
               pairs = []  
               #row is y, col is x
               
-              while rowstart < self.image.shape[1] - patchy:
+              while rowstart < sliceregion.shape[1] - patchy:
                  colstart = 0
-                 while colstart < self.image.shape[2] - patchx:
+                 while colstart < sliceregion.shape[2] - patchx:
                     
                      # Start iterating over the tile with jumps = stride of the fully convolutional network.
                      pairs.append([rowstart, colstart])
@@ -504,24 +504,24 @@ class NEATPredict(object):
                  rowstart+=jumpy 
                 
               #Include the last patch   
-              rowstart = self.image.shape[1] - patchy
+              rowstart = sliceregion.shape[1] - patchy
               colstart = 0
-              while colstart < self.image.shape[2] - patchx:
+              while colstart < sliceregion.shape[2] - patchx:
                             pairs.append([rowstart, colstart])
                             colstart+=jumpx
               rowstart = 0
-              colstart = self.image.shape[2] - patchx
-              while rowstart < self.image.shape[1] - patchy:
+              colstart = sliceregion.shape[2] - patchx
+              while rowstart < sliceregion.shape[1] - patchy:
                             pairs.append([rowstart, colstart])
                             rowstart+=jumpy              
                             
-              if self.image.shape[1] >= self.imagey and self.image.shape[2]>= self.imagex :          
+              if sliceregion.shape[1] >= self.imagey and sliceregion.shape[2]>= self.imagex :          
                   
                     patch = []
                     rowout = []
                     column = []
                     for pair in pairs: 
-                       smallpatch, smallrowout, smallcolumn =  chunk_list(self.image, patchshape, self.stride, pair)
+                       smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, pair)
                        patch.append(smallpatch)
                        rowout.append(smallrowout)
                        column.append(smallcolumn) 
@@ -531,12 +531,11 @@ class NEATPredict(object):
                        patch = []
                        rowout = []
                        column = []
-                       image = zero_pad(self.image, self.stride,self.stride)
+                       image = zero_pad(sliceregion, self.stride,self.stride)
                        
                        patch.append(image)
                        rowout.append(0)
                        column.append(0)
-                       
             self.patch = patch          
             self.sy = rowout
             self.sx = column            
@@ -544,7 +543,7 @@ class NEATPredict(object):
         
     def predict_main(self,sliceregion):
             try:
-                self.overlaptiles()
+                self.overlaptiles(sliceregion)
                 predictions = []
                 allx = []
                 ally = []
@@ -615,7 +614,7 @@ def chunk_list(image, patchshape, stride, pair):
                 endcol = image.shape[2]
 
 
-            region = (slice(rowstart, endrow),
+            region = (slice(0,image.shape[0]),slice(rowstart, endrow),
                       slice(colstart, endcol))
 
             # The actual pixels in that region.
@@ -625,8 +624,13 @@ def chunk_list(image, patchshape, stride, pair):
             patch = zero_pad(patch, stride, stride)
 
 
-            return patch, rowstart, colstart  
+            return patch, rowstart, colstart
         
+        
+def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+    
+               starttime = timepoint
+               endtime = timepoint + imaget
+               smallimg = patch[starttime:endtime, :]
        
-        
-   
+               return smallimg         
