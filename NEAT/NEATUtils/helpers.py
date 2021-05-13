@@ -509,12 +509,12 @@ def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key
 
                                       if k > time_prediction.shape[0]:
                                           break;
-
-                                      
-                                      Classybox, MaxProbLabel = predictionloop(j, k, sx, sy, stride, time_prediction, config, key_categories,key_cord, inputtime, mode, event_type)
+                      
+                                      Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories,key_cord, inputtime, mode, event_type)
                                       #Append the box and the maximum likelehood detected class
-                                      if Classybox['confidence'] > 0.5:
-                                          LocationBoxes.append([Classybox, MaxProbLabel])         
+                                      if Classybox is not None:
+                                        if Classybox['confidence'] > 0.5:
+                                            LocationBoxes.append(Classybox)         
                              return LocationBoxes
                          
                             
@@ -548,8 +548,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           confidencemean = 0
                                           trainshapex = config['imagex']
                                           trainshapey = config['imagey']
-                                          
-                                          for b in nboxes:
+                                          for b in range(0,nboxes):
                                                   xcenter = xstart + prediction_vector[total_classes + config['x'] + b * total_coords ] * trainshapex
                                                   ycenter = ystart + prediction_vector[total_classes + config['y'] + b * total_coords ] * trainshapey
                                                   height = prediction_vector[total_classes + config['h'] + b * total_coords] * trainshapex  
@@ -636,9 +635,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                   
                                                   return classybox
                                       
-                                          else:
-                                            
-                                                  return None
+                                         
                                       
 def draw_labelimages(image, location, time, timelocation ):
 

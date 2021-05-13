@@ -375,38 +375,35 @@ class NEATPredict(object):
         iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
-               current_event_box =  self.classedboxes.event_name
+               #Get all events
+               event_box = self.classedboxes[event_name][0]
+               
+               #Highest probability is first
+               sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
+                   
+                
                iou_current_event_box = []
-               if current_event_box is not None:
+               if sorted_event_box is not None:
                     
-                    if len(current_event_box) == 0 :
+                    if len(sorted_event_box) == 0 :
                         
                         return []
                     else:
                         
-                        index_boxes = []  
-                        current_event_box = np.array(current_event_box, dtype = float)
-                        assert current_event_box.shape[0] > 0
-                        if current_event_box.dtype.kind!="f":
-                            current_event_box = current_event_box.astype(np.float16)
-        
-                        idxs = current_event_box[:,event_name].argsort()[::-1]
                         
-                        for i in range(len(idxs)):
+                        for i in range(len(sorted_event_box)):
                             
-                            index_i = idxs[i]
-                            index_boxes.append(index_i)
-                            for j in range(i + 1, len(idxs)):
+                        
+                            for j in range(i + 1, len(sorted_event_box)):
                                 
-                                index_j = idxs[j]
-                                bbox_iou = self.bbox_iou(current_event_box[index_i], current_event_box[index_j])
+                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
                                 if bbox_iou >= self.iou_threshold:
                                     
-                                    iou_current_event_box.append(current_event_box[index_j])
+                                    iou_current_event_box.append(sorted_event_box[j])
                                     
                iou_classedboxes[event_name] = [iou_current_event_box]
                                 
-        self.iou_classedboxes = iou_classedboxes                
+        self.iou_classedboxes = iou_classedboxes                              
         
     def to_csv(self):
         
@@ -419,19 +416,20 @@ class NEATPredict(object):
                               confidences = []
                               tlocations = []   
                               radiuses = []
-                              angles = []
                               
-                              iou_current_event_boxes = self.iou_classedboxes.event_name
+                              iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                               # Sort boxes with probability and keep nb_prediction boxes only
                               iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x['event_name'], reverse = True) 
-                              iou_current_event_boxes = iou_current_event_boxes[:self.nb_prediction,:]
+                              predcount = 0
                               for iou_current_event_box in iou_current_event_boxes:
+                                      if predcount > self.nb_prediction:
+                                          break
+                                      iou_current_event_box = iou_current_event_box[0]
                                       xcenter = iou_current_event_box['xcenter']
                                       ycenter = iou_current_event_box['ycenter']
                                       tcenter = iou_current_event_box['real_time_event']
                                       confidence = iou_current_event_box['confidence']
-                                      angle = iou_current_event_box['angle']
-                                      score = iou_current_event_box['event_name']
+                                      score = iou_current_event_box[event_name]
                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                       xlocations.append(xcenter)
                                       ylocations.append(ycenter)
@@ -439,7 +437,7 @@ class NEATPredict(object):
                                       confidences.append(confidence)
                                       tlocations.append(tcenter)
                                       radiuses.append(radius)
-                                      angles.append(angle)
+                                      predcount = predcount + 1
                               
                               
                               event_count = np.column_stack([xlocations,ylocations])
