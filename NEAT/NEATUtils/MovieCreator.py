@@ -56,7 +56,6 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
             Path(save_dir).mkdir(exist_ok=True)
             total_categories = len(static_name)
                 
-            othercsvlist = []    
             
             
             for fname in files_raw:
@@ -101,28 +100,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                                                         
                                                            pass
                                                         
-                                     elif Csvname in name:
-                                        if csvfname not in othercsvlist:
-                                           othercsvlist.append(csvfname)
-                                
-                         for csvfname in othercsvlist:       
-                             eventname = 'Normal'
-                             trainlabel = 0
-                             print(Csvname , 'making normal class with movie', name)
-                             dataset = pd.read_csv(csvfname)
-                             if len(dataset.keys()) >= 3:
 
-                                time = dataset[dataset.keys()[0]][1:]
-                                y = dataset[dataset.keys()[1]][1:]
-                                x = dataset[dataset.keys()[2]][1:]
-                                angle = np.full(time.shape, 2)                        
-                             if len(dataset.keys()) > 3:
-
-                                angle = dataset[dataset.keys()[3]][1:]                          
-                             #Categories + XYHW + Confidence 
-                             for (key, t) in time.items():
-                               MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
-                               count = count + 1
                                  
                              
 

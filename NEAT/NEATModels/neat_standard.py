@@ -55,10 +55,14 @@ class NEATDynamic(object):
     """
     
     
-    def __init__(self, config, model_dir, model_name):
+    def __init__(self, config, model_dir, model_name, catconfig = None, cordconfig = None):
 
         
         self.config = config
+        self.catconfig = catconfig
+        self.cordconfig = cordconfig
+        self.model_dir = model_dir
+        self.model_name = model_name 
         if self.config !=None:
                 self.npz_directory = config.npz_directory
                 self.npz_name = config.npz_name
@@ -99,43 +103,42 @@ class NEATDynamic(object):
                 except:
                    self.config = load_json(self.model_dir + self.model_name + '_Parameter.json')  
                    
-                self.npz_directory = config['npz_directory']
-                self.npz_name = config['npz_name']
-                self.npz_val_name = config['npz_val_name']
-                self.key_catagories = config['key_catagories']
-                self.box_vector = config['box_vector']
-                self.show = config['show']
-                self.KeyCord = config['key_cord']
-                self.categories = len(config['key_catagories'])
-                self.depth = config['depth']
-                self.start_kernel = config['start_kernel']
-                self.mid_kernel = config['mid_kernel']
-                self.lstm_kernel = config['lstm_kernel']
-                self.lstm_hidden_unit = config['lstm_hidden_unit']
-                self.learning_rate = config['learning_rate']
-                self.epochs = config['epochs']
-                self.residual = config['residual']
-                self.startfilter = config['startfilter']
-                self.batch_size = config['batch_size']
-                self.multievent = config['multievent']
-                self.imagex = config['imagex']
-                self.imagey = config['imagey']
-                self.imaget = config['size_tminus'] + config['size_tplus'] + 1
-                self.size_tminus = config['size_tminus']
-                self.size_tplus = config['size_tplus']
-                self.nboxes = config['nboxes']
+                self.npz_directory = self.config['npz_directory']
+                self.npz_name = self.config['npz_name']
+                self.npz_val_name = self.config['npz_val_name']
+                self.key_catagories = self.catconfig
+                self.box_vector = self.config['box_vector']
+                self.show = self.config['show']
+                self.KeyCord = self.cordconfig
+                self.categories = len(self.catconfig)
+                self.depth = self.config['depth']
+                self.start_kernel = self.config['start_kernel']
+                self.mid_kernel = self.config['mid_kernel']
+                self.lstm_kernel = self.config['lstm_kernel']
+                self.lstm_hidden_unit = self.config['lstm_hidden_unit']
+                self.learning_rate = self.config['learning_rate']
+                self.epochs = self.config['epochs']
+                self.residual = self.config['residual']
+                self.startfilter = self.config['startfilter']
+                self.batch_size = self.config['batch_size']
+                self.multievent = self.config['multievent']
+                self.imagex = self.config['imagex']
+                self.imagey = self.config['imagey']
+                self.imaget = self.config['size_tminus'] + self.config['size_tplus'] + 1
+                self.size_tminus = self.config['size_tminus']
+                self.size_tplus = self.config['size_tplus']
+                self.nboxes = self.config['nboxes']
                 self.gridx = 1
                 self.gridy = 1
                 self.gridt = 1
-                self.yolo_v0 = config['yolo_v0']
-                self.yolo_v1 = config['yolo_v1']
-                self.yolo_v2 = config['yolo_v2']
-                self.stride = config['stride']   
-                self.lstm_hidden_unit = config['lstm_hidden_unit']
+                self.yolo_v0 = self. config['yolo_v0']
+                self.yolo_v1 = self.config['yolo_v1']
+                self.yolo_v2 = self.config['yolo_v2']
+                self.stride = self.config['stride']   
+                self.lstm_hidden_unit = self.config['lstm_hidden_unit']
                 
                 
-        self.model_dir = model_dir
-        self.model_name = model_name 
+ 
         self.X = None
         self.Y = None
         self.axes = None
@@ -265,9 +268,9 @@ class NEATDynamic(object):
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
         try:
-            self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
+            self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
         except:
-            self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
+            self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yololoss, 'Concat':Concat})
             
         for inputtime in tqdm(0, self.image.shape[0]):
             
