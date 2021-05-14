@@ -399,17 +399,18 @@ class NEATDynamic(object):
                                     
                iou_classedboxes[event_name] = [iou_current_event_box]
                #lAST ROUND
+               remove_boxes = []
                for i in range(len(iou_current_event_box)):
-                            if iou_current_event_box[i] not in best_iou_current_event_box:
-                                                best_iou_current_event_box.append(iou_current_event_box[i])
+                            best_iou_current_event_box.append(iou_current_event_box[i])
                             for j in range(i + 1, len(iou_current_event_box)):
                                 
                                         bbox_iou = self.bbox_iou(iou_current_event_box[i], iou_current_event_box[j])
-                                        
                                         if bbox_iou > self.iou_threshold:
                                             #EXTRA good event found     
-                                                if iou_current_event_box[j] in best_iou_current_event_box :
-                                                        best_iou_current_event_box.remove(iou_current_event_box[j])
+                                                remove_boxes.append(iou_current_event_box[j]) 
+               for k in range(len(remove_boxes)):    
+                    if remove_boxes[k] in best_iou_current_event_box:                             
+                         best_iou_current_event_box.remove(remove_boxes[k])
                best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
         self.iou_classedboxes = best_iou_classedboxes                
         
