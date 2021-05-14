@@ -233,7 +233,7 @@ class NEATDynamic(object):
         print(self.Y.shape, self.nboxes)
         
         
-        self.Trainingmodel = self.model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, lstm_kernel = self.lstm_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
+        self.Trainingmodel = self.model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, lstm_kernel = self.lstm_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
         
             
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
@@ -385,23 +385,19 @@ class NEATDynamic(object):
                             
                             best_iou = []
                             for j in range(i + 1, len(sorted_event_box)):
-                                if j not in poppedj:
-                                        bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                        if bbox_iou >= 0.1:
-                                             best_iou.append(bbox_iou)
-                                        if bbox_iou < self.iou_threshold:
-                                            
-                                              poppedj.append(j)
-                                        #good event found     
-                                        if len(best_iou) > 10:
-                                            if sorted_event_box[i] not in iou_current_event_box:
-                                                iou_current_event_box.append(sorted_event_box[i])
-                                            
+                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
+                                if bbox_iou >= 0.1:
+                                     best_iou.append(bbox_iou)
+                                    
+                                #good event found     
+                                if len(best_iou) > 10:
+                                    if sorted_event_box[i] not in iou_current_event_box:
+                                        iou_current_event_box.append(sorted_event_box[i])
+                                    
                                     
                                     
                                     
                iou_classedboxes[event_name] = [iou_current_event_box]
-               
                #lAST ROUND
                for i in range(len(iou_current_event_box)):
                             best_iou = []
@@ -414,7 +410,6 @@ class NEATDynamic(object):
                                             #EXTRA good event found     
                                             if iou_current_event_box[i] not in best_iou_current_event_box:
                                                 best_iou_current_event_box.append(iou_current_event_box[i])
-               
                best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
         self.iou_classedboxes = best_iou_classedboxes                
         
