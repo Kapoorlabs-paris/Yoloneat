@@ -342,17 +342,23 @@ class NEATPredict(object):
         
         
     def bbox_iou(self,box1, box2):
-        intersect_w = self._interval_overlap([box1['xstart'], box1['xstart'] + box1['xcenter']], [box2['xstart'], box2['xstart'] + box2['xcenter']])
-        intersect_h = self._interval_overlap([box1['ystart'], box1['ystart'] + box1['ycenter']], [box2['ystart'], box2['ystart'] + box2['ycenter']])
-
-        intersect = intersect_w * intersect_h
-
+        
+        
         w1, h1 = box1['width'], box1['height']
         w2, h2 = box2['width'], box2['height']
+        
+        xA =max( box1['xstart'] , box2['xstart'] )
+        xB = max ( box1['xstart'] + w1, box2['xstart'] + w2)
+        yA = max( box1['ystart'] , box2['ystart'] )
+        yB = max (box1['ystart'] + h1, box2['ystart'] + h2)
+
+        intersect = max(0, xB - xA) * max(0, yB - yA)
+
+
 
         union = w1*h1 + w2*h2 - intersect
 
-        return float(np.true_divide(intersect, union))
+        return float(np.true_divide(intersect, union)) - 1
     
     
     def _interval_overlap(self,interval_a, interval_b):
@@ -373,6 +379,7 @@ class NEATPredict(object):
         
         
         iou_classedboxes = {}
+        self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
                #Get all events
@@ -380,9 +387,10 @@ class NEATPredict(object):
                
                #Highest probability is first
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
-                   
-                
                iou_current_event_box = []
+               poppedj = []
+               
+               
                if sorted_event_box is not None:
                     
                     if len(sorted_event_box) == 0 :
@@ -393,17 +401,26 @@ class NEATPredict(object):
                         
                         for i in range(len(sorted_event_box)):
                             
-                        
+                            best_iou = []
                             for j in range(i + 1, len(sorted_event_box)):
-                                
-                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                if bbox_iou >= self.iou_threshold:
-                                    if sorted_event_box[j] not in iou_current_event_box:
-                                        iou_current_event_box.append(sorted_event_box[j])
+                                if j not in poppedj:
+                                        bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
+                                        if bbox_iou >= 0.1:
+                                             best_iou.append(bbox_iou)
+                                        if bbox_iou < self.iou_threshold:
+                                            
+                                              poppedj.append(j)
+                                        #good event found     
+                                        if len(best_iou) > 10:
+                                            if sorted_event_box[i] not in iou_current_event_box:
+                                                iou_current_event_box.append(sorted_event_box[i])
+                                            
+                                    
+                                    
                                     
                iou_classedboxes[event_name] = [iou_current_event_box]
                                 
-        self.iou_classedboxes = iou_classedboxes                              
+        self.iou_classedboxes = iou_classedboxes                
         
     def to_csv(self):
         
@@ -416,48 +433,42 @@ class NEATPredict(object):
                               confidences = []
                               tlocations = []   
                               radiuses = []
+                              angles = []
+                              try:
+                                      iou_current_event_boxes = self.iou_classedboxes[event_name][0]
+                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
+                                      for iou_current_event_box in iou_current_event_boxes:
+                                              xcenter = iou_current_event_box['xcenter']
+                                              ycenter = iou_current_event_box['ycenter']
+                                              tcenter = iou_current_event_box['real_time_event']
+                                              confidence = iou_current_event_box['confidence']
+                                              angle = iou_current_event_box['realangle']
+                                              score = iou_current_event_box[event_name]
+                                              radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                              xlocations.append(xcenter)
+                                              ylocations.append(ycenter)
+                                              scores.append(score)
+                                              confidences.append(confidence)
+                                              tlocations.append(tcenter)
+                                              radiuses.append(radius)
+                                              angles.append(angle)
+                                    
+                                      
+                                      event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
+                                      event_data = []
+                                      csvname = os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                      writer = csv.writer(open(csvname  +".csv", "a"))
+                                      filesize = os.stat(csvname + ".csv").st_size
+                                      if filesize < 1:
+                                         writer.writerow(['T','Y','X','Score','Size','Confidence','Angle'])
+                                      for line in event_count:
+                                         if line not in event_data:  
+                                            event_data.append(line)
+                                         writer.writerows(event_data)
+                                         event_data = []           
                               
-                              iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                              # Sort boxes with probability and keep nb_prediction boxes only
-                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
-                              predcount = 0
-                              for iou_current_event_box in iou_current_event_boxes:
-                                      if predcount > self.nb_prediction:
-                                          break
-                                      iou_current_event_box = iou_current_event_box[0]
-                                      xcenter = iou_current_event_box['xcenter']
-                                      ycenter = iou_current_event_box['ycenter']
-                                      tcenter = iou_current_event_box['real_time_event']
-                                      confidence = iou_current_event_box['confidence']
-                                      score = iou_current_event_box[event_name]
-                                      radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                      xlocations.append(xcenter)
-                                      ylocations.append(ycenter)
-                                      scores.append(score)
-                                      confidences.append(confidence)
-                                      tlocations.append(tcenter)
-                                      radiuses.append(radius)
-                                      predcount = predcount + 1
-                              
-                              
-                              event_count = np.column_stack([xlocations,ylocations])
-                              event_count = np.unique(event_count, axis = 0)
-                                 
-                              with open(self.basedirResults + "/" + event_name +".ini", "w") as csvfile:
-                                       writer = csv.writer(csvfile, 'a' )
-                                       writer.write('[main]\n')  
-                                       writer.write('nbPredictions='+str(self.nb_prediction)+'\n')
-                                       live_event_data = []
-                                       count = 1
-                                       for line in event_count:
-                                          if count > 1:
-                                              live_event_data.append(line)
-                                              writer.write('['+str(count - 1)+']'+'\n')
-                                              writer.write('x='+str(live_event_data[0][0])+'\n')
-                                              writer.write('y='+str(live_event_data[0][1])+'\n')
-                                              live_event_data = []  
-                                          count = count + 1
-            
+                              except: 
+                                  pass
           
     def overlaptiles(self, sliceregion):
         
@@ -619,6 +630,7 @@ def chunk_list(image, patchshape, stride, pair):
             patch = image[region]
 
             # Always normalize patch that goes into the netowrk for getting a prediction score 
+            patch = normalizeFloatZeroOne(patch,1,99.8)
             patch = zero_pad(patch, stride, stride)
 
 

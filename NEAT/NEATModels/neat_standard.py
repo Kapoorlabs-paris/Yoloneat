@@ -271,11 +271,16 @@ class NEATDynamic(object):
             self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
         except:
             self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yololoss, 'Concat':Concat})
+            
+        eventboxes = []
+        classedboxes = {}    
+        count = 0
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
+                       
+                        count = count + 1
                         smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
-                        eventboxes = []
-                        classedboxes = {}
+                        
                         #Break image into tiles if neccessary
                         predictions, allx, ally = self.predict_main(smallimage)
                         #Iterate over tiles
@@ -305,24 +310,36 @@ class NEATDynamic(object):
                                  classedboxes[event_name] = [current_event_box]
                              
                         self.classedboxes = classedboxes    
-                        self.eventboxes =  eventboxes  
-                        
+                        self.eventboxes =  eventboxes
+                        #per frame nms
                         self.nms()
-                        self.to_csv()
-        
+                        if count == self.imaget:
+                            #nms over time
+                            self.nms()
+                            self.to_csv()
+                            eventboxes = []
+                            classedboxes = {}    
+                            count = 0
+                
         
     def bbox_iou(self,box1, box2):
-        intersect_w = self._interval_overlap([box1['xstart'], box1['xstart'] + box1['xcenter']], [box2['xstart'], box2['xstart'] + box2['xcenter']])
-        intersect_h = self._interval_overlap([box1['ystart'], box1['ystart'] + box1['ycenter']], [box2['ystart'], box2['ystart'] + box2['ycenter']])
-
-        intersect = intersect_w * intersect_h
-
+        
+        
         w1, h1 = box1['width'], box1['height']
         w2, h2 = box2['width'], box2['height']
+        
+        xA =max( box1['xstart'] , box2['xstart'] )
+        xB = max ( box1['xstart'] + w1, box2['xstart'] + w2)
+        yA = max( box1['ystart'] , box2['ystart'] )
+        yB = max (box1['ystart'] + h1, box2['ystart'] + h2)
+
+        intersect = max(0, xB - xA) * max(0, yB - yA)
+
+
 
         union = w1*h1 + w2*h2 - intersect
 
-        return float(np.true_divide(intersect, union))
+        return float(np.true_divide(intersect, union)) - 1
     
     
     def _interval_overlap(self,interval_a, interval_b):
@@ -351,9 +368,10 @@ class NEATDynamic(object):
                
                #Highest probability is first
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
-                   
-                
                iou_current_event_box = []
+               poppedj = []
+               
+               
                if sorted_event_box is not None:
                     
                     if len(sorted_event_box) == 0 :
@@ -364,14 +382,22 @@ class NEATDynamic(object):
                         
                         for i in range(len(sorted_event_box)):
                             
-                        
+                            best_iou = []
                             for j in range(i + 1, len(sorted_event_box)):
-                                
-                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                if bbox_iou >= self.iou_threshold:
+                                if j not in poppedj:
+                                        bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
+                                        if bbox_iou >= 0.1:
+                                             best_iou.append(bbox_iou)
+                                        if bbox_iou < self.iou_threshold:
+                                            
+                                              poppedj.append(j)
+                                        #good event found     
+                                        if len(best_iou) > 10:
+                                            if sorted_event_box[i] not in iou_current_event_box:
+                                                iou_current_event_box.append(sorted_event_box[i])
+                                            
                                     
-                                    if sorted_event_box[j] not in iou_current_event_box:
-                                        iou_current_event_box.append(sorted_event_box[j])
+                                    
                                     
                iou_classedboxes[event_name] = [iou_current_event_box]
                                 
@@ -400,15 +426,14 @@ class NEATDynamic(object):
                                               angle = iou_current_event_box['realangle']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                              if score > 0.8:
-                                                  xlocations.append(xcenter)
-                                                  ylocations.append(ycenter)
-                                                  scores.append(score)
-                                                  confidences.append(confidence)
-                                                  tlocations.append(tcenter)
-                                                  radiuses.append(radius)
-                                                  angles.append(angle)
-                                          
+                                              xlocations.append(xcenter)
+                                              ylocations.append(ycenter)
+                                              scores.append(score)
+                                              confidences.append(confidence)
+                                              tlocations.append(tcenter)
+                                              radiuses.append(radius)
+                                              angles.append(angle)
+                                    
                                       
                                       event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
                                       event_data = []
