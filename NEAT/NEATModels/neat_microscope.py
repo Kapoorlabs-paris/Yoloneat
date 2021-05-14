@@ -216,6 +216,18 @@ class NEATPredict(object):
         
         d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
         d_class_weights = d_class_weights.reshape(1,d_class_weights.shape[0])
+        dummyY = np.zeros([self.Y.shape[0],self.Y.shape[1],self.Y.shape[2],self.categories + self.nboxes* self.box_vector])
+        dummyY[:,:,:,:self.Y.shape[3]] = self.Y
+        
+        dummyY_val = np.zeros([self.Y_val.shape[0],self.Y_val.shape[1],self.Y_val.shape[2],self.categories + self.nboxes* self.box_vector])
+        dummyY_val[:,:,:,:self.Y_val.shape[3]] = self.Y_val
+        for b in range(1, self.nboxes):
+            
+            dummyY[:,:,:,self.categories + b * self.box_vector:self.categories + (b + 1) * self.box_vector] = self.Y[:,:,:, self.categories: self.categories + self.box_vector]
+            dummyY_val[:,:,:,self.categories + b * self.box_vector:self.categories + (b + 1) * self.box_vector] = self.Y_val[:,:,:, self.categories: self.categories + self.box_vector]
+            
+        self.Y = dummyY
+        self.Y_val = dummyY_val
         
         self.Trainingmodel = self.model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] , depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, lstm_kernel = self.lstm_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
         
