@@ -304,7 +304,7 @@ class NEATDynamic(object):
                                  for box in eventboxes:
                             
                                     event_prob = box[event_name]
-                                    if event_prob > self.event_threshold:
+                                    if event_prob >= self.event_threshold:
                                        
                                         current_event_box.append(box)
                                  classedboxes[event_name] = [current_event_box]
@@ -328,9 +328,9 @@ class NEATDynamic(object):
         w2, h2 = box2['width'], box2['height']
         
         xA =max( box1['xstart'] , box2['xstart'] )
-        xB = max ( box1['xstart'] + w1, box2['xstart'] + w2)
+        xB = min ( box1['xstart'] + w1, box2['xstart'] + w2)
         yA = max( box1['ystart'] , box2['ystart'] )
-        yB = max (box1['ystart'] + h1, box2['ystart'] + h2)
+        yB = min (box1['ystart'] + h1, box2['ystart'] + h2)
 
         intersect = max(0, xB - xA) * max(0, yB - yA)
 
@@ -338,7 +338,7 @@ class NEATDynamic(object):
 
         union = w1*h1 + w2*h2 - intersect
 
-        return float(np.true_divide(intersect, union)) - 1
+        return float(np.true_divide(intersect, union)) 
     
     
     def _interval_overlap(self,interval_a, interval_b):
@@ -400,16 +400,16 @@ class NEATDynamic(object):
                iou_classedboxes[event_name] = [iou_current_event_box]
                #lAST ROUND
                for i in range(len(iou_current_event_box)):
-                            best_iou = []
+                            if iou_current_event_box[i] not in best_iou_current_event_box:
+                                                best_iou_current_event_box.append(iou_current_event_box[i])
                             for j in range(i + 1, len(iou_current_event_box)):
                                 
                                         bbox_iou = self.bbox_iou(iou_current_event_box[i], iou_current_event_box[j])
-                                       
+                                        
                                         if bbox_iou > self.iou_threshold:
-                                            
                                             #EXTRA good event found     
-                                            if iou_current_event_box[i] not in best_iou_current_event_box:
-                                                best_iou_current_event_box.append(iou_current_event_box[i])
+                                                if iou_current_event_box[j] in best_iou_current_event_box :
+                                                        best_iou_current_event_box.remove(iou_current_event_box[j])
                best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
         self.iou_classedboxes = best_iou_classedboxes                
         
