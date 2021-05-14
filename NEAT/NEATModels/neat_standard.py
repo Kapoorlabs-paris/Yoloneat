@@ -311,8 +311,7 @@ class NEATDynamic(object):
                              
                         self.classedboxes = classedboxes    
                         self.eventboxes =  eventboxes
-                        #per frame nms
-                        self.nms()
+                        
                         if count == self.imaget:
                             #nms over time
                             self.nms()
@@ -360,6 +359,7 @@ class NEATDynamic(object):
         
         
         iou_classedboxes = {}
+        best_iou_classedboxes = {}
         self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
@@ -369,6 +369,7 @@ class NEATDynamic(object):
                #Highest probability is first
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
                iou_current_event_box = []
+               best_iou_current_event_box = []
                poppedj = []
                
                
@@ -379,7 +380,7 @@ class NEATDynamic(object):
                         return []
                     else:
                         
-                        
+                        #fIRST ROUND
                         for i in range(len(sorted_event_box)):
                             
                             best_iou = []
@@ -400,8 +401,22 @@ class NEATDynamic(object):
                                     
                                     
                iou_classedboxes[event_name] = [iou_current_event_box]
+               
+               #lAST ROUND
+               for i in range(len(iou_current_event_box)):
+                            best_iou = []
+                            for j in range(i + 1, len(iou_current_event_box)):
                                 
-        self.iou_classedboxes = iou_classedboxes                
+                                        bbox_iou = self.bbox_iou(iou_current_event_box[i], iou_current_event_box[j])
+                                       
+                                        if bbox_iou > self.iou_threshold:
+                                            
+                                            #EXTRA good event found     
+                                            if iou_current_event_box[i] not in best_iou_current_event_box:
+                                                best_iou_current_event_box.append(iou_current_event_box[i])
+               
+               best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
+        self.iou_classedboxes = best_iou_classedboxes                
         
     def to_csv(self):
         
