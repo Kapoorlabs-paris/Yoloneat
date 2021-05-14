@@ -276,7 +276,6 @@ class NEATDynamic(object):
                         smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
                         eventboxes = []
                         classedboxes = {}
-                        smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
                         #Break image into tiles if neccessary
                         predictions, allx, ally = self.predict_main(smallimage)
                         #Iterate over tiles
@@ -344,6 +343,7 @@ class NEATDynamic(object):
         
         
         iou_classedboxes = {}
+        self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
                #Get all events
@@ -389,37 +389,42 @@ class NEATDynamic(object):
                               tlocations = []   
                               radiuses = []
                               angles = []
+                              try:
+                                      iou_current_event_boxes = self.iou_classedboxes[event_name][0]
+                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
+                                      for iou_current_event_box in iou_current_event_boxes:
+                                              xcenter = iou_current_event_box['xcenter']
+                                              ycenter = iou_current_event_box['ycenter']
+                                              tcenter = iou_current_event_box['real_time_event']
+                                              confidence = iou_current_event_box['confidence']
+                                              angle = iou_current_event_box['realangle']
+                                              score = iou_current_event_box[event_name]
+                                              radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                              if score > 0.8:
+                                                  xlocations.append(xcenter)
+                                                  ylocations.append(ycenter)
+                                                  scores.append(score)
+                                                  confidences.append(confidence)
+                                                  tlocations.append(tcenter)
+                                                  radiuses.append(radius)
+                                                  angles.append(angle)
+                                          
+                                      
+                                      event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
+                                      event_data = []
+                                      csvname = os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                      writer = csv.writer(open(csvname  +".csv", "a"))
+                                      filesize = os.stat(csvname + ".csv").st_size
+                                      if filesize < 1:
+                                         writer.writerow(['T','Y','X','Score','Size','Confidence','Angle'])
+                                      for line in event_count:
+                                         if line not in event_data:  
+                                            event_data.append(line)
+                                         writer.writerows(event_data)
+                                         event_data = []           
                               
-                              iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
-                              for iou_current_event_box in iou_current_event_boxes:
-                                      print(iou_current_event_box)
-                                      xcenter = iou_current_event_box['xcenter']
-                                      ycenter = iou_current_event_box['ycenter']
-                                      tcenter = iou_current_event_box['real_time_event']
-                                      confidence = iou_current_event_box['confidence']
-                                      angle = iou_current_event_box['realangle']
-                                      score = iou_current_event_box[event_name]
-                                      radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                      xlocations.append(xcenter)
-                                      ylocations.append(ycenter)
-                                      scores.append(score)
-                                      confidences.append(confidence)
-                                      tlocations.append(tcenter)
-                                      radiuses.append(radius)
-                                      angles.append(angle)
-                              
-                              
-                              event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
-                              event_data = []
-                              writer = csv.writer(open(os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])  +".csv", "a"))
-                              writer.writerow(['T','Y','X','Score','Size','Confidence','Angle'])
-                              for line in event_count:
-                                 event_data.append(line)
-                                 writer.writerows(event_data)
-                                 event_data = []           
-                              
-            
+                              except: 
+                                  pass
           
     def overlaptiles(self, sliceregion):
         
@@ -581,6 +586,7 @@ def chunk_list(image, patchshape, stride, pair):
             patch = image[region]
 
             # Always normalize patch that goes into the netowrk for getting a prediction score 
+            patch = normalizeFloatZeroOne(patch,1,99.8)
             patch = zero_pad(patch, stride, stride)
 
 
