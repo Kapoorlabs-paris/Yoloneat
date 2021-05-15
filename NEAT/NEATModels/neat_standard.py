@@ -428,7 +428,7 @@ class NEATDynamic(object):
                               tlocations = []   
                               radiuses = []
                               angles = []
-                              naparilocations = []
+                              
                               try:
                                       iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                       iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
@@ -447,7 +447,7 @@ class NEATDynamic(object):
                                               tlocations.append(tcenter)
                                               radiuses.append(radius)
                                               angles.append(angle)
-                                              naparilocations.append([tcenter, ycenter, xcenter])
+                                              
                                     
                                       event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
                                       event_data = []
@@ -466,35 +466,41 @@ class NEATDynamic(object):
                                   pass
 
 
-        return 
                       
-    def event_counter(self, csv_file, Label, save_dir):
+    def event_counter(self,imagename, csv_file, Label, save_dir):
      
          time,y,x,score,size,confidence,angle=   np.loadtxt(csv_file, delimiter = ',', skiprows = 1, unpack=True)
          eventcounter = 0
          eventlist = []
          timelist = []   
          listtime = time.tolist()
+         listy = y.tolist()
+         listx = x.tolist()
          listtime = sorted(listtime)
          maxtime = max(listtime)
-         for t in range(0, int(maxtime)):
-             eventcounter = listtime.count(t)
-             timelist.append(t)
+         naparilocations = []
+         for i in range(0, int(maxtime)):
+             tcenter = listtime[i] 
+             ycenter = listy[i]
+             xcenter = listx[i]
+             eventcounter = listtime.count(tcenter)
+             timelist.append(tcenter)
              eventlist.append(eventcounter)
-            
+             naparilocations.append([tcenter, ycenter, xcenter])   
          plt.plot(timelist, eventlist, '-r')
          plt.title(Label)
          plt.ylabel('Counts')
          plt.xlabel('Time')
          plt.savefig(save_dir  + Label   + '.png') 
          plt.show()   
+         self.showNapari(imagename,naparilocations, Label)
          return timelist, eventlist
      
         
-    def showNapari(self, naparilocations, event_name, scores, angles):
+    def showNapari(self, imagename, naparilocations, event_name):
 
-         
-         self.viewer = napari.view_image(self.image, name='Image')
+         image = imread(imagename)
+         self.viewer = napari.view_image(image, name='Image')
          for layer in list(self.viewer.layers):
                  if event_name in layer.name or layer.name in event_name:
                         self.viewer.layers.remove(layer)
