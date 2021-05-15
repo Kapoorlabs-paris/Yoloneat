@@ -532,9 +532,9 @@ class NEATDynamic(object):
                           pairs = []  
                           #row is y, col is x
                           
-                          while rowstart < sliceregion.shape[1] - patchy:
+                          while rowstart < sliceregion.shape[1] :
                              colstart = 0
-                             while colstart < sliceregion.shape[2] - patchx:
+                             while colstart < sliceregion.shape[2]:
                                 
                                  # Start iterating over the tile with jumps = stride of the fully convolutional network.
                                  pairs.append([rowstart, colstart])
@@ -542,9 +542,9 @@ class NEATDynamic(object):
                              rowstart+=jumpy 
                             
                           #Include the last patch   
-                          rowstart = sliceregion.shape[1] - patchy
+                          rowstart = sliceregion.shape[1]
                           colstart = 0
-                          while colstart < sliceregion.shape[2] - patchx:
+                          while colstart < sliceregion.shape[2]:
                                         pairs.append([rowstart, colstart])
                                         colstart+=jumpx
                           rowstart = 0
@@ -587,11 +587,14 @@ class NEATDynamic(object):
                 ally = []
                 if len(self.patch) > 0:
                     for i in range(0,len(self.patch)):   
-                       
-                       sum_time_prediction = self.make_patches(self.patch[i])
-                       predictions.append(sum_time_prediction)
-                       allx.append(self.sx[i])
-                       ally.append(self.sy[i])
+                       try:
+                               sum_time_prediction = self.make_patches(self.patch[i])
+                               predictions.append(sum_time_prediction)
+                               allx.append(self.sx[i])
+                               ally.append(self.sy[i])
+                       except:
+                           
+                           pass
                        
                 else:
                     
@@ -624,27 +627,7 @@ class NEATDynamic(object):
        return prediction_vector
    
     
-def zero_pad(patch, jumpx, jumpy):
 
-          time = patch.shape[0]
-          sizeY = patch.shape[1]
-          sizeX = patch.shape[2]
-          sizeXextend = sizeX
-          sizeYextend = sizeY
-         
- 
-          while sizeXextend%jumpx!=0:
-              sizeXextend = sizeXextend + 1
-        
-          while sizeYextend%jumpy!=0:
-              sizeYextend = sizeYextend + 1
-
-          extendimage = np.zeros([time, sizeYextend, sizeXextend])
-          
-          extendimage[0:time, 0:sizeY, 0:sizeX] = patch
-              
-          return extendimage
-      
         
 def chunk_list(image, patchshape, stride, pair):
             rowstart = pair[0]
@@ -667,7 +650,6 @@ def chunk_list(image, patchshape, stride, pair):
 
             # Always normalize patch that goes into the netowrk for getting a prediction score 
             
-            patch = zero_pad(patch, stride, stride)
 
 
             return patch, rowstart, colstart
