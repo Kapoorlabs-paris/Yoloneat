@@ -255,7 +255,7 @@ class NEATPredict(object):
         
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
-    def predict(self, imagedir, movie_name_list, movie_input, start, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
+    def predict(self, imagedir, movie_name_list, movie_input, start, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01):
         
         self.imagedir = imagedir
         self.basedirResults = self.imagedir + '/' + "live_results"
@@ -484,82 +484,65 @@ class NEATPredict(object):
           
     def overlaptiles(self, sliceregion):
         
-            if self.n_tiles == 1:
-                
-                       patchshape = (sliceregion.shape[1], sliceregion.shape[2])  
-                      
-                       image = zero_pad(sliceregion, self.stride,self.stride)
-        
-                       patch = []
-                       rowout = []
-                       column = []
-                       
-                       patch.append(image)
-                       rowout.append(0)
-                       column.append(0)
-                     
-            else:
-                  
-             patchx = sliceregion.shape[2] // self.n_tiles[0]
-             patchy = sliceregion.shape[1] // self.n_tiles[1]
-        
-             if patchx > self.imagex and patchy > self.imagey:
-              if self.overlap_percent > 1 or self.overlap_percent < 0:
-                 self.overlap_percent = 0.8
-             
-              jumpx = int(self.overlap_percent * patchx)
-              jumpy = int(self.overlap_percent * patchy)
-             
-              patchshape = (patchy, patchx)   
-              rowstart = 0; colstart = 0
-              pairs = []  
-              #row is y, col is x
-              
-              while rowstart < sliceregion.shape[1] - patchy:
-                 colstart = 0
-                 while colstart < sliceregion.shape[2] - patchx:
-                    
-                     # Start iterating over the tile with jumps = stride of the fully convolutional network.
-                     pairs.append([rowstart, colstart])
-                     colstart+=jumpx
-                 rowstart+=jumpy 
-                
-              #Include the last patch   
-              rowstart = sliceregion.shape[1] - patchy
-              colstart = 0
-              while colstart < sliceregion.shape[2] - patchx:
-                            pairs.append([rowstart, colstart])
-                            colstart+=jumpx
-              rowstart = 0
-              colstart = sliceregion.shape[2] - patchx
-              while rowstart < sliceregion.shape[1] - patchy:
-                            pairs.append([rowstart, colstart])
-                            rowstart+=jumpy              
-                            
-              if sliceregion.shape[1] >= self.imagey and sliceregion.shape[2]>= self.imagex :          
-                  
-                    patch = []
-                    rowout = []
-                    column = []
-                    for pair in pairs: 
-                       smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, pair)
-                       patch.append(smallpatch)
-                       rowout.append(smallrowout)
-                       column.append(smallcolumn) 
-                
-             else:
+             if self.n_tiles == (1, 1):
+                               patch = []
+                               rowout = []
+                               column = []
+                               patchx = sliceregion.shape[2] // self.n_tiles[0]
+                               patchy = sliceregion.shape[1] // self.n_tiles[1]
+                               patchshape = (patchy, patchx) 
+                               smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, [0,0])
+                               patch.append(smallpatch)
+                               rowout.append(smallrowout)
+                               column.append(smallcolumn)
                  
-                       patch = []
-                       rowout = []
-                       column = []
-                       image = zero_pad(sliceregion, self.stride,self.stride)
-                       
-                       patch.append(image)
-                       rowout.append(0)
-                       column.append(0)
-            self.patch = patch          
-            self.sy = rowout
-            self.sx = column            
+             else:     
+                     patchx = sliceregion.shape[2] // self.n_tiles[0]
+                     patchy = sliceregion.shape[1] // self.n_tiles[1]
+                
+                     if patchx > self.imagex and patchy > self.imagey:
+                          if self.overlap_percent > 1 or self.overlap_percent < 0:
+                             self.overlap_percent = 0.6
+                         
+                          jumpx = int(self.overlap_percent * patchx)
+                          jumpy = int(self.overlap_percent * patchy)
+                         
+                          patchshape = (patchy, patchx)   
+                          rowstart = 0; colstart = 0
+                          pairs = []  
+                          #row is y, col is x
+                          
+                          while rowstart < sliceregion.shape[1] - patchy:
+                             colstart = 0
+                             while colstart < sliceregion.shape[2] - patchx:
+                                
+                                 # Start iterating over the tile with jumps = stride of the fully convolutional network.
+                                 pairs.append([rowstart, colstart])
+                                 colstart+=jumpx
+                             rowstart+=jumpy 
+                            
+                          #Include the last patch   
+                          rowstart = sliceregion.shape[1] - patchy
+                          colstart = 0
+                          while colstart < sliceregion.shape[2] - patchx:
+                                        pairs.append([rowstart, colstart])
+                                        colstart+=jumpx
+                          rowstart = 0
+                          colstart = sliceregion.shape[2] - patchx
+                          while rowstart < sliceregion.shape[1] - patchy:
+                                        pairs.append([rowstart, colstart])
+                                        rowstart+=jumpy              
+                                        
+                          for pair in pairs: 
+                                   smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, pair)
+                                   patch.append(smallpatch)
+                                   rowout.append(smallrowout)
+                                   column.append(smallcolumn) 
+                        
+                     
+             self.patch = patch          
+             self.sy = rowout
+             self.sx = column            
           
         
     def predict_main(self,sliceregion):
@@ -642,7 +625,6 @@ def chunk_list(image, patchshape, stride, pair):
             patch = image[region]
 
             # Always normalize patch that goes into the netowrk for getting a prediction score 
-            patch = normalizeFloatZeroOne(patch,1,99.8)
             patch = zero_pad(patch, stride, stride)
 
 
