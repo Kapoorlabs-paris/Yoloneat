@@ -19,7 +19,7 @@ from tifffile import imread, imwrite
 import csv
 import napari
 from napari.qt.threading import thread_worker
-from matplotlib.pyplot import plot as plt
+import matplotlib.pyplot  as plt
 class NEATDynamic(object):
     
 
@@ -470,14 +470,14 @@ class NEATDynamic(object):
                       
     def event_counter(self, csv_file, Label, save_dir):
      
-         x, y, time =   np.loadtxt(csv_file, delimiter = ',', skiprows = 0, unpack=True)
+         time,y,x,score,size,confidence,angle=   np.loadtxt(csv_file, delimiter = ',', skiprows = 1, unpack=True)
          eventcounter = 0
          eventlist = []
          timelist = []   
          listtime = time.tolist()
          listtime = sorted(listtime)
          maxtime = max(listtime)
-         for t in range(0, maxtime):
+         for t in range(0, int(maxtime)):
              eventcounter = listtime.count(t)
              timelist.append(t)
              eventlist.append(eventcounter)
