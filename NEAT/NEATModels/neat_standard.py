@@ -17,8 +17,9 @@ from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite
 import csv
-
-
+import napari
+from napari.qt.threading import thread_worker
+from matplotlib.pyplot import plot as plt
 class NEATDynamic(object):
     
 
@@ -259,18 +260,21 @@ class NEATDynamic(object):
         
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
-    def predict(self, imagename, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
+        
+        
+    def predict(self,imagename, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
         
         self.imagename = imagename
         self.image = imread(imagename)
+        
         self.n_tiles = n_tiles
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
-        try:
-            self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
-        except:
-            self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yololoss, 'Concat':Concat})
+        
+        
+        self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
+       
             
         eventboxes = []
         classedboxes = {}    
@@ -289,7 +293,7 @@ class NEATDynamic(object):
                           sum_time_prediction = predictions[p]
                           
                           if sum_time_prediction is not None:
-                             #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
+                             #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                              for i in range(0, sum_time_prediction.shape[0]):
                                   time_prediction =  sum_time_prediction[i]
                                   boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
@@ -370,8 +374,6 @@ class NEATDynamic(object):
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
                iou_current_event_box = []
                best_iou_current_event_box = []
-               poppedj = []
-               
                
                if sorted_event_box is not None:
                     
@@ -426,6 +428,7 @@ class NEATDynamic(object):
                               tlocations = []   
                               radiuses = []
                               angles = []
+                              naparilocations = []
                               try:
                                       iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                       iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
@@ -444,8 +447,8 @@ class NEATDynamic(object):
                                               tlocations.append(tcenter)
                                               radiuses.append(radius)
                                               angles.append(angle)
+                                              naparilocations.append([tcenter, ycenter, xcenter])
                                     
-                                      
                                       event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
                                       event_data = []
                                       csvname = os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
@@ -461,7 +464,44 @@ class NEATDynamic(object):
                               
                               except: 
                                   pass
-          
+
+
+        return 
+                      
+    def event_counter(self, csv_file, Label, save_dir):
+     
+         x, y, time =   np.loadtxt(csv_file, delimiter = ',', skiprows = 0, unpack=True)
+         eventcounter = 0
+         eventlist = []
+         timelist = []   
+         listtime = time.tolist()
+         listtime = sorted(listtime)
+         maxtime = max(listtime)
+         for t in range(0, maxtime):
+             eventcounter = listtime.count(t)
+             timelist.append(t)
+             eventlist.append(eventcounter)
+            
+         plt.plot(timelist, eventlist, '-r')
+         plt.title(Label)
+         plt.ylabel('Counts')
+         plt.xlabel('Time')
+         plt.savefig(save_dir  + Label   + '.png') 
+         plt.show()   
+         return timelist, eventlist
+     
+        
+    def showNapari(self, naparilocations, event_name, scores, angles):
+
+         
+         self.viewer = napari.view_image(self.image, name='Image')
+         for layer in list(self.viewer.layers):
+                 if event_name in layer.name or layer.name in event_name:
+                        self.viewer.layers.remove(layer)
+         self.viewer.add_points(np.asarray(naparilocations),
+                                                 size = 1 , edge_color='red',name = event_name, face_color='red')
+                                         
+         napari.run()
     def overlaptiles(self, sliceregion):
         
             if self.n_tiles == 1:
