@@ -392,7 +392,7 @@ class NEATDynamic(object):
                                      best_iou.append(bbox_iou)
                                     
                                 #good event found     
-                                if len(best_iou) > 10:
+                                if len(best_iou) > 5:
                                     if sorted_event_box[i] not in iou_current_event_box:
                                         iou_current_event_box.append(sorted_event_box[i])
                                     
@@ -477,9 +477,8 @@ class NEATDynamic(object):
          listy = y.tolist()
          listx = x.tolist()
          listtime = sorted(listtime)
-         maxtime = max(listtime)
          naparilocations = []
-         for i in range(0, int(maxtime)):
+         for i in range(len(listtime)):
              tcenter = listtime[i] 
              ycenter = listy[i]
              xcenter = listx[i]
