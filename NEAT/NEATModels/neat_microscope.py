@@ -302,8 +302,7 @@ class NEATPredict(object):
                                               smallimage = np.zeros([self.size_tminus + 1, sizey, sizex])
                                               for i in tqdm(range(0, self.size_tminus + 1)):
                                                    smallimage[i,:] = current_movies[i]
-                                                   plt.imshow(smallimage[i,:])
-                                                   plt.show()
+                                                  
                                               eventboxes = []
                                               classedboxes = {}
                                               smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
@@ -449,10 +448,11 @@ class NEATPredict(object):
                                       tlocations = []   
                                       radiuses = []
                                       predcount = 0
-                                      print(self.nb_prediction)
                                       iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                       iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
                                       for iou_current_event_box in iou_current_event_boxes:
+                                              if predcount > self.nb_prediction:
+                                                   break
                                               xcenter = iou_current_event_box['xcenter']
                                               ycenter = iou_current_event_box['ycenter']
                                               tcenter = iou_current_event_box['real_time_event']
@@ -463,8 +463,8 @@ class NEATPredict(object):
                                               scores.append(score)
                                               tlocations.append(tcenter)
                                               radiuses.append(radius)
-                                    
-                                      
+                                              predcount = predcount + 1
+                                              print(xcenter, ycenter, score)
                                       event_count = np.column_stack([xlocations,ylocations]) 
                                       csvname = self.basedirResults + "/" + event_name 
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
