@@ -318,7 +318,7 @@ class NEATPredict(object):
                                                          for i in range(0, sum_time_prediction.shape[0]):
                                                               time_prediction =  sum_time_prediction[i]
                                                               
-                                                              boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'prediction', 'dynamic')
+                                                              boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
                                                               
                                                               if boxprediction is not None:
                                                                       eventboxes = eventboxes + boxprediction
@@ -449,27 +449,23 @@ class NEATPredict(object):
                                       tlocations = []   
                                       radiuses = []
                                       predcount = 0
+                                      print(self.nb_prediction)
                                       iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = False) 
+                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
                                       for iou_current_event_box in iou_current_event_boxes:
-                                              if predcount > self.nb_prediction:
-                                                        break
-                                              print(predcount)      
                                               xcenter = iou_current_event_box['xcenter']
-                                              ycenter = iou_current_event_box['ycenter'] 
+                                              ycenter = iou_current_event_box['ycenter']
                                               tcenter = iou_current_event_box['real_time_event']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                              print(ycenter, xcenter, score)
                                               xlocations.append(xcenter)
                                               ylocations.append(ycenter)
                                               scores.append(score)
                                               tlocations.append(tcenter)
                                               radiuses.append(radius)
-                                              predcount = predcount + 1
                                     
                                       
-                                      event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses]) 
+                                      event_count = np.column_stack([xlocations,ylocations]) 
                                       csvname = self.basedirResults + "/" + event_name 
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
                                       writer.writerow(["[main]"])  
@@ -479,9 +475,8 @@ class NEATPredict(object):
                                       for line in event_count:
                                               live_event_data.append(line)
                                               writer.writerow(["["+str(count - 1)+"]"])
-                                              
-                                              writer.writerow(["x="+str(live_event_data[0][1])])
-                                              writer.writerow(["y="+str(live_event_data[0][2])])
+                                              writer.writerow(["x="+str(live_event_data[0][0])])
+                                              writer.writerow(["y="+str(live_event_data[0][1])])
                                               live_event_data = []  
                                               count = count + 1
                              
@@ -506,7 +501,7 @@ class NEATPredict(object):
                 
                      if patchx > self.imagex and patchy > self.imagey:
                           if self.overlap_percent > 1 or self.overlap_percent < 0:
-                             self.overlap_percent = 0.6
+                             self.overlap_percent = 0.8
                          
                           jumpx = int(self.overlap_percent * patchx)
                           jumpy = int(self.overlap_percent * patchy)
@@ -516,9 +511,9 @@ class NEATPredict(object):
                           pairs = []  
                           #row is y, col is x
                           
-                          while rowstart < sliceregion.shape[1] - patchy:
+                          while rowstart < sliceregion.shape[1] :
                              colstart = 0
-                             while colstart < sliceregion.shape[2] - patchx:
+                             while colstart < sliceregion.shape[2]:
                                 
                                  # Start iterating over the tile with jumps = stride of the fully convolutional network.
                                  pairs.append([rowstart, colstart])
@@ -526,9 +521,9 @@ class NEATPredict(object):
                              rowstart+=jumpy 
                             
                           #Include the last patch   
-                          rowstart = sliceregion.shape[1] - patchy
+                          rowstart = sliceregion.shape[1]
                           colstart = 0
-                          while colstart < sliceregion.shape[2] - patchx:
+                          while colstart < sliceregion.shape[2]:
                                         pairs.append([rowstart, colstart])
                                         colstart+=jumpx
                           rowstart = 0
@@ -537,13 +532,27 @@ class NEATPredict(object):
                                         pairs.append([rowstart, colstart])
                                         rowstart+=jumpy              
                                         
-                          for pair in pairs: 
+                          if sliceregion.shape[1] >= self.imagey and sliceregion.shape[2]>= self.imagex :          
+                              
+                                patch = []
+                                rowout = []
+                                column = []
+                                for pair in pairs: 
                                    smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, pair)
                                    patch.append(smallpatch)
                                    rowout.append(smallrowout)
                                    column.append(smallcolumn) 
                         
-                     
+                     else:
+                         
+                               patch = []
+                               rowout = []
+                               column = []
+                               
+                               smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, [0,0])
+                               patch.append(smallpatch)
+                               rowout.append(smallrowout)
+                               column.append(smallcolumn)
              self.patch = patch          
              self.sy = rowout
              self.sx = column            
@@ -555,13 +564,23 @@ class NEATPredict(object):
                 predictions = []
                 allx = []
                 ally = []
-                for i in range(0,len(self.patch)):   
-                   
-                   sum_time_prediction = self.make_patches(self.patch[i])
-
-                   predictions.append(sum_time_prediction)
-                   allx.append(self.sx[i])
-                   ally.append(self.sy[i])
+                if len(self.patch) > 0:
+                    for i in range(0,len(self.patch)):   
+                       try:
+                               sum_time_prediction = self.make_patches(self.patch[i])
+                               predictions.append(sum_time_prediction)
+                               allx.append(self.sx[i])
+                               ally.append(self.sy[i])
+                       except:
+                           
+                           pass
+                       
+                else:
+                    
+                       sum_time_prediction = self.make_patches(self.patch)
+                       predictions.append(sum_time_prediction)
+                       allx.append(self.sx)
+                       ally.append(self.sy)
            
             except tf.errors.ResourceExhaustedError:
                 
@@ -587,27 +606,7 @@ class NEATPredict(object):
        return prediction_vector
    
     
-def zero_pad(patch, jumpx, jumpy):
 
-          time = patch.shape[0]
-          sizeY = patch.shape[1]
-          sizeX = patch.shape[2]
-          sizeXextend = sizeX
-          sizeYextend = sizeY
-         
- 
-          while sizeXextend%jumpx!=0:
-              sizeXextend = sizeXextend + 1
-        
-          while sizeYextend%jumpy!=0:
-              sizeYextend = sizeYextend + 1
-
-          extendimage = np.zeros([time, sizeYextend, sizeXextend])
-          
-          extendimage[0:time, 0:sizeY, 0:sizeX] = patch
-              
-          return extendimage
-      
         
 def chunk_list(image, patchshape, stride, pair):
             rowstart = pair[0]
@@ -629,7 +628,7 @@ def chunk_list(image, patchshape, stride, pair):
             patch = image[region]
 
             # Always normalize patch that goes into the netowrk for getting a prediction score 
-            patch = zero_pad(patch, stride, stride)
+            
 
 
             return patch, rowstart, colstart
@@ -642,3 +641,4 @@ def CreateVolume(patch, imaget, timepoint, imagey, imagex):
                smallimg = patch[starttime:endtime, :]
        
                return smallimg         
+       
