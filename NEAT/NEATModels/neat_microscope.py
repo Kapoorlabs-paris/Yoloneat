@@ -413,7 +413,7 @@ class NEATPredict(object):
                                      best_iou.append(bbox_iou)
                                     
                                 #good event found     
-                                if len(best_iou) > 10:
+                                if len(best_iou) > 20:
                                     if sorted_event_box[i] not in iou_current_event_box:
                                         iou_current_event_box.append(sorted_event_box[i])
                                     
