@@ -567,7 +567,9 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                       if config['yolo_v0']:
                                                           angle = 2
                                                           confidence = 1
-                                                          
+                                                  if mode == 'prediction':
+                                                          angle = 2
+                                                          confidence = 1
                                                       
                                                   if event_type == 'static':
                                                       
@@ -575,7 +577,9 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                       if config['yolo_v0'] == False:
                                                            confidence = prediction_vector[total_classes + config['c'] + b * total_coords]
                                                       if config['yolo_v0']:
-                                                           confidence = 1         
+                                                           confidence = 1
+                                                           
+                                                           
                                                 
                                                   xcentermean = xcentermean + xcenter
                                                   ycentermean = ycentermean + ycenter

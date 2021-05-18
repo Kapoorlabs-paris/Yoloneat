@@ -16,7 +16,7 @@ import tensorflow as tf
 from NEATModels import nets
 from NEATModels.nets import Concat
 from NEATModels.loss import dynamic_yolo_loss
-
+from tqdm import tqdm
 #from IPython.display import clear_output
 from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
@@ -26,7 +26,7 @@ from tifffile import imread
 import csv
 from natsort import natsorted
 import glob
-
+import matplotlib.pyplot as plt
 class NEATPredict(object):
     
 
@@ -138,9 +138,9 @@ class NEATPredict(object):
                 self.size_tminus = self.config['size_tminus']
                 self.size_tplus = self.config['size_tplus']
                 self.nboxes = self.config['nboxes']
-                self.gridx = self.config['gridx']
-                self.gridy = self.config['gridy']
-                self.gridt = self.config['gridt']
+                self.gridx = 1
+                self.gridy = 1
+                self.gridt = 1
                 self.yolo_v0 = self.config['yolo_v0']
                 self.yolo_v1 = self.config['yolo_v1']
                 self.yolo_v2 = self.config['yolo_v2']
@@ -172,7 +172,7 @@ class NEATPredict(object):
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
         
-        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.grid_t, self.nboxes, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
+        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
         
         
     def loadData(self):
@@ -271,10 +271,8 @@ class NEATPredict(object):
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
-        try:
-            self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
-        except:
-            self.model =  load_model( self.model_dir + self.model_name,  custom_objects={'loss':self.yololoss, 'Concat':Concat})
+        self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
+
             
             
         while 1:
@@ -282,38 +280,37 @@ class NEATPredict(object):
               Raw_path = os.path.join(self.imagedir, self.fileextension)
               filesRaw = glob.glob(Raw_path)
               filesRaw = natsorted(filesRaw)
-            
               for movie_name in filesRaw:  
                           Name = os.path.basename(os.path.splitext(movie_name)[0])
                           Extension = os.path.basename(os.path.splitext(movie_name)[1])
-                          
                           #Check for unique filename
-                          if Name not in self.movie_name_list and Extension == self.fileextension:
+                          if Name not in self.movie_name_list:
                               
-                              try:
+                          
                                   
                                   
                                   image = imread(movie_name)
-                                  movie_name_list.append(Name)
+                                  self.movie_name_list.append(Name)
                                   sizey = image.shape[0]
                                   sizex = image.shape[1]
-                                  movie_input.append(image)
-                                  total_movies = len(movie_input)
-                                  if total_movies >= self.size_tminus + self.start:
-                                      
-                                              current_movies = movie_input[self.start:self.start + self.size_tminus]
-                                              print('Predicting on Movies:',movie_name_list[self.start:self.start + self.size_tminus]) 
+                                  self.movie_input.append(image)
+                                  total_movies = len(self.movie_input)
+                                  if total_movies > self.size_tminus + self.start:
+                                              current_movies = self.movie_input[self.start:self.start + self.size_tminus + 1]
+                                              print('Predicting on Movies:',movie_name_list[self.start:self.start + self.size_tminus + 1]) 
                                               inputtime = self.start + self.size_tminus
-                                              smallimage = np.zeros([self.size_tminus, sizey, sizex])
-                                              for i in range(0, self.size_tminus):
+                                              smallimage = np.zeros([self.size_tminus + 1, sizey, sizex])
+                                              for i in tqdm(range(0, self.size_tminus + 1)):
                                                    smallimage[i,:] = current_movies[i]
+                                                   plt.imshow(smallimage[i,:])
+                                                   plt.show()
                                               eventboxes = []
                                               classedboxes = {}
                                               smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
                                               #Break image into tiles if neccessary
                                               predictions, allx, ally = self.predict_main(smallimage)
                                               #Iterate over tiles
-                                              for p in range(0,len(predictions)):   
+                                              for p in tqdm(range(0,len(predictions))):   
                                     
                                                       sum_time_prediction = predictions[p]
                                                       
@@ -346,10 +343,7 @@ class NEATPredict(object):
                                               self.predict(self.imagedir, self.movie_name_list, self.movie_input, start + 1, fileextension = self.fileextension, nb_prediction = self.nb_prediction, n_tiles = 
                                                            self.n_tiles, overlap_percent = self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold)
         
-                              except:
-                                     if Name in self.movie_name_list:
-                                         movie_name_list.remove(Name) 
-                                     pass 
+                         
         
         
         
@@ -391,6 +385,7 @@ class NEATPredict(object):
         
         
         iou_classedboxes = {}
+        best_iou_classedboxes = {}
         self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
@@ -400,8 +395,7 @@ class NEATPredict(object):
                #Highest probability is first
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
                iou_current_event_box = []
-               poppedj = []
-               
+               best_iou_current_event_box = []
                
                if sorted_event_box is not None:
                     
@@ -410,77 +404,87 @@ class NEATPredict(object):
                         return []
                     else:
                         
-                        
+                        #fIRST ROUND
                         for i in range(len(sorted_event_box)):
                             
                             best_iou = []
                             for j in range(i + 1, len(sorted_event_box)):
-                                if j not in poppedj:
-                                        bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                        if bbox_iou >= 0.1:
-                                             best_iou.append(bbox_iou)
-                                        if bbox_iou < self.iou_threshold:
-                                            
-                                              poppedj.append(j)
-                                        #good event found     
-                                        if len(best_iou) > 10:
-                                            if sorted_event_box[i] not in iou_current_event_box:
-                                                iou_current_event_box.append(sorted_event_box[i])
-                                            
+                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
+                                if bbox_iou >= 0.1:
+                                     best_iou.append(bbox_iou)
+                                    
+                                #good event found     
+                                if len(best_iou) > 10:
+                                    if sorted_event_box[i] not in iou_current_event_box:
+                                        iou_current_event_box.append(sorted_event_box[i])
+                                    
                                     
                                     
                                     
                iou_classedboxes[event_name] = [iou_current_event_box]
+               #lAST ROUND
+               remove_boxes = []
+               for i in range(len(iou_current_event_box)):
+                            best_iou_current_event_box.append(iou_current_event_box[i])
+                            for j in range(i + 1, len(iou_current_event_box)):
                                 
-        self.iou_classedboxes = iou_classedboxes                
+                                        bbox_iou = self.bbox_iou(iou_current_event_box[i], iou_current_event_box[j])
+                                        if bbox_iou < self.iou_threshold and bbox_iou > 0:
+                                            #EXTRA good event found     
+                                                remove_boxes.append(iou_current_event_box[j]) 
+               for k in range(len(remove_boxes)):    
+                    if remove_boxes[k] in best_iou_current_event_box:                             
+                         best_iou_current_event_box.remove(remove_boxes[k])
+               best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
+        self.iou_classedboxes = best_iou_classedboxes                
         
     def to_csv(self):
         
         for (event_name,event_label) in self.key_categories.items():
                    
                    if event_label > 0:
-                              xlocations = []
-                              ylocations = []
-                              scores = []
-                              confidences = []
-                              tlocations = []   
-                              radiuses = []
-                              angles = []
-                              try:
+                                      xlocations = []
+                                      ylocations = []
+                                      scores = []
+                                      tlocations = []   
+                                      radiuses = []
+                                      predcount = 0
                                       iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
+                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = False) 
                                       for iou_current_event_box in iou_current_event_boxes:
+                                              if predcount > self.nb_prediction:
+                                                        break
+                                              print(predcount)      
                                               xcenter = iou_current_event_box['xcenter']
-                                              ycenter = iou_current_event_box['ycenter']
+                                              ycenter = iou_current_event_box['ycenter'] 
                                               tcenter = iou_current_event_box['real_time_event']
-                                              confidence = iou_current_event_box['confidence']
-                                              angle = iou_current_event_box['realangle']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                              print(ycenter, xcenter, score)
                                               xlocations.append(xcenter)
                                               ylocations.append(ycenter)
                                               scores.append(score)
-                                              confidences.append(confidence)
                                               tlocations.append(tcenter)
                                               radiuses.append(radius)
-                                              angles.append(angle)
+                                              predcount = predcount + 1
                                     
                                       
-                                      event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
-                                      event_data = []
-                                      csvname = os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
-                                      writer = csv.writer(open(csvname  +".csv", "a"))
-                                      filesize = os.stat(csvname + ".csv").st_size
-                                      if filesize < 1:
-                                         writer.writerow(['T','Y','X','Score','Size','Confidence','Angle'])
+                                      event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses]) 
+                                      csvname = self.basedirResults + "/" + event_name 
+                                      writer = csv.writer(open(csvname + ".ini", 'w'))
+                                      writer.writerow(["[main]"])  
+                                      writer.writerow(["nbPredictions="+str(self.nb_prediction)])
+                                      live_event_data = []
+                                      count = 1
                                       for line in event_count:
-                                         if line not in event_data:  
-                                            event_data.append(line)
-                                         writer.writerows(event_data)
-                                         event_data = []           
-                              
-                              except: 
-                                  pass
+                                              live_event_data.append(line)
+                                              writer.writerow(["["+str(count - 1)+"]"])
+                                              
+                                              writer.writerow(["x="+str(live_event_data[0][1])])
+                                              writer.writerow(["y="+str(live_event_data[0][2])])
+                                              live_event_data = []  
+                                              count = count + 1
+                             
           
     def overlaptiles(self, sliceregion):
         

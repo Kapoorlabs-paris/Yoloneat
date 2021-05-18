@@ -392,7 +392,7 @@ class NEATDynamic(object):
                                      best_iou.append(bbox_iou)
                                     
                                 #good event found     
-                                if len(best_iou) > 20:
+                                if len(best_iou) > 10:
                                     if sorted_event_box[i] not in iou_current_event_box:
                                         iou_current_event_box.append(sorted_event_box[i])
                                     
@@ -407,7 +407,7 @@ class NEATDynamic(object):
                             for j in range(i + 1, len(iou_current_event_box)):
                                 
                                         bbox_iou = self.bbox_iou(iou_current_event_box[i], iou_current_event_box[j])
-                                        if bbox_iou < self.iou_threshold:
+                                        if bbox_iou < self.iou_threshold and bbox_iou > 0:
                                             #EXTRA good event found     
                                                 remove_boxes.append(iou_current_event_box[j]) 
                for k in range(len(remove_boxes)):    
