@@ -1,0 +1,540 @@
+"MDA State", Version 1.2
+"bDoTimelapse", TRUE
+"bDoStage", FALSE
+"bDoWavelengths", FALSE
+"bDoZSeries", FALSE
+"iHardwareAutoFocus", 3
+"iHardwareAFFreq", 1
+"bBlackoutMode", FALSE
+"bUseDualZ", FALSE
+"stDualZUses", 1, "Prior Piezo Z"
+"stDualZUses", 2, "Ti Z"
+"stDualZUses", 3, "Prior Piezo Z"
+"stDualZUses", 4, "Ti Z"
+"iTestAreaDim", 5
+"lMaxExposureDur", 10000
+"dMinExposureDur", 0
+"nTimePoints", 30
+"idxTimeUnits", 3
+"dTimeIntervalUu", 0
+"dDuration", 0
+"idxDurUnits", 3
+"dpStageZTravelOffset", 0
+"stStagePositionLabel", "s4"
+"nStagePositions", 2
+"dpStageXs", 1, 19582
+"dpStageYs", 1, -7553
+"dpStageZs", 1, 4992.25
+"dpStageZ2s", 1, 4992.25
+"bStageUseZTravelOffsets", 1, FALSE
+"iStageSampleLoaderPos", 1, -9999
+"dpStageAFOffsets", 1, 0
+"lStageAFMemorizedPositionIDs", 1, -1
+"stStageLabels", 1, "s2"
+"bStagePosEnabled", 1, TRUE
+"dpStageXs", 2, 14496
+"dpStageYs", 2, -6692
+"dpStageZs", 2, 4992.25
+"dpStageZ2s", 2, 4992.25
+"bStageUseZTravelOffsets", 2, FALSE
+"iStageSampleLoaderPos", 2, -9999
+"dpStageAFOffsets", 2, 0
+"lStageAFMemorizedPositionIDs", 2, -1
+"stStageLabels", 2, "s3"
+"bStagePosEnabled", 2, TRUE
+"nZSteps", 23
+"dpZStepSize", 2
+"bZRange", FALSE
+"dpZTop", 5124.6
+"dpZBottom", 5168.85
+"idxZLoopOrder", 2
+"bKeepShutterOpenEachZ", FALSE
+"nAFSearchType", 1
+"idxAFAlgorithm", 1
+"dAFRange", 3
+"dAFAccuracy", 0.4
+"dAFMaxStepSize", 3
+"bAFDisplayImages", TRUE
+"bAFUpdateZ", TRUE
+"bAFBacklashCompensation", TRUE
+"nWavelengths", 5
+"stSetOfIllumination", 1, "CSU_QUAD_488"
+"dbSetOfExposures", 1, 200
+"iSetOfExposureUnits", 1, 1
+"dbSetOfGains", 1, 2
+"dbSetOfIntensifierGains1", 1, 0
+"dbSetOfIntensifierGains2", 1, 0
+"dbSetOfFrames", 1, 1
+"iSetOfAutoExposes", 1, 3
+"iSetOfAXFrequencies", 1, 2
+"iSetOfCollections", 1, 1
+"iSetOfWFrequencies", 1, 2
+"uSetOfTargets", 1, 3000
+"iSetOfAlignX", 1, 0
+"iSetOfAlignY", 1, 0
+"iSetOfAutoFocus", 1, 3
+"iSetOfAFFrequencies", 1, 2
+"bSetOfWaveDoZ", 1, FALSE
+"iSetOfXPos", 1, 0
+"iSetOfYPos", 1, 0
+"iSetOfZoom", 1, 51
+"dSetOfContrast", 1, 50
+"dSetOfBrightness", 1, 50
+"iSetOfLutModel", 1, 8
+"dSetOfGammaR", 1, 1
+"dSetOfGammaG", 1, 1
+"dSetOfGammaB", 1, 1
+"dSetOfGammaMono", 1, 1
+"bSetOfAutoScale", 1, TRUE
+"dSetOfAutoScaleHi", 1, 0.05
+"dSetOfAutoScaleLo", 1, 0.05
+"uSetOfMinScale", 1, 211
+"uSetOfMaxScale", 1, 4095
+"bSetOfWaveDoStream", 1, TRUE
+"uiSetOfBinnings", 1, 1
+"uiSetOfTransferSpeeds", 1, 2
+"dbSetOfWaveZOffsets", 1, 0
+"dbSetOfWaveZDCOffsets", 1, 5090
+"lSetOfWaveAFMemorizedPositionIDs", 1, -1
+"stSetOfWaveAFMemorizedPositionData", 1, ""
+"dbSetOfWaveOptiGridZPositions", 1, 0
+"stSetOfIllumination", 2, "CSU_QUAD_488"
+"dbSetOfExposures", 2, 400
+"iSetOfExposureUnits", 2, 1
+"dbSetOfGains", 2, 2
+"dbSetOfIntensifierGains1", 2, 0
+"dbSetOfIntensifierGains2", 2, 0
+"dbSetOfFrames", 2, 1
+"iSetOfAutoExposes", 2, 3
+"iSetOfAXFrequencies", 2, 2
+"iSetOfCollections", 2, 1
+"iSetOfWFrequencies", 2, 2
+"uSetOfTargets", 2, 3000
+"iSetOfAlignX", 2, 0
+"iSetOfAlignY", 2, 0
+"iSetOfAutoFocus", 2, 3
+"iSetOfAFFrequencies", 2, 2
+"bSetOfWaveDoZ", 2, TRUE
+"iSetOfXPos", 2, 0
+"iSetOfYPos", 2, 567
+"iSetOfZoom", 2, 51
+"dSetOfContrast", 2, 50
+"dSetOfBrightness", 2, 50
+"iSetOfLutModel", 2, 8
+"dSetOfGammaR", 2, 1
+"dSetOfGammaG", 2, 1
+"dSetOfGammaB", 2, 1
+"dSetOfGammaMono", 2, 1
+"bSetOfAutoScale", 2, TRUE
+"dSetOfAutoScaleHi", 2, 0.05
+"dSetOfAutoScaleLo", 2, 0.05
+"uSetOfMinScale", 2, 406
+"uSetOfMaxScale", 2, 2855
+"bSetOfWaveDoStream", 2, TRUE
+"uiSetOfBinnings", 2, 2
+"uiSetOfTransferSpeeds", 2, 2
+"dbSetOfWaveZOffsets", 2, 0
+"dbSetOfWaveZDCOffsets", 2, 5090
+"lSetOfWaveAFMemorizedPositionIDs", 2, -1
+"stSetOfWaveAFMemorizedPositionData", 2, ""
+"dbSetOfWaveOptiGridZPositions", 2, 0
+"stSetOfIllumination", 3, "CSU_QUAD_405"
+"dbSetOfExposures", 3, 400
+"iSetOfExposureUnits", 3, 1
+"dbSetOfGains", 3, 2
+"dbSetOfIntensifierGains1", 3, 0
+"dbSetOfIntensifierGains2", 3, 0
+"dbSetOfFrames", 3, 1
+"iSetOfAutoExposes", 3, 3
+"iSetOfAXFrequencies", 3, 2
+"iSetOfCollections", 3, 1
+"iSetOfWFrequencies", 3, 4
+"uSetOfTargets", 3, 3000
+"iSetOfAlignX", 3, 0
+"iSetOfAlignY", 3, 0
+"iSetOfAutoFocus", 3, 3
+"iSetOfAFFrequencies", 3, 2
+"bSetOfWaveDoZ", 3, TRUE
+"iSetOfXPos", 3, 760
+"iSetOfYPos", 3, 0
+"iSetOfZoom", 3, 51
+"dSetOfContrast", 3, 50
+"dSetOfBrightness", 3, 50
+"iSetOfLutModel", 3, 8
+"dSetOfGammaR", 3, 1
+"dSetOfGammaG", 3, 1
+"dSetOfGammaB", 3, 1
+"dSetOfGammaMono", 3, 1
+"bSetOfAutoScale", 3, TRUE
+"dSetOfAutoScaleHi", 3, 0.05
+"dSetOfAutoScaleLo", 3, 0.05
+"uSetOfMinScale", 3, 104
+"uSetOfMaxScale", 3, 3302
+"bSetOfWaveDoStream", 3, TRUE
+"uiSetOfBinnings", 3, 2
+"uiSetOfTransferSpeeds", 3, 2
+"dbSetOfWaveZOffsets", 3, 0
+"dbSetOfWaveZDCOffsets", 3, 5090
+"lSetOfWaveAFMemorizedPositionIDs", 3, -1
+"stSetOfWaveAFMemorizedPositionData", 3, ""
+"dbSetOfWaveOptiGridZPositions", 3, 0
+"stSetOfIllumination", 4, "CSU_QUAD_642"
+"dbSetOfExposures", 4, 50
+"iSetOfExposureUnits", 4, 1
+"dbSetOfGains", 4, 2
+"dbSetOfIntensifierGains1", 4, 0
+"dbSetOfIntensifierGains2", 4, 0
+"dbSetOfFrames", 4, 1
+"iSetOfAutoExposes", 4, 3
+"iSetOfAXFrequencies", 4, 2
+"iSetOfCollections", 4, 4
+"iSetOfWFrequencies", 4, 16
+"uSetOfTargets", 4, 3000
+"iSetOfAlignX", 4, 0
+"iSetOfAlignY", 4, 0
+"iSetOfAutoFocus", 4, 3
+"iSetOfAFFrequencies", 4, 2
+"bSetOfWaveDoZ", 4, TRUE
+"iSetOfXPos", 4, 760
+"iSetOfYPos", 4, 567
+"iSetOfZoom", 4, 51
+"dSetOfContrast", 4, 50
+"dSetOfBrightness", 4, 50
+"iSetOfLutModel", 4, 8
+"dSetOfGammaR", 4, 1
+"dSetOfGammaG", 4, 1
+"dSetOfGammaB", 4, 1
+"dSetOfGammaMono", 4, 1
+"bSetOfAutoScale", 4, TRUE
+"dSetOfAutoScaleHi", 4, 0.05
+"dSetOfAutoScaleLo", 4, 0.05
+"uSetOfMinScale", 4, 54
+"uSetOfMaxScale", 4, 4095
+"bSetOfWaveDoStream", 4, TRUE
+"uiSetOfBinnings", 4, 1
+"uiSetOfTransferSpeeds", 4, 2
+"dbSetOfWaveZOffsets", 4, 0
+"dbSetOfWaveZDCOffsets", 4, 5090
+"lSetOfWaveAFMemorizedPositionIDs", 4, -1
+"stSetOfWaveAFMemorizedPositionData", 4, ""
+"dbSetOfWaveOptiGridZPositions", 4, 0
+"stSetOfIllumination", 5, "DIC TRANS"
+"dbSetOfExposures", 5, 10
+"iSetOfExposureUnits", 5, 1
+"dbSetOfGains", 5, 1
+"dbSetOfIntensifierGains1", 5, 0
+"dbSetOfIntensifierGains2", 5, 0
+"dbSetOfFrames", 5, 1
+"iSetOfAutoExposes", 5, 3
+"iSetOfAXFrequencies", 5, 2
+"iSetOfCollections", 5, 1
+"iSetOfWFrequencies", 5, 2
+"uSetOfTargets", 5, 3000
+"iSetOfAlignX", 5, 0
+"iSetOfAlignY", 5, 0
+"iSetOfAutoFocus", 5, 3
+"iSetOfAFFrequencies", 5, 2
+"bSetOfWaveDoZ", 5, TRUE
+"iSetOfXPos", 5, 1520
+"iSetOfYPos", 5, 0
+"iSetOfZoom", 5, 51
+"dSetOfContrast", 5, 50
+"dSetOfBrightness", 5, 50
+"iSetOfLutModel", 5, 8
+"dSetOfGammaR", 5, 1
+"dSetOfGammaG", 5, 1
+"dSetOfGammaB", 5, 1
+"dSetOfGammaMono", 5, 1
+"bSetOfAutoScale", 5, TRUE
+"dSetOfAutoScaleHi", 5, 0.05
+"dSetOfAutoScaleLo", 5, 0.05
+"uSetOfMinScale", 5, 8717
+"uSetOfMaxScale", 5, 18078
+"bSetOfWaveDoStream", 5, TRUE
+"uiSetOfBinnings", 5, 1
+"uiSetOfTransferSpeeds", 5, 2
+"dbSetOfWaveZOffsets", 5, 0
+"dbSetOfWaveZDCOffsets", 5, 5090
+"lSetOfWaveAFMemorizedPositionIDs", 5, -1
+"stSetOfWaveAFMemorizedPositionData", 5, ""
+"dbSetOfWaveOptiGridZPositions", 5, 0
+"stSetOfIllumination", 6, "[None]"
+"dbSetOfExposures", 6, 100
+"iSetOfExposureUnits", 6, 0
+"dbSetOfGains", 6, 0
+"dbSetOfIntensifierGains1", 6, 0
+"dbSetOfIntensifierGains2", 6, 0
+"dbSetOfFrames", 6, 1
+"iSetOfAutoExposes", 6, 2
+"iSetOfAXFrequencies", 6, 1
+"iSetOfCollections", 6, 1
+"iSetOfWFrequencies", 6, 1
+"uSetOfTargets", 6, 3000
+"iSetOfAlignX", 6, 0
+"iSetOfAlignY", 6, 0
+"iSetOfAutoFocus", 6, 1
+"iSetOfAFFrequencies", 6, 1
+"bSetOfWaveDoZ", 6, FALSE
+"iSetOfXPos", 6, 300
+"iSetOfYPos", 6, 300
+"iSetOfZoom", 6, 100
+"dSetOfContrast", 6, 50
+"dSetOfBrightness", 6, 50
+"iSetOfLutModel", 6, 8
+"dSetOfGammaR", 6, 1
+"dSetOfGammaG", 6, 1
+"dSetOfGammaB", 6, 1
+"dSetOfGammaMono", 6, 1
+"bSetOfAutoScale", 6, TRUE
+"dSetOfAutoScaleHi", 6, 0
+"dSetOfAutoScaleLo", 6, 0
+"uSetOfMinScale", 6, 0
+"uSetOfMaxScale", 6, 4096
+"bSetOfWaveDoStream", 6, FALSE
+"uiSetOfBinnings", 6, 1
+"uiSetOfTransferSpeeds", 6, 1
+"dbSetOfWaveZOffsets", 6, 0
+"dbSetOfWaveZDCOffsets", 6, 0
+"lSetOfWaveAFMemorizedPositionIDs", 6, -1
+"stSetOfWaveAFMemorizedPositionData", 6, ""
+"dbSetOfWaveOptiGridZPositions", 6, 0
+"stSetOfIllumination", 7, "[None]"
+"dbSetOfExposures", 7, 100
+"iSetOfExposureUnits", 7, 0
+"dbSetOfGains", 7, 0
+"dbSetOfIntensifierGains1", 7, 0
+"dbSetOfIntensifierGains2", 7, 0
+"dbSetOfFrames", 7, 1
+"iSetOfAutoExposes", 7, 2
+"iSetOfAXFrequencies", 7, 1
+"iSetOfCollections", 7, 1
+"iSetOfWFrequencies", 7, 1
+"uSetOfTargets", 7, 3000
+"iSetOfAlignX", 7, 0
+"iSetOfAlignY", 7, 0
+"iSetOfAutoFocus", 7, 1
+"iSetOfAFFrequencies", 7, 1
+"bSetOfWaveDoZ", 7, FALSE
+"iSetOfXPos", 7, 350
+"iSetOfYPos", 7, 350
+"iSetOfZoom", 7, 100
+"dSetOfContrast", 7, 50
+"dSetOfBrightness", 7, 50
+"iSetOfLutModel", 7, 8
+"dSetOfGammaR", 7, 1
+"dSetOfGammaG", 7, 1
+"dSetOfGammaB", 7, 1
+"dSetOfGammaMono", 7, 1
+"bSetOfAutoScale", 7, TRUE
+"dSetOfAutoScaleHi", 7, 0
+"dSetOfAutoScaleLo", 7, 0
+"uSetOfMinScale", 7, 0
+"uSetOfMaxScale", 7, 4096
+"bSetOfWaveDoStream", 7, FALSE
+"uiSetOfBinnings", 7, 1
+"uiSetOfTransferSpeeds", 7, 1
+"dbSetOfWaveZOffsets", 7, 0
+"dbSetOfWaveZDCOffsets", 7, 0
+"lSetOfWaveAFMemorizedPositionIDs", 7, -1
+"stSetOfWaveAFMemorizedPositionData", 7, ""
+"dbSetOfWaveOptiGridZPositions", 7, 0
+"stSetOfIllumination", 8, "[None]"
+"dbSetOfExposures", 8, 100
+"iSetOfExposureUnits", 8, 0
+"dbSetOfGains", 8, 0
+"dbSetOfIntensifierGains1", 8, 0
+"dbSetOfIntensifierGains2", 8, 0
+"dbSetOfFrames", 8, 1
+"iSetOfAutoExposes", 8, 2
+"iSetOfAXFrequencies", 8, 1
+"iSetOfCollections", 8, 1
+"iSetOfWFrequencies", 8, 1
+"uSetOfTargets", 8, 3000
+"iSetOfAlignX", 8, 0
+"iSetOfAlignY", 8, 0
+"iSetOfAutoFocus", 8, 1
+"iSetOfAFFrequencies", 8, 1
+"bSetOfWaveDoZ", 8, FALSE
+"iSetOfXPos", 8, 400
+"iSetOfYPos", 8, 400
+"iSetOfZoom", 8, 100
+"dSetOfContrast", 8, 50
+"dSetOfBrightness", 8, 50
+"iSetOfLutModel", 8, 8
+"dSetOfGammaR", 8, 1
+"dSetOfGammaG", 8, 1
+"dSetOfGammaB", 8, 1
+"dSetOfGammaMono", 8, 1
+"bSetOfAutoScale", 8, TRUE
+"dSetOfAutoScaleHi", 8, 0
+"dSetOfAutoScaleLo", 8, 0
+"uSetOfMinScale", 8, 0
+"uSetOfMaxScale", 8, 4096
+"bSetOfWaveDoStream", 8, FALSE
+"uiSetOfBinnings", 8, 1
+"uiSetOfTransferSpeeds", 8, 1
+"dbSetOfWaveZOffsets", 8, 0
+"dbSetOfWaveZDCOffsets", 8, 0
+"lSetOfWaveAFMemorizedPositionIDs", 8, -1
+"stSetOfWaveAFMemorizedPositionData", 8, ""
+"dbSetOfWaveOptiGridZPositions", 8, 0
+"stSetOfIllumination", 9, "[None]"
+"dbSetOfExposures", 9, 100
+"iSetOfExposureUnits", 9, 0
+"dbSetOfGains", 9, 0
+"dbSetOfIntensifierGains1", 9, 0
+"dbSetOfIntensifierGains2", 9, 0
+"dbSetOfFrames", 9, 1
+"iSetOfAutoExposes", 9, 2
+"iSetOfAXFrequencies", 9, 1
+"iSetOfCollections", 9, 1
+"iSetOfWFrequencies", 9, 1
+"uSetOfTargets", 9, 3000
+"iSetOfAlignX", 9, 0
+"iSetOfAlignY", 9, 0
+"iSetOfAutoFocus", 9, 1
+"iSetOfAFFrequencies", 9, 1
+"bSetOfWaveDoZ", 9, FALSE
+"iSetOfXPos", 9, 450
+"iSetOfYPos", 9, 450
+"iSetOfZoom", 9, 100
+"dSetOfContrast", 9, 50
+"dSetOfBrightness", 9, 50
+"iSetOfLutModel", 9, 8
+"dSetOfGammaR", 9, 1
+"dSetOfGammaG", 9, 1
+"dSetOfGammaB", 9, 1
+"dSetOfGammaMono", 9, 1
+"bSetOfAutoScale", 9, TRUE
+"dSetOfAutoScaleHi", 9, 0
+"dSetOfAutoScaleLo", 9, 0
+"uSetOfMinScale", 9, 0
+"uSetOfMaxScale", 9, 4096
+"bSetOfWaveDoStream", 9, FALSE
+"uiSetOfBinnings", 9, 1
+"uiSetOfTransferSpeeds", 9, 1
+"dbSetOfWaveZOffsets", 9, 0
+"dbSetOfWaveZDCOffsets", 9, 0
+"lSetOfWaveAFMemorizedPositionIDs", 9, -1
+"stSetOfWaveAFMemorizedPositionData", 9, ""
+"dbSetOfWaveOptiGridZPositions", 9, 0
+"stSetOfIllumination", 10, "[None]"
+"dbSetOfExposures", 10, 100
+"iSetOfExposureUnits", 10, 0
+"dbSetOfGains", 10, 0
+"dbSetOfIntensifierGains1", 10, 0
+"dbSetOfIntensifierGains2", 10, 0
+"dbSetOfFrames", 10, 1
+"iSetOfAutoExposes", 10, 2
+"iSetOfAXFrequencies", 10, 1
+"iSetOfCollections", 10, 1
+"iSetOfWFrequencies", 10, 1
+"uSetOfTargets", 10, 3000
+"iSetOfAlignX", 10, 0
+"iSetOfAlignY", 10, 0
+"iSetOfAutoFocus", 10, 1
+"iSetOfAFFrequencies", 10, 1
+"bSetOfWaveDoZ", 10, FALSE
+"iSetOfXPos", 10, 500
+"iSetOfYPos", 10, 500
+"iSetOfZoom", 10, 100
+"dSetOfContrast", 10, 50
+"dSetOfBrightness", 10, 50
+"iSetOfLutModel", 10, 8
+"dSetOfGammaR", 10, 1
+"dSetOfGammaG", 10, 1
+"dSetOfGammaB", 10, 1
+"dSetOfGammaMono", 10, 1
+"bSetOfAutoScale", 10, TRUE
+"dSetOfAutoScaleHi", 10, 0
+"dSetOfAutoScaleLo", 10, 0
+"uSetOfMinScale", 10, 0
+"uSetOfMaxScale", 10, 4096
+"bSetOfWaveDoStream", 10, FALSE
+"uiSetOfBinnings", 10, 1
+"uiSetOfTransferSpeeds", 10, 1
+"dbSetOfWaveZOffsets", 10, 0
+"dbSetOfWaveZDCOffsets", 10, 0
+"lSetOfWaveAFMemorizedPositionIDs", 10, -1
+"stSetOfWaveAFMemorizedPositionData", 10, ""
+"dbSetOfWaveOptiGridZPositions", 10, 0
+"bSeparateBinning", FALSE
+"bSeparateHardwareAFOffsets", FALSE
+"bDefaultDisplay", TRUE
+"bShowWavelengthImages", TRUE
+"bShowWavelengthCompositeImage", FALSE
+"bReviewAfterAcquisition", FALSE
+"bMinimizeImages", FALSE
+"stDescription", ""
+"stDataDir", "E:\Users\equipe_imagerie\ONEAT_data\divisions"
+"stDataFile", "division_"
+"bIncrementFile", TRUE
+"bSaveSamplePositionsAsSeparate", FALSE
+"bDoStream", FALSE
+"bStreamTime", FALSE
+"bStreamZ", TRUE
+"bStreamWaves", TRUE
+"dpStreamExposure", 300
+"dpStreamGain", 1
+"dpStreamIntensifierGain1", 0
+"dpStreamIntensifierGain2", 0
+"nStreamFramesSkippedForZReset", 0
+"bStreamPreMoveZ", FALSE
+"iStreamToHardDisk", 2
+"lStreamStartFrame", 0
+"iStreamTriggerMode", 1
+"iStreamDualCamState", 1
+"iStreamCamState", 1
+"iStreamCamShutter", 1
+"iStreamCamClear", 1
+"stStreamProgramNameForAcquire", ""
+"bStreamPreview", TRUE
+"lStreamPreviewInterval", 1
+"nHBin", 1
+"nVBin", 1
+"nLiveBin", 2
+"nROIX", 0
+"nROIY", 0
+"nROIW", 2048
+"nROIH", 2048
+"xSnap", 85
+"ySnap", 97
+"nSnapZoom", 90
+"dSnapContrast", 50
+"dSnapBrightness", 50
+"iSnapLutModel", 1
+"dSnapGammaR", 1
+"dSnapGammaG", 1
+"dSnapGammaB", 1
+"dSnapGammaMono", 1
+"bSnapAutoScale", FALSE
+"dSnapAutoScaleHi", 0
+"dSnapAutoScaleLo", 0
+"uSnapMinScale", 96
+"uSnapMaxScale", 214
+"stLiveDisplayState", "0 0 1 0 2 0 3 65535 22 0 25 0 26 0 23 96 24 214 4 0 5 50 6 0 7 0 8 50 9 256 10 8 12 179 13 16 14 922 15 922 16 1 17 0 18 0 19 90 20 64 21 1"
+"xSnap2", 0
+"ySnap2", 0
+"nSnapZoom2", 100
+"dSnapContrast2", 50
+"dSnapBrightness2", 50
+"iSnapLutModel2", 8
+"dSnapGammaR2", 1
+"dSnapGammaG2", 1
+"dSnapGammaB2", 1
+"dSnapGammaMono2", 1
+"bDoJournal", FALSE
+"NumberOfJournals", 0
+"bUseAdvancedStageWaveParms", FALSE
+"bDisplayStageWaveParmsMultiline", TRUE
+"astStageWaveParms", 1, 1, ""
+"astStageWaveParms", 1, 2, ""
+"astStageWaveParms", 1, 3, ""
+"astStageWaveParms", 1, 4, ""
+"astStageWaveParms", 1, 5, ""
+"astStageWaveParms", 2, 1, ""
+"astStageWaveParms", 2, 2, ""
+"astStageWaveParms", 2, 3, ""
+"astStageWaveParms", 2, 4, ""
+"astStageWaveParms", 2, 5, ""
+"EndFile"
