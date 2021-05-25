@@ -18,8 +18,17 @@ from keras.models import load_model
 from tifffile import imread, imwrite
 import csv
 import napari
+import glob
 from napari.qt.threading import thread_worker
 import matplotlib.pyplot  as plt
+from matplotlib.backends.backend_qt5agg import \
+    FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
+
+Boxname = 'ImageIDBox'
+
 class NEATDynamic(object):
     
 
@@ -262,11 +271,11 @@ class NEATDynamic(object):
         
         
         
-    def predict(self,imagename, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
+    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
         
         self.imagename = imagename
         self.image = imread(imagename)
-        
+        self.savedir = savedir
         self.n_tiles = n_tiles
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
@@ -451,7 +460,7 @@ class NEATDynamic(object):
                                     
                                       event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
                                       event_data = []
-                                      csvname = os.path.dirname(self.imagename) + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                      csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                       writer = csv.writer(open(csvname  +".csv", "a"))
                                       filesize = os.stat(csvname + ".csv").st_size
                                       if filesize < 1:
@@ -467,46 +476,122 @@ class NEATDynamic(object):
 
 
                       
-    def event_counter(self,imagename, csv_file, Label, save_dir):
+    def event_counter(self, csv_file):
      
-         time,y,x,score,size,confidence,angle=   np.loadtxt(csv_file, delimiter = ',', skiprows = 1, unpack=True)
+         time,y,x,score,size,confidence,angle  = np.loadtxt(csv_file, delimiter = ',', skiprows = 1, unpack=True)
+         
+         
          eventcounter = 0
          eventlist = []
          timelist = []   
          listtime = time.tolist()
          listy = y.tolist()
          listx = x.tolist()
-         listtime = sorted(listtime)
-         naparilocations = []
+         listsize = size.tolist()
+         listangle = angle.tolist()
+         
+         event_locations = []
+         size_locations = []
+         angle_locations = []
+         
          for i in range(len(listtime)):
              tcenter = listtime[i] 
              ycenter = listy[i]
              xcenter = listx[i]
+             size = listsize[i]
+             angle = listangle[i]
              eventcounter = listtime.count(tcenter)
              timelist.append(tcenter)
              eventlist.append(eventcounter)
-             naparilocations.append([tcenter, ycenter, xcenter])   
-         plt.plot(timelist, eventlist, '-r')
-         plt.title(Label)
-         plt.ylabel('Counts')
-         plt.xlabel('Time')
-         plt.savefig(save_dir  + Label   + '.png') 
-         plt.show()   
-         self.showNapari(imagename,naparilocations, Label)
-         return timelist, eventlist
+             
+             event_locations.append([tcenter, ycenter, xcenter])   
+             size_locations.append(size)
+             angle_locations.append(angle)
+             
+            
+         return event_locations, size_locations, angle_locations, timelist, eventlist
      
+class EventViewer(object):
+    
+    def __init__(self, viewer, image, imageid, canvas, ax, figure):
         
-    def showNapari(self, imagename, naparilocations, event_name):
+        
+           self.viewer = viewer
+           self.image = image
+           self.imageid = imageid
+           self.canvas = canvas
+           self.ax = ax
+           self.figure = figure
+        
+        
+    
+    def plot(self):
+        
+        for i in range(self.ax.shape[0]):
+            self.ax[i].cla()
 
-         image = imread(imagename)
-         self.viewer = napari.view_image(image, name='Image')
-         for layer in list(self.viewer.layers):
-                 if event_name in layer.name or layer.name in event_name:
-                        self.viewer.layers.remove(layer)
-         self.viewer.add_points(np.asarray(naparilocations),
-                                                 size = 1 , edge_color='red',name = event_name, face_color='red')
-                                         
-         napari.run()
+        self.ax[0].set_title("Event Counter")
+        self.ax[0].set_xlabel("Time")
+        self.ax[0].set_ylabel("Counts")
+
+
+    
+          
+    def showNapari(self, imagedir, savedir):
+         
+         
+         Raw_path = os.path.join(imagedir, '*tif')
+         X = glob.glob(Raw_path)
+         self.savedir = savedir
+         Imageids = []
+         self.viewer = napari.Viewer()
+         for imagename in X:
+             Imageids.append(imagename)
+         
+         imageidbox = QComboBox()   
+         imageidbox.addItem(Boxname)   
+         detectionsavebutton = QPushButton(' Save detection Movie')
+         
+         for i in range(0, len(Imageids)):
+             
+             imageidbox.addItem(str(Imageids[i]))
+             
+             
+         figure = plt.figure(figsize=(4, 4))
+         multiplot_widget = FigureCanvas(figure)
+         ax = multiplot_widget.figure.subplots(1, 2)
+         width = 400
+         dock_widget = viewer.window.add_dock_widget(
+         multiplot_widget, name="TrackStats", area='right')
+         multiplot_widget.figure.tight_layout()
+         self.viewer.window._qt_window.resizeDocks([dock_widget], [width], Qt.Horizontal)    
+         imageidbox.currentIndexChanged.connect(
+          lambda trackid=imageidbox: EventViewer(
+            
+        )
+    )            
+         for imagename in X:
+        
+                 for (event_name,event_label) in self.key_categories.items():
+                        if event_label > 0:
+                             csvname = self.savedir + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(imagename))[0] + '.csv')
+                             event_locations, size_locations, angle_locations, timelist, eventlist = self.event_counter(csvname)
+                             image = imread(imagename)
+                             self.viewer = napari.view_image(image, name='Image')
+                             for layer in list(self.viewer.layers):
+                                     if event_name in layer.name or layer.name in event_name:
+                                            self.viewer.layers.remove(layer)
+                             self.viewer.add_points(np.asarray(event_locations), size = size_locations ,name = event_name, symbol = 'ring')
+                             napari.run()
+                             plt.plot(timelist, eventlist, '-r')
+                             plt.title(event_name)
+                             plt.ylabel('Counts')
+                             plt.xlabel('Time')
+                             plt.savefig(self.savedir  + event_name   + '.png') 
+                             plt.show()
+                                      
+                                                             
+                             
     def overlaptiles(self, sliceregion):
         
              if self.n_tiles == (1, 1):
