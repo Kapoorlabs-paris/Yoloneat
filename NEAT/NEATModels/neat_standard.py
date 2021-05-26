@@ -28,6 +28,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 
 Boxname = 'ImageIDBox'
+EventBoxname = 'EventIDBox'
 
 class NEATDynamic(object):
     
@@ -494,6 +495,13 @@ class NEATDynamic(object):
          for imagename in X:
              Imageids.append(imagename)
          
+         
+         eventidbox = QComboBox()
+         eventidbox.addItem(EventBoxname)
+         for (event_name,event_label) in self.key_categories.items():
+             
+             eventidbox.addItem(event_name)
+            
          imageidbox = QComboBox()   
          imageidbox.addItem(Boxname)   
          detectionsavebutton = QPushButton(' Save detection Movie')
@@ -512,10 +520,25 @@ class NEATDynamic(object):
          multiplot_widget, name="EventStats", area='right')
          multiplot_widget.figure.tight_layout()
          self.viewer.window._qt_window.resizeDocks([dock_widget], [width], Qt.Horizontal)    
+         eventidbox.currentIndexChanged.connect(lambda eventid = eventidbox : EventViewer(
+                 self.viewer,
+                 imread(imageidbox.currentText()),
+                 eventidbox.currentText(),
+                 self.key_categories,
+                 os.path.basename(os.path.splitext(imageidbox.currentText())[0]),
+                 savedir,
+                 multiplot_widget,
+                 ax,
+                 figure,
+            
+        )
+    )    
+         
          imageidbox.currentIndexChanged.connect(
          lambda trackid = imageidbox: EventViewer(
                  self.viewer,
                  imread(imageidbox.currentText()),
+                 eventidbox.currentText(),
                  self.key_categories,
                  os.path.basename(os.path.splitext(imageidbox.currentText())[0]),
                  savedir,
@@ -525,6 +548,9 @@ class NEATDynamic(object):
             
         )
     )            
+         
+         
+         self.viewer.window.add_dock_widget(eventidbox, name="Event", area='left')  
          self.viewer.window.add_dock_widget(imageidbox, name="Image", area='left')     
                                       
                                                              
@@ -691,11 +717,12 @@ def CreateVolume(patch, imaget, timepoint, imagey, imagex):
                return smallimg         
 class EventViewer(object):
     
-    def __init__(self, viewer, image, key_categories, imagename, savedir, canvas, ax, figure):
+    def __init__(self, viewer, image, event_name, key_categories, imagename, savedir, canvas, ax, figure):
         
         
            self.viewer = viewer
            self.image = image
+           self.event_name = event_name
            self.imagename = imagename
            self.canvas = canvas
            self.key_categories = key_categories
@@ -708,9 +735,8 @@ class EventViewer(object):
         
         self.ax.cla()
         
-        
         for (event_name,event_label) in self.key_categories.items():
-                        if event_label > 0:
+                        if event_label > 0 and self.event_name == event_name:
                              csvname = self.savedir + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0] + '.csv')
                              event_locations, size_locations, angle_locations, timelist, eventlist = self.event_counter(csvname)
                              
