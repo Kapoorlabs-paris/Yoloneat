@@ -476,63 +476,8 @@ class NEATDynamic(object):
 
 
                       
-    def event_counter(self, csv_file):
-     
-         time,y,x,score,size,confidence,angle  = np.loadtxt(csv_file, delimiter = ',', skiprows = 1, unpack=True)
-         
-         
-         eventcounter = 0
-         eventlist = []
-         timelist = []   
-         listtime = time.tolist()
-         listy = y.tolist()
-         listx = x.tolist()
-         listsize = size.tolist()
-         listangle = angle.tolist()
-         
-         event_locations = []
-         size_locations = []
-         angle_locations = []
-         
-         for i in range(len(listtime)):
-             tcenter = listtime[i] 
-             ycenter = listy[i]
-             xcenter = listx[i]
-             size = listsize[i]
-             angle = listangle[i]
-             eventcounter = listtime.count(tcenter)
-             timelist.append(tcenter)
-             eventlist.append(eventcounter)
-             
-             event_locations.append([tcenter, ycenter, xcenter])   
-             size_locations.append(size)
-             angle_locations.append(angle)
-             
-            
-         return event_locations, size_locations, angle_locations, timelist, eventlist
-     
-class EventViewer(object):
-    
-    def __init__(self, viewer, image, imageid, canvas, ax, figure):
-        
-        
-           self.viewer = viewer
-           self.image = image
-           self.imageid = imageid
-           self.canvas = canvas
-           self.ax = ax
-           self.figure = figure
-        
-        
-    
-    def plot(self):
-        
-        for i in range(self.ax.shape[0]):
-            self.ax[i].cla()
 
-        self.ax[0].set_title("Event Counter")
-        self.ax[0].set_xlabel("Time")
-        self.ax[0].set_ylabel("Counts")
+     
 
 
     
@@ -545,6 +490,7 @@ class EventViewer(object):
          self.savedir = savedir
          Imageids = []
          self.viewer = napari.Viewer()
+         napari.run()
          for imagename in X:
              Imageids.append(imagename)
          
@@ -554,41 +500,32 @@ class EventViewer(object):
          
          for i in range(0, len(Imageids)):
              
+             
              imageidbox.addItem(str(Imageids[i]))
              
              
          figure = plt.figure(figsize=(4, 4))
          multiplot_widget = FigureCanvas(figure)
-         ax = multiplot_widget.figure.subplots(1, 2)
+         ax = multiplot_widget.figure.subplots(1, 1)
          width = 400
-         dock_widget = viewer.window.add_dock_widget(
-         multiplot_widget, name="TrackStats", area='right')
+         dock_widget = self.viewer.window.add_dock_widget(
+         multiplot_widget, name="EventStats", area='right')
          multiplot_widget.figure.tight_layout()
          self.viewer.window._qt_window.resizeDocks([dock_widget], [width], Qt.Horizontal)    
          imageidbox.currentIndexChanged.connect(
-          lambda trackid=imageidbox: EventViewer(
+         lambda trackid = imageidbox: EventViewer(
+                 self.viewer,
+                 imread(imageidbox.currentText()),
+                 self.key_categories,
+                 os.path.basename(os.path.splitext(imageidbox.currentText())[0]),
+                 savedir,
+                 multiplot_widget,
+                 ax,
+                 figure,
             
         )
     )            
-         for imagename in X:
-        
-                 for (event_name,event_label) in self.key_categories.items():
-                        if event_label > 0:
-                             csvname = self.savedir + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(imagename))[0] + '.csv')
-                             event_locations, size_locations, angle_locations, timelist, eventlist = self.event_counter(csvname)
-                             image = imread(imagename)
-                             self.viewer = napari.view_image(image, name='Image')
-                             for layer in list(self.viewer.layers):
-                                     if event_name in layer.name or layer.name in event_name:
-                                            self.viewer.layers.remove(layer)
-                             self.viewer.add_points(np.asarray(event_locations), size = size_locations ,name = event_name, symbol = 'ring')
-                             napari.run()
-                             plt.plot(timelist, eventlist, '-r')
-                             plt.title(event_name)
-                             plt.ylabel('Counts')
-                             plt.xlabel('Time')
-                             plt.savefig(self.savedir  + event_name   + '.png') 
-                             plt.show()
+         self.viewer.window.add_dock_widget(imageidbox, name="Image", area='left')     
                                       
                                                              
                              
@@ -752,4 +689,76 @@ def CreateVolume(patch, imaget, timepoint, imagey, imagex):
                smallimg = patch[starttime:endtime, :]
        
                return smallimg         
-       
+class EventViewer(object):
+    
+    def __init__(self, viewer, image, key_categories, imagename, savedir, canvas, ax, figure):
+        
+        
+           self.viewer = viewer
+           self.image = image
+           self.imagename = imagename
+           self.canvas = canvas
+           self.key_categories = key_categories
+           self.savedir = savedir
+           self.ax = ax
+           self.figure = figure
+           self.plot()
+    
+    def plot(self):
+        
+        self.ax.cla()
+        
+        
+        for (event_name,event_label) in self.key_categories.items():
+                        if event_label > 0:
+                             csvname = self.savedir + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0] + '.csv')
+                             event_locations, size_locations, angle_locations, timelist, eventlist = self.event_counter(csvname)
+                             
+                             self.viewer.add_image(self.image, name='Image')
+                             for layer in list(self.viewer.layers):
+                                     if event_name in layer.name or layer.name in event_name:
+                                            self.viewer.layers.remove(layer)
+                             self.viewer.add_points(np.asarray(event_locations), size = size_locations ,name = event_name, face_color = [0]*4, edge_color = "red", edge_width = 1)
+                             self.viewer.theme = 'light'
+                             self.ax.plot(timelist, eventlist, '-r')
+                             self.ax.set_title(event_name + "Events")
+                             self.ax.set_xlabel("Time")
+                             self.ax.set_ylabel("Counts")
+                             self.figure.canvas.draw()
+                             self.figure.canvas.flush_events()
+                             plt.savefig(self.savedir  + event_name   + '.png') 
+                             
+    def event_counter(self, csv_file):
+     
+         time,y,x,score,size,confidence,angle  = np.loadtxt(csv_file, delimiter = ',', skiprows = 1, unpack=True)
+         
+         
+         eventcounter = 0
+         eventlist = []
+         timelist = []   
+         listtime = time.tolist()
+         listy = y.tolist()
+         listx = x.tolist()
+         listsize = size.tolist()
+         listangle = angle.tolist()
+         
+         event_locations = []
+         size_locations = []
+         angle_locations = []
+         
+         for i in range(len(listtime)):
+             tcenter = listtime[i] 
+             ycenter = listy[i]
+             xcenter = listx[i]
+             size = listsize[i]
+             angle = listangle[i]
+             eventcounter = listtime.count(tcenter)
+             timelist.append(tcenter)
+             eventlist.append(eventcounter)
+             
+             event_locations.append([tcenter, ycenter, xcenter])   
+             size_locations.append(size)
+             angle_locations.append(angle)
+             
+            
+         return event_locations, size_locations, angle_locations, timelist, eventlist                         
