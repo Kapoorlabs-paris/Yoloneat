@@ -25,6 +25,21 @@ from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite
 import csv
+import napari
+from napari.qt.threading import thread_worker
+import matplotlib.pyplot  as plt
+from matplotlib.backends.backend_qt5agg import \
+    FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
+import glob
+
+
+
+Boxname = 'ImageIDBox'
+CellTypeBoxname = 'CellIDBox'
+
 class NEATStatic(object):
     
 
@@ -411,6 +426,77 @@ class NEATStatic(object):
                                  writer.writerows(event_data)
                                  event_data = []           
                               
+         
+    def showNapari(self, imagedir, savedir):
+         
+         
+         Raw_path = os.path.join(imagedir, '*tif')
+         X = glob.glob(Raw_path)
+         self.savedir = savedir
+         Imageids = []
+         self.viewer = napari.Viewer()
+         napari.run()
+         for imagename in X:
+             Imageids.append(imagename)
+         
+         
+         celltypeidbox = QComboBox()
+         celltypeidbox.addItem(CellTypeBoxname)
+         for (event_name,event_label) in self.key_categories.items():
+             
+             celltypeidbox.addItem(event_name)
+            
+         imageidbox = QComboBox()   
+         imageidbox.addItem(Boxname)   
+         detectionsavebutton = QPushButton(' Save detection Movie')
+         
+         for i in range(0, len(Imageids)):
+             
+             
+             imageidbox.addItem(str(Imageids[i]))
+             
+             
+         figure = plt.figure(figsize=(4, 4))
+         multiplot_widget = FigureCanvas(figure)
+         ax = multiplot_widget.figure.subplots(1, 1)
+         width = 400
+         dock_widget = self.viewer.window.add_dock_widget(
+         multiplot_widget, name="CellTypeStats", area='right')
+         multiplot_widget.figure.tight_layout()
+         self.viewer.window._qt_window.resizeDocks([dock_widget], [width], Qt.Horizontal)    
+         celltypeidbox.currentIndexChanged.connect(lambda eventid = celltypeidbox : CellTypeViewer(
+                 self.viewer,
+                 imread(imageidbox.currentText()),
+                 celltypeidbox.currentText(),
+                 self.key_categories,
+                 os.path.basename(os.path.splitext(imageidbox.currentText())[0]),
+                 savedir,
+                 multiplot_widget,
+                 ax,
+                 figure,
+            
+        )
+    )    
+         
+         imageidbox.currentIndexChanged.connect(
+         lambda trackid = imageidbox: CellTypeViewer(
+                 self.viewer,
+                 imread(imageidbox.currentText()),
+                 celltypeidbox.currentText(),
+                 self.key_categories,
+                 os.path.basename(os.path.splitext(imageidbox.currentText())[0]),
+                 savedir,
+                 multiplot_widget,
+                 ax,
+                 figure,
+            
+        )
+    )            
+         
+         
+         self.viewer.window.add_dock_widget(celltypeidbox, name="CellType", area='left')  
+         self.viewer.window.add_dock_widget(imageidbox, name="Image", area='left')           
+            
             
           
     def overlaptiles(self):
@@ -580,4 +666,75 @@ def chunk_list(image, patchshape, stride, pair):
 
 
             return patch, rowstart, colstart   
+        
+        
+class CellTypeViewer(object):
+    
+    def __init__(self, viewer, image, celltype_name, key_categories, imagename, savedir, canvas, ax, figure):
+        
+        
+           self.viewer = viewer
+           self.image = image
+           self.celltype_name = celltype_name
+           self.imagename = imagename
+           self.canvas = canvas
+           self.key_categories = key_categories
+           self.savedir = savedir
+           self.ax = ax
+           self.figure = figure
+           self.plot()
+    
+    def plot(self):
+        
+        self.ax.cla()
+        
+        for (celltype_name,event_label) in self.key_categories.items():
+                        if event_label > 0 and self.celltype_name == celltype_name:
+                             csvname = self.savedir + "/" + celltype_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0] + '.csv')
+                             event_locations, size_locations, angle_locations, timelist, eventlist = self.event_counter(csvname)
+                             
+                             self.viewer.add_image(self.image, name='Image')
+                             for layer in list(self.viewer.layers):
+                                     if celltype_name in layer.name or layer.name in celltype_name:
+                                            self.viewer.layers.remove(layer)
+                             self.viewer.add_points(np.asarray(event_locations), size = size_locations ,name = celltype_name, face_color = [0]*4, edge_color = "red", edge_width = 1)
+                             self.viewer.theme = 'light'
+                             self.ax.plot(timelist, eventlist, '-r')
+                             self.ax.set_title(celltype_name + "Instances")
+                             self.ax.set_xlabel("Time")
+                             self.ax.set_ylabel("Counts")
+                             self.figure.canvas.draw()
+                             self.figure.canvas.flush_events()
+                             plt.savefig(self.savedir  + celltype_name   + '.png') 
+                             
+    def event_counter(self, csv_file):
+     
+         time,y,x,score,size,confidence  = np.loadtxt(csv_file, delimiter = ',', skiprows = 1, unpack=True)
+         
+         
+         eventcounter = 0
+         eventlist = []
+         timelist = []   
+         listtime = time.tolist()
+         listy = y.tolist()
+         listx = x.tolist()
+         listsize = size.tolist()
+         
+         event_locations = []
+         size_locations = []
+         
+         for i in range(len(listtime)):
+             tcenter = listtime[i] 
+             ycenter = listy[i]
+             xcenter = listx[i]
+             size = listsize[i]
+             eventcounter = listtime.count(tcenter)
+             timelist.append(tcenter)
+             eventlist.append(eventcounter)
+             
+             event_locations.append([tcenter, ycenter, xcenter])   
+             size_locations.append(size)
+             
+            
+         return event_locations, size_locations, timelist, eventlist                                 
     
