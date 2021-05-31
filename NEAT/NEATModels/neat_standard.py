@@ -601,8 +601,8 @@ class NEATDynamic(object):
                                         pairs.append([rowstart, colstart])
                                         colstart+=jumpx
                           rowstart = 0
-                          colstart = sliceregion.shape[2] - patchx
-                          while rowstart < sliceregion.shape[1] - patchy:
+                          colstart = sliceregion.shape[2]
+                          while rowstart < sliceregion.shape[1]:
                                         pairs.append([rowstart, colstart])
                                         rowstart+=jumpy              
                                         
@@ -660,9 +660,8 @@ class NEATDynamic(object):
                 
                 print('Out of memory, increasing overlapping tiles for prediction')
                 
-                self.n_tiles = self.n_tiles  + 1
-                
-                print('Tiles: ', self.n_tiles)
+                self.n_tiles[0] = self.n_tiles[0]  + 1
+                self.n_tiles[1] = self.n_tiles[1]  + 1
                 
                 self.predict_main(sliceregion)
                 
