@@ -742,6 +742,8 @@ class EventViewer(object):
                              for layer in list(self.viewer.layers):
                                      if event_name in layer.name or layer.name in event_name:
                                             self.viewer.layers.remove(layer)
+                                     if 'Image' in layer.name or layer.name in 'Image':
+                                            self.viewer.layers.remove(layer)       
                              self.viewer.add_points(np.asarray(event_locations), size = size_locations ,name = event_name, face_color = [0]*4, edge_color = "red", edge_width = 1)
                              self.viewer.theme = 'light'
                              self.ax.plot(timelist, eventlist, '-r')

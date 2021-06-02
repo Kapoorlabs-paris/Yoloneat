@@ -698,6 +698,8 @@ class CellTypeViewer(object):
                              for layer in list(self.viewer.layers):
                                      if celltype_name in layer.name or layer.name in celltype_name:
                                             self.viewer.layers.remove(layer)
+                                     if 'Image' in layer.name or layer.name in 'Image':
+                                            self.viewer.layers.remove(layer)
                              self.viewer.add_points(np.asarray(event_locations), size = size_locations ,name = celltype_name, face_color = [0]*4, edge_color = "red", edge_width = 1)
                              self.viewer.theme = 'light'
                              self.ax.plot(timelist, eventlist, '-r')
