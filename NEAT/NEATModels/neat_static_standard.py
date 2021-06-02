@@ -15,7 +15,7 @@ import os
 from tqdm import tqdm
 from NEATModels import nets
 from NEATModels.nets import Concat
-from NEATModels.loss import static_yolo_loss
+from NEATModels.loss import static_yolo_loss, static_yolo_loss_segfree
 from keras import backend as K
 import tensorflow as tf
 #from IPython.display import clear_output
@@ -168,7 +168,7 @@ class NEATStatic(object):
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
          
-        self.yololoss = static_yolo_loss(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy, self.yolo_v0)
+        self.yololoss = static_yolo_loss_segfree(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy, self.yolo_v0)
        
             
    
@@ -387,7 +387,7 @@ class NEATStatic(object):
                             best_iou = []
                             for j in range(i + 1, len(sorted_event_box)):
                                 bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                if bbox_iou >= 0.1:
+                                if bbox_iou >=self.iou_threshold:
                                      best_iou.append(bbox_iou)
                                     
                                 #good event found     

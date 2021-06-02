@@ -272,7 +272,7 @@ class NEATDynamic(object):
         
         
         
-    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
+    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
         
         self.imagename = imagename
         self.image = imread(imagename)
@@ -398,7 +398,7 @@ class NEATDynamic(object):
                             best_iou = []
                             for j in range(i + 1, len(sorted_event_box)):
                                 bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                if bbox_iou >= 0.1:
+                                if bbox_iou >= self.iou_threshold:
                                      best_iou.append(bbox_iou)
                                     
                                 #good event found     

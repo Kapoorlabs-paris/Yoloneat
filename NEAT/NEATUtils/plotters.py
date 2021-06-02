@@ -134,8 +134,8 @@ class PlotStaticHistory(keras.callbacks.Callback):
         self.x.append(self.i)
         self.losses.append(logs.get('loss'))
         self.val_losses.append(logs.get('val_loss'))
-        self.acc.append(logs.get('accuracy'))
-        self.val_acc.append(logs.get('val_accuracy'))
+        self.acc.append(logs.get('acc'))
+        self.val_acc.append(logs.get('val_acc'))
         
         self.i += 1
         if self.plot:
