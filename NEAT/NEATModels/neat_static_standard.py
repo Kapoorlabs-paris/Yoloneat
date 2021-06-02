@@ -76,12 +76,16 @@ class NEATStatic(object):
     """
     
     
-    def __init__(self, staticconfig, model_dir, model_name):
+    def __init__(self, staticconfig, model_dir, model_name, catconfig = None, cordconfig = None):
 
         
 
         
         self.staticconfig = staticconfig 
+        self.catconfig = catconfig
+        self.cordconfig = cordconfig
+        self.model_dir = model_dir
+        self.model_name = model_name 
         
         if self.staticconfig !=None:
                 self.npz_directory = staticconfig.npz_directory
@@ -115,36 +119,32 @@ class NEATStatic(object):
                    self.staticconfig = load_json(self.model_dir + os.path.splitext(self.model_name)[0] + '_Parameter.json')
                 except:
                    self.staticconfig = load_json(self.model_dir + self.model_name + '_Parameter.json')  
-                   
-                self.npz_directory = staticconfig['npz_directory']
-                self.npz_name = staticconfig['npz_name']
-                self.npz_val_name = staticconfig['npz_val_name']
-                self.key_categories = staticconfig['key_categories']
-                self.box_vector = staticconfig['box_vector']
-                self.show = staticconfig['show']
-                self.key_cord = staticconfig['key_cord']
-                self.categories = len(staticconfig['key_categories'])
-                self.depth = staticconfig['depth']
-                self.start_kernel = staticconfig['start_kernel']
-                self.mid_kernel = staticconfig['mid_kernel']
-                self.learning_rate = staticconfig['learning_rate']
-                self.epochs = staticconfig['epochs']
-                self.residual = staticconfig['residual']
-                self.startfilter = staticconfig['startfilter']
-                self.batch_size = staticconfig['batch_size']
-                self.multievent = staticconfig['multievent']
-                self.imagex = staticconfig['imagex']
-                self.imagey = staticconfig['imagey']
-                self.nboxes = staticconfig['nboxes']
-                self.gridx = staticconfig['gridx']
-                self.gridy = staticconfig['gridy']
-                self.yolo_v0 = staticconfig['yolo_v0']
-                self.stride = staticconfig['stride']    
+                self.npz_directory = self.staticconfig['npz_directory']
+                self.npz_name = self.staticconfig['npz_name']
+                self.npz_val_name = self.staticconfig['npz_val_name']
+                self.key_categories = self.catconfig
+                self.box_vector = self.staticconfig['box_vector']
+                self.show = self.staticconfig['show']
+                self.key_cord = self.cordconfig
+                self.categories = len(self.catconfig)
+                self.depth = self.staticconfig['depth']
+                self.start_kernel = self.staticconfig['start_kernel']
+                self.mid_kernel = self.staticconfig['mid_kernel']
+                self.learning_rate = self.staticconfig['learning_rate']
+                self.epochs = self.staticconfig['epochs']
+                self.residual = self.staticconfig['residual']
+                self.startfilter = self.staticconfig['startfilter']
+                self.batch_size = self.staticconfig['batch_size']
+                self.multievent = self.staticconfig['multievent']
+                self.imagex = self.staticconfig['imagex']
+                self.imagey = self.staticconfig['imagey']
+                self.nboxes = self.staticconfig['nboxes']
+                self.gridx = self.staticconfig['gridx']
+                self.gridy = self.staticconfig['gridy']
+                self.yolo_v0 = self.staticconfig['yolo_v0']
+                self.stride = self.staticconfig['stride']    
         
-        self.model_dir = model_dir
-        self.model_name = model_name        
-        self.model_weights = None        
-        self.last_activation = None
+       
         self.X = None
         self.Y = None
         self.axes = None
@@ -168,7 +168,7 @@ class NEATStatic(object):
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
          
-        self.yololoss = static_yolo_loss_segfree(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy, self.yolo_v0)
+        self.yolo_loss = static_yolo_loss_segfree(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy, self.yolo_v0)
        
             
    
@@ -242,7 +242,7 @@ class NEATStatic(object):
         
         
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
-        self.Trainingmodel.compile(optimizer=sgd, loss = self.yololoss, metrics=['accuracy'])
+        self.Trainingmodel.compile(optimizer=sgd, loss = self.yolo_loss, metrics=['accuracy'])
         self.Trainingmodel.summary()
         
         
@@ -267,10 +267,11 @@ class NEATStatic(object):
         
         
 
-    def predict(self, imagename, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
+    def predict(self, imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
         
         self.imagename = imagename
         self.image = imread(imagename)
+        self.savedir = savedir
         self.n_tiles = n_tiles
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
@@ -281,7 +282,7 @@ class NEATStatic(object):
         classedboxes = {}    
         count = 0    
         for inputtime in tqdm(range(0, self.image.shape[0])):
-            if inputtime < self.image.shape[0] - self.imaget:
+            if inputtime < self.image.shape[0]:
                        
                         count = count + 1
             smallimage = self.image[inputtime,:]

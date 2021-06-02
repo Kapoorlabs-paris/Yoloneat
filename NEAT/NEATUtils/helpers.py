@@ -525,7 +525,6 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           y = (k - 1) * stride
                                           x = (j - 1) * stride
                                           prediction_vector = time_prediction[k-1,j-1,:]
-                                          
                                           xstart = x + sx
                                           ystart = y + sy
                                           Class = {}
@@ -551,9 +550,13 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           for b in range(0,nboxes):
                                                   xcenter = xstart + prediction_vector[total_classes + config['x'] + b * total_coords ] * trainshapex
                                                   ycenter = ystart + prediction_vector[total_classes + config['y'] + b * total_coords ] * trainshapey
-                                                  height = prediction_vector[total_classes + config['h'] + b * total_coords] * trainshapex  
-                                                  width = prediction_vector[total_classes + config['w'] + b * total_coords] * trainshapey
-                                                  
+                                                  try:
+                                                      height = prediction_vector[total_classes + config['h'] + b * total_coords] * trainshapex  
+                                                      width = prediction_vector[total_classes + config['w'] + b * total_coords] * trainshapey
+                                                  except:
+                                                      height = 0
+                                                      width = 0
+                                                      pass
                                                   if event_type == 'dynamic' and mode == 'detection':
                                                       time_frames = config['size_tminus'] + config['size_tplus'] + 1
                                                       tcenter = int(inputtime + prediction_vector[total_classes + config['t'] + b * total_coords] * time_frames)
