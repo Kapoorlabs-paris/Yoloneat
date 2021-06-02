@@ -547,6 +547,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           confidencemean = 0
                                           trainshapex = config['imagex']
                                           trainshapey = config['imagey']
+                                          
                                           for b in range(0,nboxes):
                                                   xcenter = xstart + prediction_vector[total_classes + config['x'] + b * total_coords ] * trainshapex
                                                   ycenter = ystart + prediction_vector[total_classes + config['y'] + b * total_coords ] * trainshapey

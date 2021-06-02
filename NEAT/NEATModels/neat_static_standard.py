@@ -519,10 +519,10 @@ class NEATStatic(object):
     def overlaptiles(self, sliceregion):
         
             if self.n_tiles == (1,1):
-                
+                       
                        patchshape = (sliceregion.shape[0], sliceregion.shape[1])  
                       
-                       smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, [0,0])
+                       smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, [0,0])
                        patch = []
                        rowout = []
                        column = []
@@ -548,9 +548,9 @@ class NEATStatic(object):
               pairs = []  
               #row is y, col is x
               
-              while rowstart < sliceregion.shape[0]:
+              while rowstart < sliceregion.shape[0] - patchy:
                  colstart = 0
-                 while colstart < sliceregion.shape[1]:
+                 while colstart < sliceregion.shape[1] - patchx:
                     
                      # Start iterating over the tile with jumps = stride of the fully convolutional network.
                      pairs.append([rowstart, colstart])
@@ -558,13 +558,13 @@ class NEATStatic(object):
                  rowstart+=jumpy 
                 
               #Include the last patch   
-              rowstart = sliceregion.shape[0]
+              rowstart = sliceregion.shape[0] - patchy
               colstart = 0
               while colstart < sliceregion.shape[1]:
                             pairs.append([rowstart, colstart])
                             colstart+=jumpx
               rowstart = 0
-              colstart = sliceregion.shape[1]
+              colstart = sliceregion.shape[1] - patchx
               while rowstart < sliceregion.shape[0]:
                             pairs.append([rowstart, colstart])
                             rowstart+=jumpy              
@@ -575,7 +575,7 @@ class NEATStatic(object):
                     rowout = []
                     column = []
                     for pair in pairs: 
-                       smallpatch, smallrowout, smallcolumn =  chunk_list(self.image, patchshape, self.stride, pair)
+                       smallpatch, smallrowout, smallcolumn =  chunk_list(self.image, patchshape, pair)
                        patch.append(smallpatch)
                        rowout.append(smallrowout)
                        column.append(smallcolumn) 
@@ -585,8 +585,8 @@ class NEATStatic(object):
                         patch = []
                         rowout = []
                         column = []
-                        
-                        smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, [0,0])
+                        patchshape = (sliceregion.shape[0], sliceregion.shape[1]) 
+                        smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, [0,0])
                         patch.append(smallpatch)
                         rowout.append(smallrowout)
                         column.append(smallcolumn)
@@ -604,15 +604,13 @@ class NEATStatic(object):
                 ally = []
                 if len(self.patch) > 0:
                    for i in range(0,len(self.patch)):   
-                       try:    
+                         
                            sum_time_prediction = self.make_patches(self.patch[i])
         
                            predictions.append(sum_time_prediction)
                            allx.append(self.sx[i])
                            ally.append(self.sy[i])
-                       except:
-                           
-                           pass
+                      
                 else:
                     
                        sum_time_prediction = self.make_patches(self.patch)
@@ -645,7 +643,7 @@ class NEATStatic(object):
     
 
         
-def chunk_list(image, patchshape, stride, pair):
+def chunk_list(image, patchshape, pair):
             rowstart = pair[0]
             colstart = pair[1]
 

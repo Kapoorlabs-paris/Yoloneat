@@ -585,9 +585,9 @@ class NEATDynamic(object):
                           pairs = []  
                           #row is y, col is x
                           
-                          while rowstart < sliceregion.shape[1] :
+                          while rowstart < sliceregion.shape[1] -patchy:
                              colstart = 0
-                             while colstart < sliceregion.shape[2]:
+                             while colstart < sliceregion.shape[2] -patchx:
                                 
                                  # Start iterating over the tile with jumps = stride of the fully convolutional network.
                                  pairs.append([rowstart, colstart])
@@ -595,14 +595,14 @@ class NEATDynamic(object):
                              rowstart+=jumpy 
                             
                           #Include the last patch   
-                          rowstart = sliceregion.shape[1]
+                          rowstart = sliceregion.shape[1] -patchy
                           colstart = 0
-                          while colstart < sliceregion.shape[2]:
+                          while colstart < sliceregion.shape[2] -patchx:
                                         pairs.append([rowstart, colstart])
                                         colstart+=jumpx
                           rowstart = 0
-                          colstart = sliceregion.shape[2]
-                          while rowstart < sliceregion.shape[1]:
+                          colstart = sliceregion.shape[2] -patchx
+                          while rowstart < sliceregion.shape[1] -patchy:
                                         pairs.append([rowstart, colstart])
                                         rowstart+=jumpy              
                                         
@@ -640,14 +640,12 @@ class NEATDynamic(object):
                 ally = []
                 if len(self.patch) > 0:
                     for i in range(0,len(self.patch)):   
-                       try:
+                       
                                sum_time_prediction = self.make_patches(self.patch[i])
                                predictions.append(sum_time_prediction)
                                allx.append(self.sx[i])
                                ally.append(self.sy[i])
-                       except:
-                           
-                           pass
+                      
                        
                 else:
                     
