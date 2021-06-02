@@ -211,8 +211,6 @@ class NEATStatic(object):
 
       
         
-        d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
-        d_class_weights = d_class_weights.reshape(1,d_class_weights.shape[0])
         model_weights = self.model_dir + self.model_name
         if os.path.exists(model_weights):
         
@@ -254,7 +252,7 @@ class NEATStatic(object):
         
         
         #Train the model and save as a h5 file
-        self.Trainingmodel.fit(self.X,self.Y, class_weight = d_class_weights,  batch_size = self.batch_size, epochs = self.epochs, validation_data=(self.X_val, self.Y_val), shuffle = True, callbacks = [lrate,hrate,srate,prate])
+        self.Trainingmodel.fit(self.X,self.Y,  batch_size = self.batch_size, epochs = self.epochs, validation_data=(self.X_val, self.Y_val), shuffle = True, callbacks = [lrate,hrate,srate,prate])
         #clear_output(wait=True) 
 
      
@@ -308,7 +306,7 @@ class NEATStatic(object):
                 if event_label > 0:
                      current_event_box = []
                      for box in eventboxes:
-                
+                        
                         event_prob = box[event_name]
                         if event_prob > self.event_threshold:
                            
@@ -341,8 +339,11 @@ class NEATStatic(object):
 
 
         union = w1*h1 + w2*h2 - intersect
-
-        return float(np.true_divide(intersect, union)) 
+        if union > 0:
+           value =  float(np.true_divide(intersect, union)) 
+        else:
+            value = 1
+        return value
     
     
     def _interval_overlap(self,interval_a, interval_b):
@@ -372,7 +373,6 @@ class NEATStatic(object):
                
                #Highest probability is first
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
-               iou_current_event_box = []
                best_iou_current_event_box = []
                
                if sorted_event_box is not None:
@@ -381,45 +381,26 @@ class NEATStatic(object):
                         
                         return []
                     else:
-                        
-                        #fIRST ROUND
+                         
+                        #lAST ROUND
+                        remove_boxes = []
                         for i in range(len(sorted_event_box)):
-                            
-                            best_iou = []
-                            for j in range(i + 1, len(sorted_event_box)):
-                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                if bbox_iou >=self.iou_threshold:
-                                     best_iou.append(bbox_iou)
-                                    
-                                #good event found     
-                                if len(best_iou) > 10:
-                                    if sorted_event_box[i] not in iou_current_event_box:
-                                        iou_current_event_box.append(sorted_event_box[i])
-                                    
-                                    
-                                    
-                                    
-               iou_classedboxes[event_name] = [iou_current_event_box]
-               #lAST ROUND
-               remove_boxes = []
-               for i in range(len(iou_current_event_box)):
-                            best_iou_current_event_box.append(iou_current_event_box[i])
-                            for j in range(i + 1, len(iou_current_event_box)):
-                                
-                                        bbox_iou = self.bbox_iou(iou_current_event_box[i], iou_current_event_box[j])
-                                        if bbox_iou < self.iou_threshold and bbox_iou > 0:
-                                            #EXTRA good event found     
-                                                remove_boxes.append(iou_current_event_box[j]) 
-               for k in range(len(remove_boxes)):    
-                    if remove_boxes[k] in best_iou_current_event_box:                             
-                         best_iou_current_event_box.remove(remove_boxes[k])
-               best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
+                                    best_iou_current_event_box.append(sorted_event_box[i])
+                                    for j in range(i + 1, len(sorted_event_box)):
+                                        
+                                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
+                                                if bbox_iou < self.iou_threshold and bbox_iou > 0:
+                                                    #EXTRA good event found     
+                                                        remove_boxes.append(sorted_event_box[j]) 
+                        for k in range(len(remove_boxes)):    
+                            if remove_boxes[k] in best_iou_current_event_box:                             
+                                 best_iou_current_event_box.remove(remove_boxes[k])
+                        best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
         self.iou_classedboxes = best_iou_classedboxes                                
         
     def to_csv(self):
         
         for (event_name,event_label) in self.key_categories.items():
-                   
                    if event_label > 0:
                               xlocations = []
                               ylocations = []
@@ -712,7 +693,7 @@ class CellTypeViewer(object):
         for (celltype_name,event_label) in self.key_categories.items():
                         if event_label > 0 and self.celltype_name == celltype_name:
                              csvname = self.savedir + "/" + celltype_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0] + '.csv')
-                             event_locations, size_locations, angle_locations, timelist, eventlist = self.event_counter(csvname)
+                             event_locations, size_locations, timelist, eventlist = self.event_counter(csvname)
                              
                              self.viewer.add_image(self.image, name='Image')
                              for layer in list(self.viewer.layers):
@@ -754,7 +735,10 @@ class CellTypeViewer(object):
              eventlist.append(eventcounter)
              
              event_locations.append([tcenter, ycenter, xcenter])   
-             size_locations.append(size)
+             if size > 1:
+                 size_locations.append(size)
+             else:
+                 size_locations.append(20)
              
             
          return event_locations, size_locations, timelist, eventlist                                 
