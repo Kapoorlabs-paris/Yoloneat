@@ -258,8 +258,7 @@ def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, s
 
 
     
-def SegFreeImageLabelDataSet(image_dir, csv_dir,save_dir, static_name, static_label, csv_name_diff,crop_size, gridx = 1, gridy = 1,width = 25,
-               height = 25, offset = 0):
+def SegFreeImageLabelDataSet(image_dir, csv_dir,save_dir, static_name, static_label, csv_name_diff,crop_size, gridx = 1, gridy = 1, offset = 0):
     
     
             raw_path = os.path.join(image_dir, '*tif')
@@ -291,7 +290,7 @@ def SegFreeImageLabelDataSet(image_dir, csv_dir,save_dir, static_name, static_la
                                             
                                             #Categories + XYHW + Confidence 
                                             for (key, t) in time.items():
-                                               SegFreeImageMaker(t, y[key], x[key], image, crop_size, gridx, gridy, height, width, offset, total_categories, trainlabel, name + event_name + str(count), save_dir)    
+                                               SegFreeImageMaker(t, y[key], x[key], image, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir)    
                                                count = count + 1                 
     
 def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0oneatVal', static = False):
@@ -425,7 +424,7 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, to
                                              writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
                                              writer.writerows(Event_data)
 
-def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, height, width, offset, total_categories, trainlabel, name, save_dir):
+def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, offset, total_categories, trainlabel, name, save_dir):
 
                sizeX, sizeY = crop_size
 
@@ -458,7 +457,7 @@ def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, height, width
                         
                         x = center[1]
                         y = center[0]
-                        Label = np.zeros([total_categories + 4])
+                        Label = np.zeros([total_categories + 2])
                          
                         Label[trainlabel] = 1
                         if x + shift[0]> sizeX/2 and y + shift[1] > sizeY/2 and x + shift[0] + int(ImagesizeX/2) < image.shape[2] and y + shift[1]+ int(ImagesizeY/2) < image.shape[1]:
@@ -480,8 +479,6 @@ def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, height, width
                                     
 
                                     
-                                    Label[total_categories + 2] = height/ImagesizeY
-                                    Label[total_categories + 3] = width/ImagesizeX
                                     
                                     if(crop_image.shape[1]== ImagesizeY and crop_image.shape[2]== ImagesizeX):
                                              imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))  

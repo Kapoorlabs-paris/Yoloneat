@@ -121,6 +121,29 @@ def extract_ground_cell_truth(y_truth, categories, grid_h, grid_w, cell_grid, nb
         return true_box_class, true_box_xy, true_box_wh, true_box_conf
 
 
+def extract_ground_cell_pred_segfree(y_pred, categories, grid_h, grid_w, cell_grid, nboxes, box_vector, yolo_v0):
+
+        pred_box_class = y_pred[...,0:categories]
+        
+        pred_nboxes = K.reshape(y_pred[...,categories:], (-1, grid_h * grid_w, nboxes, box_vector))
+    
+        pred_box_xy = pred_nboxes[...,0:2] + cell_grid
+    
+        
+        return pred_box_class, pred_box_xy
+
+def extract_ground_cell_truth_segfree(y_truth, categories, grid_h, grid_w, cell_grid, nboxes, box_vector, yolo_v0):
+
+        true_box_class = y_truth[...,0:categories]
+        
+        true_nboxes = K.reshape(y_truth[...,categories:], (-1, grid_h * grid_w, nboxes, box_vector))
+    
+        true_box_xy = true_nboxes[...,0:2]
+    
+        
+        return true_box_class, true_box_xy
+
+
 def compute_conf_loss(pred_box_wh, true_box_wh, pred_box_xy,true_box_xy,true_box_conf,pred_box_conf):
     
 # compute the intersection of all boxes at once (the IOU)
@@ -145,6 +168,13 @@ def calc_loss_xywh(true_box_conf, true_box_xy, pred_box_xy, true_box_wh, pred_bo
     loss_xywh = (loss_xy + loss_wh)
     loss_xywh = lambdacoord * loss_xywh
     return loss_xywh
+
+def calc_loss_xy(true_box_xy, pred_box_xy):
+
+    
+    loss_xy      = K.sum(K.sum(K.square(true_box_xy - pred_box_xy), axis = -1), axis = -1)
+    loss_xy = lambdacoord * loss_xy
+    return loss_xy
 
 def calc_loss_angle(true_box_conf, true_box_angle, pred_box_angle):
 
@@ -224,3 +254,24 @@ def static_yolo_loss(categories, grid_h, grid_w, nboxes, box_vector, entropy, yo
         return combinedloss 
         
     return loss    
+
+def static_yolo_loss_segfree(categories, grid_h, grid_w, nboxes, box_vector, entropy, yolo_v0):
+    
+    def loss(y_true, y_pred):    
+
+        cell_grid = get_cell_grid(grid_h, grid_w, nboxes)
+        true_box_class, true_box_xy = extract_ground_cell_truth_segfree(y_true, categories, grid_h, grid_w, cell_grid, nboxes, box_vector, yolo_v0)
+        pred_box_class, pred_box_xy = extract_ground_cell_pred_segfree(y_pred, categories, grid_h, grid_w, cell_grid, nboxes, box_vector, yolo_v0)
+
+        loss_xy = calc_loss_xy(true_box_xy, pred_box_xy)
+
+        loss_class   = calc_loss_class(true_box_class, pred_box_class, entropy)
+        
+                    # Adding it all up   
+        combinedloss = (loss_xy + loss_class)
+
+
+
+        return combinedloss 
+        
+    return loss  
