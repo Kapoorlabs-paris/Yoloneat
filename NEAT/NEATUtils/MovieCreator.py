@@ -69,6 +69,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                           
                           
                          image = imread(fname)
+                         image = normalizeFloatZeroOne(image,1,99.8) 
                          segimage = imread(Segfname)
                         
                          for csvfname in filesCsv:
@@ -240,6 +241,7 @@ def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, s
                           
                           
                          image = imread(fname)
+                         image = normalizeFloatZeroOne(image,1,99.8) 
                          segimage = imread(Segfname)
                          for i in  range(0, len(static_name)):
                              event_name = static_name[i]
@@ -279,6 +281,7 @@ def SegFreeImageLabelDataSet(image_dir, csv_dir,save_dir, static_name, static_la
                   
                          name = os.path.basename(os.path.splitext(fname)[0])   
                          image = imread(fname)
+                         image = normalizeFloatZeroOne(image,1,99.8)    
                          for i in  range(0, len(static_name)):
                              event_name = static_name[i]
                              trainlabel = static_label[i]
@@ -307,7 +310,7 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
                   Images= [imread(fname) for fname in files_raw]
             names = [Readname(fname)  for fname in files_raw]
             #Normalize everything before it goes inside the training
-            NormalizeImages = [normalizeFloatZeroOne(image.astype('uint16'),1,99.8) for image in tqdm(Images)]
+            NormalizeImages = [image.astype('float32') for image in tqdm(Images)]
 
 
             for i in range(0,len(NormalizeImages)):

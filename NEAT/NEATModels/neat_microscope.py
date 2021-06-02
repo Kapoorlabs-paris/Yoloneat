@@ -413,7 +413,7 @@ class NEATPredict(object):
                                      best_iou.append(bbox_iou)
                                     
                                 #good event found     
-                                if len(best_iou) > 20:
+                                if len(best_iou) > 10:
                                     if sorted_event_box[i] not in iou_current_event_box:
                                         iou_current_event_box.append(sorted_event_box[i])
                                     
@@ -458,12 +458,13 @@ class NEATPredict(object):
                                               tcenter = iou_current_event_box['real_time_event']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                              xlocations.append(xcenter)
-                                              ylocations.append(ycenter)
-                                              scores.append(score)
-                                              tlocations.append(tcenter)
-                                              radiuses.append(radius)
-                                              predcount = predcount + 1
+                                              if ycenter < self.image.shape[1] - self.imagey and xcenter < self.image.shape[2] - self.imagex:
+                                                      xlocations.append(xcenter)
+                                                      ylocations.append(ycenter)
+                                                      scores.append(score)
+                                                      tlocations.append(tcenter)
+                                                      radiuses.append(radius)
+                                                      predcount = predcount + 1
                                               print(xcenter, ycenter, score)
                                       event_count = np.column_stack([xlocations,ylocations]) 
                                       csvname = self.basedirResults + "/" + event_name 

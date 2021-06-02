@@ -419,12 +419,13 @@ class NEATStatic(object):
                                               confidence = iou_current_event_box['confidence']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                              xlocations.append(xcenter)
-                                              ylocations.append(ycenter)
-                                              scores.append(score)
-                                              confidences.append(confidence)
-                                              tlocations.append(tcenter)
-                                              radiuses.append(radius)
+                                              if ycenter < self.image.shape[0] - self.imagey//2 and xcenter < self.image.shape[1] - self.imagex//2:
+                                                      xlocations.append(xcenter)
+                                                      ylocations.append(ycenter)
+                                                      scores.append(score)
+                                                      confidences.append(confidence)
+                                                      tlocations.append(tcenter)
+                                                      radiuses.append(radius)
                                               
                                     
                                       event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences]) 
