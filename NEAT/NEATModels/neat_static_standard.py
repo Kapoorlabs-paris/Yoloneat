@@ -9,7 +9,7 @@ Created on Sat May 23 15:13:01 2020
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne
+from NEATUtils.helpers import save_json, load_json, yoloprediction, nonfcn_yoloprediction, normalizeFloatZeroOne
 from keras import callbacks
 import os
 from tqdm import tqdm
@@ -265,12 +265,13 @@ class NEATStatic(object):
         
         
 
-    def predict(self, imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01):
+    def predict(self, imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01, fcn = True):
         
         self.imagename = imagename
         self.image = imread(imagename)
         self.savedir = savedir
         self.n_tiles = n_tiles
+        self.fcn = fcn
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
@@ -284,9 +285,15 @@ class NEATStatic(object):
                        
                         count = count + 1
             smallimage = self.image[inputtime,:]
-            smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
+                    
             #Break image into tiles if neccessary
-            predictions, allx, ally = self.predict_main(smallimage)
+            if fcn:
+                smallimage = normalizeFloatZeroOne(smallimage,1,99.8)  
+                predictions, allx, ally = self.predict_main(smallimage)
+            else:
+                
+                self.make_non_fcn(smallimage)
+                predictions, allx, ally = self.predict_nonfcn(smallimage)
             #Iterate over tiles
             for p in range(0,len(predictions)):   
     
@@ -296,8 +303,11 @@ class NEATStatic(object):
                  #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
                  for i in range(0, sum_time_prediction.shape[0]):
                       time_prediction =  sum_time_prediction[i]
-                      boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
-                      
+                      if self.fcn:
+                         boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
+                      else:
+                         boxprediction = nonfcn_yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
+                          
                       if boxprediction is not None:
                               eventboxes = eventboxes + boxprediction
                          
@@ -570,13 +580,13 @@ class NEATStatic(object):
                             pairs.append([rowstart, colstart])
                             rowstart+=jumpy              
                             
-              if self.image.shape[0] >= self.imagey and self.image.shape[1]>= self.imagex :          
+              if sliceregion.shape[0] >= self.imagey and sliceregion.shape[1]>= self.imagex :          
                   
                     patch = []
                     rowout = []
                     column = []
                     for pair in pairs: 
-                       smallpatch, smallrowout, smallcolumn =  chunk_list(self.image, patchshape, pair)
+                       smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, pair)
                        patch.append(smallpatch)
                        rowout.append(smallrowout)
                        column.append(smallcolumn) 
@@ -630,6 +640,23 @@ class NEATStatic(object):
                 
             return predictions, allx, ally
         
+    def predict_nonfcn(self,sliceregion):
+
+                predictions = []
+                allx = []
+                ally = []
+                if len(self.patch) > 0:
+                   for i in range(0,len(self.patch)):   
+                         
+                           sum_time_prediction = self.make_patches(self.patch[i])
+        
+                           predictions.append(sum_time_prediction)
+                           allx.append(self.sx[i])
+                           ally.append(self.sy[i])
+
+                
+                return predictions, allx, ally
+        
     def make_patches(self, sliceregion):
        
        
@@ -641,8 +668,39 @@ class NEATStatic(object):
             
        return prediction_vector
    
-    
+    def make_non_fcn(self, sliceregion):
+        
+              jumpx = int(self.overlap_percent/2 * self.imagex)
+              jumpy = int(self.overlap_percent/2 * self.imagey)
+             
+              patchshape = (self.imagey, self.imagex)   
+              rowstart = 0; colstart = 0
+              pairs = []  
+              #row is y, col is x
+              
+              while rowstart < sliceregion.shape[0] - self.imagey:
+                 colstart = 0
+                 while colstart < sliceregion.shape[1] - self.imagex:
+                    
+                     # Start iterating over the tile with jumps = stride of the fully convolutional network.
+                     pairs.append([rowstart, colstart])
+                     colstart+=jumpx
+                 rowstart+=jumpy 
 
+              
+              patch = []
+              rowout = []
+              column = []
+              for pair in pairs: 
+                   smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, pair)
+                   smallpatch = normalizeFloatZeroOne(smallpatch,1,99.8) 
+                   patch.append(smallpatch)
+                   rowout.append(smallrowout)
+                   column.append(smallcolumn)  
+                   
+              self.patch = patch          
+              self.sy = rowout
+              self.sx = column     
         
 def chunk_list(image, patchshape, pair):
             rowstart = pair[0]
@@ -694,12 +752,13 @@ class CellTypeViewer(object):
                              csvname = self.savedir + "/" + celltype_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0] + '.csv')
                              event_locations, size_locations, timelist, eventlist = self.event_counter(csvname)
                              
-                             self.viewer.add_image(self.image, name='Image')
+                             
                              for layer in list(self.viewer.layers):
                                      if celltype_name in layer.name or layer.name in celltype_name:
                                             self.viewer.layers.remove(layer)
                                      if 'Image' in layer.name or layer.name in 'Image':
                                             self.viewer.layers.remove(layer)
+                             self.viewer.add_image(self.image, name='Image')               
                              self.viewer.add_points(np.asarray(event_locations), size = size_locations ,name = celltype_name, face_color = [0]*4, edge_color = "red", edge_width = 1)
                              self.viewer.theme = 'light'
                              self.ax.plot(timelist, eventlist, '-r')
