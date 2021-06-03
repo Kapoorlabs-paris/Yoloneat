@@ -567,8 +567,8 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                       height = prediction_vector[total_classes + config['h'] + b * total_coords] * trainshapex  
                                                       width = prediction_vector[total_classes + config['w'] + b * total_coords] * trainshapey
                                                   except:
-                                                      height = 20
-                                                      width = 20
+                                                      height = trainshapey
+                                                      width = trainshapex
                                                       pass
                                                   if event_type == 'dynamic' and mode == 'detection':
                                                       time_frames = config['size_tminus'] + config['size_tplus'] + 1

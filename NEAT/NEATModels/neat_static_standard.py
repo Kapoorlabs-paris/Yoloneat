@@ -265,13 +265,15 @@ class NEATStatic(object):
         
         
 
-    def predict(self, imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01, fcn = True):
+    def predict(self, imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01, fcn = True, height = None, width = None):
         
         self.imagename = imagename
         self.image = imread(imagename)
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.fcn = fcn
+        self.height = height
+        self.width = width
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
@@ -399,7 +401,7 @@ class NEATStatic(object):
                                     for j in range(i + 1, len(sorted_event_box)):
                                         
                                                 bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                                if bbox_iou < self.iou_threshold and bbox_iou > 0:
+                                                if bbox_iou > self.iou_threshold and bbox_iou > 0:
                                                     #EXTRA good event found     
                                                         remove_boxes.append(sorted_event_box[j]) 
                         for k in range(len(remove_boxes)):    
@@ -428,7 +430,10 @@ class NEATStatic(object):
                                               tcenter = iou_current_event_box['real_time_event']
                                               confidence = iou_current_event_box['confidence']
                                               score = iou_current_event_box[event_name]
-                                              radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                              if self.height is None and self.width is None:
+                                                 radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                              else:
+                                                 radius = np.sqrt( self.height * self.height + self.width* self.width  )// 2 
                                               if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2:
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)
@@ -670,8 +675,8 @@ class NEATStatic(object):
    
     def make_non_fcn(self, sliceregion):
         
-              jumpx = int(self.overlap_percent/2 * self.imagex)
-              jumpy = int(self.overlap_percent/2 * self.imagey)
+              jumpx = int(self.overlap_percent/4 * self.imagex)
+              jumpy = int(self.overlap_percent/4 * self.imagey)
              
               patchshape = (self.imagey, self.imagex)   
               rowstart = 0; colstart = 0

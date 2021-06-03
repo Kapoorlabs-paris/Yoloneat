@@ -428,7 +428,7 @@ class NEATPredict(object):
                             for j in range(i + 1, len(iou_current_event_box)):
                                 
                                         bbox_iou = self.bbox_iou(iou_current_event_box[i], iou_current_event_box[j])
-                                        if bbox_iou < self.iou_threshold and bbox_iou > 0:
+                                        if bbox_iou > self.iou_threshold and bbox_iou > 0:
                                             #EXTRA good event found     
                                                 remove_boxes.append(iou_current_event_box[j]) 
                for k in range(len(remove_boxes)):    
@@ -465,7 +465,6 @@ class NEATPredict(object):
                                                       tlocations.append(tcenter)
                                                       radiuses.append(radius)
                                                       predcount = predcount + 1
-                                              print(xcenter, ycenter, score)
                                       event_count = np.column_stack([xlocations,ylocations]) 
                                       csvname = self.basedirResults + "/" + event_name 
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
