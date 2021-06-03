@@ -307,6 +307,7 @@ class NEATPredict(object):
                                               classedboxes = {}
                                               smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
                                               #Break image into tiles if neccessary
+                                              self.image = smallimage
                                               predictions, allx, ally = self.predict_main(smallimage)
                                               #Iterate over tiles
                                               for p in tqdm(range(0,len(predictions))):   
@@ -458,7 +459,8 @@ class NEATPredict(object):
                                               tcenter = iou_current_event_box['real_time_event']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                              if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2:
+                                              if ycenter < self.image.shape[1] - self.imagey and xcenter < self.image.shape[2] - self.imagex:
+                                                      print(ycenter, self.image.shape[1], self.imagey, xcenter, self.image.shape[2], self.imagex)
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)
                                                       scores.append(score)
