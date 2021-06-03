@@ -433,7 +433,7 @@ class NEATStatic(object):
                                               if self.height is None and self.width is None:
                                                  radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                               else:
-                                                 radius = np.sqrt( self.height * self.height + self.width* self.width  )// 2 
+                                                 radius = np.sqrt( self.height * self.height + self.width* self.width  )// 4
                                               if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2:
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)

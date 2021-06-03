@@ -22,7 +22,7 @@ from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 from keras.models import load_model
-from tifffile import imread
+from tifffile import imread, imwrite
 import csv
 from natsort import natsorted
 import glob
@@ -255,7 +255,7 @@ class NEATPredict(object):
         
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
-    def predict(self, imagedir, movie_name_list, movie_input, start, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01):
+    def predict(self, imagedir,  movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start, Z_start, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), Z_n_tiles = (1,2,2), overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01, projection_model = None):
         
         self.imagedir = imagedir
         self.basedirResults = self.imagedir + '/' + "live_results"
@@ -263,8 +263,12 @@ class NEATPredict(object):
         #Recurrsion variables
         self.movie_name_list = movie_name_list
         self.movie_input = movie_input
+        self.Z_movie_name_list = Z_movie_name_list
+        self.Z_movie_input = Z_movie_input
+        self.Z_imagedir = Z_imagedir
         self.start = start
-        
+        self.Z_start = Z_start
+        self.projection_model = projection_model
         self.nb_prediction = nb_prediction
         self.fileextension = fileextension
         self.n_tiles = n_tiles
@@ -273,76 +277,96 @@ class NEATPredict(object):
         self.event_threshold = event_threshold
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
 
-            
-            
+        #Z slice folder listener   
         while 1:
             
-              Raw_path = os.path.join(self.imagedir, self.fileextension)
-              filesRaw = glob.glob(Raw_path)
-              filesRaw = natsorted(filesRaw)
-              for movie_name in filesRaw:  
-                          Name = os.path.basename(os.path.splitext(movie_name)[0])
-                          Extension = os.path.basename(os.path.splitext(movie_name)[1])
+              Z_Raw_path = os.path.join(self.Z_imagedir, self.fileextension)
+              Z_filesRaw = glob.glob(Z_Raw_path)
+              Z_filesRaw = natsorted(Z_filesRaw)
+              for Z_movie_name in Z_filesRaw:  
+                          Z_Name = os.path.basename(os.path.splitext(Z_movie_name)[0])
                           #Check for unique filename
-                          if Name not in self.movie_name_list:
+                          if Z_Name not in self.Z_movie_name_list:
                               
                           
                                   
                                   
-                                  image = imread(movie_name)
-                                  self.movie_name_list.append(Name)
-                                  sizey = image.shape[0]
-                                  sizex = image.shape[1]
-                                  self.movie_input.append(image)
-                                  total_movies = len(self.movie_input)
-                                  if total_movies > self.size_tminus + self.start:
-                                              current_movies = self.movie_input[self.start:self.start + self.size_tminus + 1]
-                                              print('Predicting on Movies:',movie_name_list[self.start:self.start + self.size_tminus + 1]) 
-                                              inputtime = self.start + self.size_tminus
-                                              smallimage = np.zeros([self.size_tminus + 1, sizey, sizex])
-                                              for i in tqdm(range(0, self.size_tminus + 1)):
-                                                   smallimage[i,:] = current_movies[i]
+                                  Z_image = imread(Z_movie_name)
+                                  self.Z_movie_name_list.append(Z_Name)
+                                  self.Z_movie_input.append(Z_image)
+                                  total_movies = len(self.Z_movie_input)
+                                  if self.projection_model is not None:
+                                       projection = self.projection_model.predict(self.Z_movie_input[self.Z_start], 'ZYX', n_tiles = Z_n_tiles)
+                                  else:
+                                      projection = np.amax(self.Z_movie_input[self.Z_start], axis = 0)
+                                  imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
+                                  Z_start = Z_start + 1
+                                 
+            
+                          Raw_path = os.path.join(self.imagedir, '.tif')
+                          filesRaw = glob.glob(Raw_path)
+                          filesRaw = natsorted(filesRaw)
+                          for movie_name in filesRaw:  
+                                              Name = os.path.basename(os.path.splitext(movie_name)[0])
+                                              #Check for unique filename
+                                              if Name not in self.movie_name_list:
                                                   
-                                              eventboxes = []
-                                              classedboxes = {}
-                                              smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
-                                              #Break image into tiles if neccessary
-                                              self.image = smallimage
-                                              predictions, allx, ally = self.predict_main(smallimage)
-                                              #Iterate over tiles
-                                              for p in tqdm(range(0,len(predictions))):   
-                                    
-                                                      sum_time_prediction = predictions[p]
+                                              
                                                       
-                                                      if sum_time_prediction is not None:
-                                                         for i in range(0, sum_time_prediction.shape[0]):
-                                                              time_prediction =  sum_time_prediction[i]
-                                                              
-                                                              boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
-                                                              
-                                                              if boxprediction is not None:
-                                                                      eventboxes = eventboxes + boxprediction
-                                                         
-                                              for (event_name,event_label) in self.key_categories.items(): 
-                                                     
-                                                  if event_label > 0:
-                                                       current_event_box = []
-                                                       for box in eventboxes:
-                                                
-                                                          event_prob = box[event_name]
-                                                          if event_prob > self.event_threshold:
-                                                           
-                                                              current_event_box.append(box)
-                                                       classedboxes[event_name] = [current_event_box]
-                                                 
-                                              self.classedboxes = classedboxes    
-                                              self.eventboxes =  eventboxes  
-                                            
-                                              self.nms()
-                                              self.to_csv()
-                                              self.predict(self.imagedir, self.movie_name_list, self.movie_input, start + 1, fileextension = self.fileextension, nb_prediction = self.nb_prediction, n_tiles = 
-                                                           self.n_tiles, overlap_percent = self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold)
-        
+                                                      
+                                                      image = imread(movie_name)
+                                                      self.movie_name_list.append(Name)
+                                                      sizey = image.shape[0]
+                                                      sizex = image.shape[1]
+                                                      self.movie_input.append(image)
+                                                      total_movies = len(self.movie_input)
+                                                      if total_movies > self.size_tminus + self.start:
+                                                                  current_movies = self.movie_input[self.start:self.start + self.size_tminus + 1]
+                                                                  print('Predicting on Movies:',movie_name_list[self.start:self.start + self.size_tminus + 1]) 
+                                                                  inputtime = self.start + self.size_tminus
+                                                                  smallimage = np.zeros([self.size_tminus + 1, sizey, sizex])
+                                                                  for i in tqdm(range(0, self.size_tminus + 1)):
+                                                                       smallimage[i,:] = current_movies[i]
+                                                                      
+                                                                  eventboxes = []
+                                                                  classedboxes = {}
+                                                                  smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
+                                                                  #Break image into tiles if neccessary
+                                                                  self.image = smallimage
+                                                                  predictions, allx, ally = self.predict_main(smallimage)
+                                                                  #Iterate over tiles
+                                                                  for p in tqdm(range(0,len(predictions))):   
+                                                        
+                                                                          sum_time_prediction = predictions[p]
+                                                                          
+                                                                          if sum_time_prediction is not None:
+                                                                             for i in range(0, sum_time_prediction.shape[0]):
+                                                                                  time_prediction =  sum_time_prediction[i]
+                                                                                  
+                                                                                  boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                                                                  
+                                                                                  if boxprediction is not None:
+                                                                                          eventboxes = eventboxes + boxprediction
+                                                                             
+                                                                  for (event_name,event_label) in self.key_categories.items(): 
+                                                                         
+                                                                      if event_label > 0:
+                                                                           current_event_box = []
+                                                                           for box in eventboxes:
+                                                                    
+                                                                              event_prob = box[event_name]
+                                                                              if event_prob > self.event_threshold:
+                                                                               
+                                                                                  current_event_box.append(box)
+                                                                           classedboxes[event_name] = [current_event_box]
+                                                                     
+                                                                  self.classedboxes = classedboxes    
+                                                                  self.eventboxes =  eventboxes  
+                                                                
+                                                                  self.nms()
+                                                                  self.to_csv()
+                                                                  self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, start + 1, Z_start, fileextension = self.fileextension, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
+                            
                          
         
         

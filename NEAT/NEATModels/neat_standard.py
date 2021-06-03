@@ -272,10 +272,11 @@ class NEATDynamic(object):
         
         
         
-    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
+    def predict(self,imagename, starmodel, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
         
         self.imagename = imagename
         self.image = imread(imagename)
+        self.starmodel = starmodel
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.overlap_percent = overlap_percent
