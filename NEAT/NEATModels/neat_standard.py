@@ -173,7 +173,7 @@ class NEATDynamic(object):
         if self.multievent == False:
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
-        
+        print(self.box_vector)         
         self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
         
         

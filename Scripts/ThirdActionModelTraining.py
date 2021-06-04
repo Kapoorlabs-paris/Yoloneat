@@ -19,12 +19,12 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 # In[2]:
 
 
-npz_directory = '/home/sancere/Kepler/FinalONEATTraining/Divisionbin2m4modelV1/'
+npz_directory = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Divisionbin2m4modelV1/'
 npz_name = 'divisionbin2m4V1.npz'
 npz_val_name = 'divisionbin2m4valV1.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/home/sancere/Kepler/FinalONEATTraining/EverydayneatmodelV1/'
+model_dir =  '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/'
 model_name = 'divisionm4d56V1.h5'
 
 #Neural network parameters
