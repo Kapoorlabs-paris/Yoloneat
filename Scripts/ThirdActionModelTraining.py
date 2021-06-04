@@ -12,25 +12,25 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 # In[2]:
 
 
-npz_directory = '/home/sancere/Kepler/FinalONEATTraining/MicroscopeTrainingData/'
-npz_name = 'microneatsmallbin2.npz'
-npz_val_name = 'microneatsmallbin2val.npz'
+npz_directory = '/home/sancere/Kepler/FinalONEATTraining/Divisionbin2m4modelV1/'
+npz_name = 'divisionbin2m4V1.npz'
+npz_val_name = 'divisionbin2m4valV1.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/home/sancere/Kepler/FinalONEATTraining/Microneatmodel/'
-model_name = 'microseqnetbin2d56.h5'
+model_dir =  '/home/sancere/Kepler/FinalONEATTraining/EverydayneatmodelV1/'
+model_name = 'divisionm4d56V1.h5'
 
 #Neural network parameters
-division_categories_json = model_dir + 'MicroscopeCategories.json'
+division_categories_json = model_dir + 'DivisionCategories.json'
 key_categories = load_json(division_categories_json)
-division_cord_json = model_dir + 'MicroscopeCord.json'
+division_cord_json = model_dir + 'DivisionCord.json'
 key_cord = load_json(division_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
@@ -55,8 +55,8 @@ nboxes = 1
 #The inbuilt model stride which is equal to the nulber of times image was downsampled by the network
 show = False
 
-size_tminus = 3
-size_tplus = 0
+size_tminus = 4
+size_tplus = 5
 imagex = 64
 imagey = 64
 
@@ -65,7 +65,7 @@ imagey = 64
 
 config = dynamic_config(npz_directory =npz_directory, npz_name = npz_name, npz_val_name = npz_val_name, 
                          key_categories = key_categories, key_cord = key_cord, nboxes = nboxes, imagex = imagex,
-                         imagey = imagey, size_tminus = size_tminus, size_tplus =size_tplus, 
+                         imagey = imagey, size_tminus = size_tminus, size_tplus =size_tplus, epochs = epochs, yolo_v0 = False, yolo_v1 = True, yolo_v2 = False,
                          residual = residual, depth = depth, start_kernel = start_kernel, mid_kernel = mid_kernel,
                          lstm_kernel = lstm_kernel, lstm_hidden_unit = lstm_hidden_unit, show = show,
                          startfiler = startfilter, batch_size = batch_size, model_name = model_name)
