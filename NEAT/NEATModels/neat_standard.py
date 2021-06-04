@@ -79,9 +79,10 @@ class NEATDynamic(object):
                 self.npz_name = config.npz_name
                 self.npz_val_name = config.npz_val_name
                 self.key_categories = config.key_categories
-                self.box_vector = config.box_vector
+                
                 self.show = config.show
                 self.key_cord = config.key_cord
+                self.box_vector = len(config.key_cord)
                 self.categories = len(config.key_categories)
                 self.depth = config.depth
                 self.start_kernel = config.start_kernel

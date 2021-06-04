@@ -13,6 +13,7 @@ from tifffile import imsave
 from skimage import measure
 from pathlib import Path
 import math
+from csbdeep.utils import normalize
 from tifffile import imread, imwrite
 from tqdm import tqdm    
 from skimage.util import invert as invertimage
@@ -447,6 +448,34 @@ def DensityCounter(MarkerImage, TrainshapeX, TrainshapeY, densityveto = 10):
     
     return AllDensity
 
+
+def GenerateMarkers(Image, starmodel, n_tiles):
+    
+    Markers = np.zeros_like(Image)
+    for i in range(0, Image.shape[0]):
+        
+            smallimage = Image[i,:]
+            smallimage = normalize(smallimage, 1, 99.8, axis = (0,1))
+            shape = [smallimage.shape[0], smallimage.shape[1]]
+            smallimage = twod_zero_pad(smallimage, 64, 64)
+            midimage, details = starmodel.predict_instances(smallimage, n_tiles = n_tiles)
+            starimage = midimage[:shape[0],:shape[1]] 
+            properties = measure.regionprops(starimage, starimage)
+            Coordinates = [prop.centroid for prop in properties]
+            
+            Coordinates = sorted(Coordinates , key=lambda k: [k[1], k[0]])
+            Coordinates.append((0,0))
+            Coordinates = np.asarray(Coordinates)
+        
+            coordinates_int = np.round(Coordinates).astype(int)
+            markers_raw = np.zeros_like(Image)  
+            markers_raw[tuple(coordinates_int.T)] = 1 + np.arange(len(Coordinates))
+            
+            markers = morphology.dilation(markers_raw, morphology.disk(2))
+            
+            Markers[i,:] = markers
+            
+    return Markers        
 """
 This method takes the integer labelled segmentation image as input and creates a dictionary of markers at all timepoints for easy search
 """    
@@ -466,6 +495,9 @@ def MakeTrees(segimage):
                     
                            
         return AllTrees
+    
+    
+    
     
 """
 This method is used to create a segmentation image of an input image (StarDist probability or distance map) using marker controlled watershedding using a mask image (UNET) 
@@ -686,6 +718,29 @@ def zero_pad(image, TrainshapeX, TrainshapeY):
               
               
           return extendimage
+      
+def twod_zero_pad(image, PadX, PadY):
+
+          sizeY = image.shape[1]
+          sizeX = image.shape[0]
+          
+          sizeXextend = sizeX
+          sizeYextend = sizeY
+         
+ 
+          while sizeXextend%PadX!=0:
+              sizeXextend = sizeXextend + 1
+        
+          while sizeYextend%PadY!=0:
+              sizeYextend = sizeYextend + 1
+
+          extendimage = np.zeros([sizeXextend, sizeYextend])
+          
+          extendimage[0:sizeX, 0:sizeY] = image
+              
+              
+          return extendimage        
+        
       
 def extra_pad(image, patchX, patchY):
 
