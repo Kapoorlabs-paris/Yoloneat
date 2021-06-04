@@ -147,14 +147,14 @@ def extract_ground_cell_truth_segfree(y_truth, categories, grid_h, grid_w, cell_
 def compute_conf_loss(pred_box_wh, true_box_wh, pred_box_xy,true_box_xy,true_box_conf,pred_box_conf):
     
 # compute the intersection of all boxes at once (the IOU)
-        intersect_wh = K.maximum(K.zeros_like(pred_box_wh), (pred_box_wh + true_box_wh)/2 - K.square(pred_box_xy - true_box_xy) )
+        intersect_wh = K.maximum(K.zeros_like(pred_box_wh), (pred_box_wh + true_box_wh)/2 - K.square(pred_box_xy[...,0:1] - true_box_xy[...,0:1]) )
         intersect_area = intersect_wh[...,0] * intersect_wh[...,1]
         true_area = true_box_wh[...,0] * true_box_wh[...,1]
         pred_area = pred_box_wh[...,0] * pred_box_wh[...,1]
         union_area = pred_area + true_area - intersect_area
         iou = tf.truediv(intersect_area , union_area)
         best_ious = K.max(iou, axis= -1)
-        loss_conf = K.sum(K.square(true_box_conf*iou - pred_box_conf), axis=-1)
+        loss_conf = K.sum(K.square(true_box_conf*best_ious - pred_box_conf), axis=-1)
 
         loss_conf = loss_conf * lambdaobject
 
