@@ -154,7 +154,7 @@ def compute_conf_loss(pred_box_wh, true_box_wh, pred_box_xy,true_box_xy,true_box
         union_area = pred_area + true_area - intersect_area
         iou = tf.truediv(intersect_area , union_area)
         best_ious = K.max(iou, axis= -1)
-        loss_conf = K.sum(K.square(true_box_conf*best_ious - pred_box_conf), axis=-1)
+        loss_conf = K.sum(K.square(true_box_conf*iou - pred_box_conf), axis=-1)
 
         loss_conf = loss_conf * lambdaobject
 
