@@ -13,7 +13,7 @@ lambdaobject = 1
 lambdanoobject = 1
 lambdacoord = 5
 lambdaclass = 1
-lambdaangle = 1
+lambdaangle = 5
 
 def get_event_grid(grid_h, grid_w, grid_t, boxes):
     
@@ -153,6 +153,7 @@ def compute_conf_loss(pred_box_wh, true_box_wh, pred_box_xy,true_box_xy,true_box
         pred_area = pred_box_wh[...,0] * pred_box_wh[...,1]
         union_area = pred_area + true_area - intersect_area
         iou = tf.truediv(intersect_area , union_area)
+  
         best_ious = K.max(iou, axis= -1)
         loss_conf = K.sum(K.square(true_box_conf*best_ious - pred_box_conf), axis=-1)
 

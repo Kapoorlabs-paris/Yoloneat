@@ -173,7 +173,6 @@ class NEATDynamic(object):
         if self.multievent == False:
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
-        print(self.box_vector)         
         self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
         
         
@@ -207,7 +206,17 @@ class NEATDynamic(object):
         
         Path(self.model_dir).mkdir(exist_ok=True)
         
-       
+        
+        if self.yolo_v2:
+            
+            for i in range(self.Y.shape[0]):
+                
+                if self.Y[i,:,:,0] == 1:
+                    self.Y[i,:,:,-1] = 1
+            for i in range(self.Y_val.shape[0]):
+                
+                if self.Y_val[i,:,:,0] == 1:
+                    self.Y_val[i,:,:,-1] = 1
         Y_rest = self.Y[:,:,:,self.categories:]
         Y_main = self.Y[:,:,:,0:self.categories-1]
  
@@ -215,6 +224,8 @@ class NEATDynamic(object):
         y_integers = y_integers[:,0,0]
 
         
+            
+            
         
         d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
         d_class_weights = d_class_weights.reshape(1,d_class_weights.shape[0])
