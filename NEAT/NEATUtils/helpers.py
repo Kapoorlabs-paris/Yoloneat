@@ -17,10 +17,9 @@ from csbdeep.utils import normalize
 from tifffile import imread, imwrite
 from tqdm import tqdm    
 from skimage.util import invert as invertimage
-from scipy.ndimage.morphology import  binary_dilation
 from skimage.measure import label
 from skimage.filters import sobel
-from skimage.morphology import erosion, dilation, square
+from skimage.morphology import erosion, dilation, square, binary_dilation, disk
 from scipy.ndimage import morphology
 from skimage.segmentation import watershed
 """
@@ -451,13 +450,13 @@ def DensityCounter(MarkerImage, TrainshapeX, TrainshapeY):
 def GenerateMarkers(Image, starmodel, n_tiles):
     
     Markers = np.zeros_like(Image)
-    for i in range(0, Image.shape[0]):
+    for i in tqdm(range(0, Image.shape[0])):
         
             smallimage = Image[i,:]
             smallimage = normalize(smallimage, 1, 99.8, axis = (0,1))
             shape = [smallimage.shape[0], smallimage.shape[1]]
-            smallimage = twod_zero_pad(smallimage, 64, 64)
-            midimage, details = starmodel.predict_instances(smallimage, n_tiles = n_tiles)
+            resize_smallimage = twod_zero_pad(smallimage, 64, 64)
+            midimage, details = starmodel.predict_instances(resize_smallimage, n_tiles = n_tiles)
             starimage = midimage[:shape[0],:shape[1]] 
             properties = measure.regionprops(starimage, starimage)
             Coordinates = [prop.centroid for prop in properties]
@@ -467,10 +466,10 @@ def GenerateMarkers(Image, starmodel, n_tiles):
             Coordinates = np.asarray(Coordinates)
         
             coordinates_int = np.round(Coordinates).astype(int)
-            markers_raw = np.zeros_like(Image)  
+            markers_raw = np.zeros_like(smallimage)  
             markers_raw[tuple(coordinates_int.T)] = 1 + np.arange(len(Coordinates))
             
-            markers = morphology.dilation(markers_raw, morphology.disk(2))
+            markers = dilation(markers_raw, disk(2))
             
             Markers[i,:] = markers
             
@@ -517,7 +516,7 @@ def WatershedwithMask(Image, Label,mask, grid):
     markers_raw = np.zeros_like(Image)  
     markers_raw[tuple(coordinates_int.T)] = 1 + np.arange(len(Coordinates))
     
-    markers = morphology.dilation(markers_raw, morphology.disk(2))
+    markers = dilation(markers_raw, disk(2))
     Image = sobel(Image)
     watershedImage = watershed(Image, markers, mask = mask)
     
