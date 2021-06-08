@@ -829,11 +829,12 @@ class EventViewer(object):
              
              event_locations.append([tcenter, ycenter, xcenter])   
              size_locations.append(size)
-             xstart = xcenter - radius * math.cos(angle)
-             xend = xcenter + radius  * math.sin(angle)
              
-             ystart = ycenter - radius * math.cos(angle)
-             yend = ycenter + radius * math.sin(angle)
+             xstart = xcenter + radius * math.cos(angle )
+             xend = xcenter - radius  * math.cos(angle)
+             
+             ystart = ycenter + radius * math.sin(angle)
+             yend = ycenter - radius * math.sin(angle)
              line_locations.append([[tcenter, ystart, xstart], [tcenter, yend, xend]])
              angle_locations.append(angle)
              

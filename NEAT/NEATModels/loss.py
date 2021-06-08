@@ -11,9 +11,9 @@ from keras import backend as K
 
 lambdaobject = 1
 lambdanoobject = 1
-lambdacoord = 5
+lambdacoord = 1
 lambdaclass = 1
-lambdaangle = 5
+lambdaangle = 1
 
 def get_event_grid(grid_h, grid_w, grid_t, boxes):
     

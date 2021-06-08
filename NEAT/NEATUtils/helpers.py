@@ -657,7 +657,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                                   real_time_event = int(inputtime)
                                                                   box_time_event = int(inputtime)
                                                           if config['yolo_v2']:        
-                                                                     realangle = math.pi * (anglemean - 0.5)
+                                                                     realangle = math.pi * (anglemean - 0.5) - math.pi/2
                                                                      rawangle = anglemean
                                                           else:
                                                               
