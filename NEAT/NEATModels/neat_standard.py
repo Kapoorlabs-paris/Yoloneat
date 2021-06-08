@@ -4,6 +4,7 @@ from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees
 from keras import callbacks
 import os
+import math
 import tensorflow as tf
 from tqdm import tqdm
 from NEATModels import nets
@@ -489,7 +490,7 @@ class NEATDynamic(object):
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                               #Replace the detection with the nearest marker location
                                               ycenter, xcenter = self.get_nearest(ycenter, xcenter, tcenter)
-                                              if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2:
+                                              if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2 and confidence > 0.6:
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)
                                                       scores.append(score)
@@ -523,7 +524,7 @@ class NEATDynamic(object):
 
     
           
-    def showNapari(self, imagedir, savedir):
+    def showNapari(self, imagedir, savedir, yolo_v2 = False):
          
          
          Raw_path = os.path.join(imagedir, '*tif')
@@ -570,6 +571,7 @@ class NEATDynamic(object):
                  multiplot_widget,
                  ax,
                  figure,
+                 yolo_v2,
             
         )
     )    
@@ -585,6 +587,7 @@ class NEATDynamic(object):
                  multiplot_widget,
                  ax,
                  figure,
+                 yolo_v2,
             
         )
     )            
@@ -754,7 +757,7 @@ def CreateVolume(patch, imaget, timepoint, imagey, imagex):
                return smallimg         
 class EventViewer(object):
     
-    def __init__(self, viewer, image, event_name, key_categories, imagename, savedir, canvas, ax, figure):
+    def __init__(self, viewer, image, event_name, key_categories, imagename, savedir, canvas, ax, figure, yolo_v2):
         
         
            self.viewer = viewer
@@ -765,6 +768,7 @@ class EventViewer(object):
            self.key_categories = key_categories
            self.savedir = savedir
            self.ax = ax
+           self.yolo_v2 = yolo_v2
            self.figure = figure
            self.plot()
     
@@ -775,15 +779,17 @@ class EventViewer(object):
         for (event_name,event_label) in self.key_categories.items():
                         if event_label > 0 and self.event_name == event_name:
                              csvname = self.savedir + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0] + '.csv')
-                             event_locations, size_locations, angle_locations, timelist, eventlist = self.event_counter(csvname)
+                             event_locations, size_locations, angle_locations, line_locations, timelist, eventlist = self.event_counter(csvname)
                              
                              for layer in list(self.viewer.layers):
-                                     if event_name in layer.name or layer.name in event_name:
+                                     if event_name in layer.name or layer.name in event_name or event_name + 'angle' in layer.name or layer.name in event_name + 'angle' :
                                             self.viewer.layers.remove(layer)
                                      if 'Image' in layer.name or layer.name in 'Image':
                                             self.viewer.layers.remove(layer)  
                              self.viewer.add_image(self.image, name='Image')               
                              self.viewer.add_points(np.asarray(event_locations), size = size_locations ,name = event_name, face_color = [0]*4, edge_color = "red", edge_width = 1)
+                             if self.yolo_v2:
+                                self.viewer.add_shapes(np.asarray(line_locations), name = event_name + 'angle',shape_type='line', face_color = [0]*4, edge_color = "red", edge_width = 1)
                              self.viewer.theme = 'light'
                              self.ax.plot(timelist, eventlist, '-r')
                              self.ax.set_title(event_name + "Events")
@@ -797,7 +803,7 @@ class EventViewer(object):
      
          time,y,x,score,size,confidence,angle  = np.loadtxt(csv_file, delimiter = ',', skiprows = 1, unpack=True)
          
-         
+         radius = 10
          eventcounter = 0
          eventlist = []
          timelist = []   
@@ -810,7 +816,7 @@ class EventViewer(object):
          event_locations = []
          size_locations = []
          angle_locations = []
-         
+         line_locations = []
          for i in range(len(listtime)):
              tcenter = listtime[i] 
              ycenter = listy[i]
@@ -823,7 +829,13 @@ class EventViewer(object):
              
              event_locations.append([tcenter, ycenter, xcenter])   
              size_locations.append(size)
+             xstart = xcenter - radius * math.cos(angle)
+             xend = xcenter + radius  * math.sin(angle)
+             
+             ystart = ycenter - radius * math.cos(angle)
+             yend = ycenter + radius * math.sin(angle)
+             line_locations.append([[tcenter, ystart, xstart], [tcenter, yend, xend]])
              angle_locations.append(angle)
              
             
-         return event_locations, size_locations, angle_locations, timelist, eventlist                         
+         return event_locations, size_locations, angle_locations, line_locations, timelist, eventlist                         
