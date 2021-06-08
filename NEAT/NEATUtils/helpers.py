@@ -411,7 +411,7 @@ def chunk_list(image, patchshape, stride, pair):
         
             return patch, rowstart, colstart     
            
-def DensityCounter(MarkerImage, TrainshapeX, TrainshapeY, densityveto = 10):
+def DensityCounter(MarkerImage, TrainshapeX, TrainshapeY):
 
         
     AllDensity = {}
@@ -440,9 +440,8 @@ def DensityCounter(MarkerImage, TrainshapeX, TrainshapeY, densityveto = 10):
                                      labels = [prop.label for prop in waterproperties]
                                      labels = np.asarray(labels)
                                      #These regions should be downsampled                               
-                                     if labels.shape[0] < densityveto:
-                                         density.append(labels.shape[0])
-                                         location.append((int(y),int(x)))
+                                     density.append(labels.shape[0])
+                                     location.append((int(y),int(x)))
             #Create a list of TYX marker locations that should be downsampled                             
             AllDensity[str(i)] = [density, location]
     

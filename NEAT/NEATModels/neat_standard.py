@@ -1,7 +1,7 @@
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees
 from keras import callbacks
 import os
 import tensorflow as tf
@@ -302,6 +302,15 @@ class NEATDynamic(object):
         eventboxes = []
         classedboxes = {}    
         count = 0
+        
+        print('Obtaining Markers')
+        self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
+        self.marker_tree = MakeTrees(self.markers)
+        
+        print('Comuting density of each marker')
+        self.density_location = DensityCounter(self.markers, self.imagex, self.imagey)
+        
+        
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
                        
@@ -438,7 +447,17 @@ class NEATDynamic(object):
                                  best_iou_current_event_box.remove(remove_boxes[k])
                         best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
         self.iou_classedboxes = best_iou_classedboxes                
+    
+
+   
+    def get_nearest(self, ycenter, xcenter, tcenter):
         
+        location = (ycenter, xcenter)
+        tree, indices = self.marker_tree[str(int(tcenter))]
+        distance, location = tree.query(location)
+        
+        return location[0], location[1]
+    
     def to_csv(self):
         
         for (event_name,event_label) in self.key_categories.items():
@@ -463,6 +482,10 @@ class NEATDynamic(object):
                                               angle = iou_current_event_box['realangle']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                              
+                                              #Replace the detection with the nearest marker location
+                                              ycenter, xcenter = self.get_nearest(ycenter, xcenter, tcenter)
+                                              
                                               if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2:
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)
