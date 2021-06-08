@@ -431,16 +431,7 @@ class NEATPredict(object):
                         #fIRST ROUND
                         for i in range(len(sorted_event_box)):
                             
-                            best_iou = []
-                            for j in range(i + 1, len(sorted_event_box)):
-                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                if bbox_iou >= 0.1:
-                                     best_iou.append(bbox_iou)
-                                    
-                                #good event found     
-                                if len(best_iou) > 10:
-                                    if sorted_event_box[i] not in iou_current_event_box:
-                                        iou_current_event_box.append(sorted_event_box[i])
+                            iou_current_event_box.append(sorted_event_box[i])
                                     
                                     
                                     

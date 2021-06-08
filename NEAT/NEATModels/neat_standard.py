@@ -283,12 +283,30 @@ class NEATDynamic(object):
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
         
+    def markers(self, imagename, starmodel, n_tiles):
         
-    def predict(self,imagename, starmodel, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
+        
+        self.starmodel = starmodel
+        self.imagename = imagename
+        self.image = imread(imagename)
+        self.n_tiles = n_tiles
+        print('Obtaining Markers')
+        self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
+        self.marker_tree = MakeTrees(self.markers)
+        
+        print('Computing density of each marker')
+        self.density_location = DensityCounter(self.markers, self.imagex, self.imagey)
+        
+        return self.markers, self.marker_tree, self.density_location
+        
+        
+    def predict(self,imagename, markers, markers_tree, density_location, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
         
         self.imagename = imagename
         self.image = imread(imagename)
-        self.starmodel = starmodel
+        self.markers = markers
+        self.markers_tree = markers_tree
+        self.density_location = density_location
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.overlap_percent = overlap_percent
@@ -303,12 +321,7 @@ class NEATDynamic(object):
         classedboxes = {}    
         count = 0
         
-        print('Obtaining Markers')
-        self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
-        self.marker_tree = MakeTrees(self.markers)
-        
-        print('Computing density of each marker')
-        self.density_location = DensityCounter(self.markers, self.imagex, self.imagey)
+
         
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
@@ -347,14 +360,12 @@ class NEATDynamic(object):
                              
                         self.classedboxes = classedboxes    
                         self.eventboxes =  eventboxes
-                        
-                        if count == self.imaget:
-                            #nms over time
-                            self.nms()
-                            self.to_csv()
-                            eventboxes = []
-                            classedboxes = {}    
-                            count = 0
+                        #nms over time
+                        self.nms()
+                        self.to_csv()
+                        eventboxes = []
+                        classedboxes = {}    
+                        count = 0
                 
         
     def bbox_iou(self,box1, box2):
@@ -417,16 +428,7 @@ class NEATDynamic(object):
                         #fIRST ROUND
                         for i in range(len(sorted_event_box)):
                             
-                            best_iou = []
-                            for j in range(i + 1, len(sorted_event_box)):
-                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                if bbox_iou >= self.iou_threshold:
-                                     best_iou.append(bbox_iou)
-                                    
-                                #good event found     
-                                if len(best_iou) > 10:
-                                    if sorted_event_box[i] not in iou_current_event_box:
-                                        iou_current_event_box.append(sorted_event_box[i])
+                            iou_current_event_box.append(sorted_event_box[i])
                                     
                                     
                                     
@@ -454,9 +456,12 @@ class NEATDynamic(object):
         
         location = (ycenter, xcenter)
         tree, indices = self.marker_tree[str(int(tcenter))]
-        distance, location = tree.query(location)
-        
-        return location[0], location[1]
+        distance, nearest_location = tree.query(location)
+        if distance <= 20:
+          nearest_location = int(indices[nearest_location][0]), int(indices[nearest_location][1]) 
+        else:
+            nearest_location = location      
+        return nearest_location[0], nearest_location[1]
     
     def to_csv(self):
         
@@ -482,10 +487,8 @@ class NEATDynamic(object):
                                               angle = iou_current_event_box['realangle']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                              
                                               #Replace the detection with the nearest marker location
                                               ycenter, xcenter = self.get_nearest(ycenter, xcenter, tcenter)
-                                              
                                               if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2:
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)
