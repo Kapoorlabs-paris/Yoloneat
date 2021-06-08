@@ -307,10 +307,10 @@ class NEATDynamic(object):
         self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
         self.marker_tree = MakeTrees(self.markers)
         
-        print('Comuting density of each marker')
+        print('Computing density of each marker')
         self.density_location = DensityCounter(self.markers, self.imagex, self.imagey)
         
-        
+        print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
                        
