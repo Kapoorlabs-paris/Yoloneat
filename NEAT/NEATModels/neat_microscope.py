@@ -418,7 +418,6 @@ class NEATPredict(object):
                
                #Highest probability is first
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
-               iou_current_event_box = []
                best_iou_current_event_box = []
                
                if sorted_event_box is not None:
@@ -428,25 +427,19 @@ class NEATPredict(object):
                         return []
                     else:
                         
-                        #fIRST ROUND
-                        for i in range(len(sorted_event_box)):
-                            
-                            iou_current_event_box.append(sorted_event_box[i])
                                     
                                     
-                                    
-                                    
-               iou_classedboxes[event_name] = [iou_current_event_box]
+                        iou_classedboxes[event_name] = [sorted_event_box]
                #lAST ROUND
                remove_boxes = []
-               for i in range(len(iou_current_event_box)):
-                            best_iou_current_event_box.append(iou_current_event_box[i])
-                            for j in range(i + 1, len(iou_current_event_box)):
+               for i in range(len(sorted_event_box)):
+                            best_iou_current_event_box.append(sorted_event_box[i])
+                            for j in range(i + 1, len(sorted_event_box)):
                                 
-                                        bbox_iou = self.bbox_iou(iou_current_event_box[i], iou_current_event_box[j])
-                                        if bbox_iou > self.iou_threshold and bbox_iou > 0:
+                                        bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
+                                        if bbox_iou > self.iou_threshold:
                                             #EXTRA good event found     
-                                                remove_boxes.append(iou_current_event_box[j]) 
+                                                remove_boxes.append(sorted_event_box[j]) 
                for k in range(len(remove_boxes)):    
                     if remove_boxes[k] in best_iou_current_event_box:                             
                          best_iou_current_event_box.remove(remove_boxes[k])

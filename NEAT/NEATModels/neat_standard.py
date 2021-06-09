@@ -20,6 +20,7 @@ from tifffile import imread, imwrite
 import csv
 import napari
 import glob
+import itertools
 from napari.qt.threading import thread_worker
 import matplotlib.pyplot  as plt
 from matplotlib.backends.backend_qt5agg import \
@@ -342,7 +343,7 @@ class NEATDynamic(object):
                              #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                              for i in range(0, sum_time_prediction.shape[0]):
                                   time_prediction =  sum_time_prediction[i]
-                                  boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                  boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic', self.markers_tree)
                                   
                                   if boxprediction is not None:
                                           eventboxes = eventboxes + boxprediction
@@ -416,9 +417,8 @@ class NEATDynamic(object):
                
                #Highest probability is first
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
-               iou_current_event_box = []
                best_iou_current_event_box = []
-               
+               best_sorted_event_box = []
                if sorted_event_box is not None:
                     
                     if len(sorted_event_box) == 0 :
@@ -426,58 +426,54 @@ class NEATDynamic(object):
                         return []
                     else:
                         
-                        #fIRST ROUND
-                        for i in range(len(sorted_event_box)):
-                            
-                            iou_current_event_box.append(sorted_event_box[i])
                                     
-                                    
-                                    
-                                    
-                        iou_classedboxes[event_name] = [iou_current_event_box]
+                        iou_classedboxes[event_name] = [sorted_event_box]
                         #lAST ROUND
                         remove_boxes = []
-                        for i in range(len(iou_current_event_box)):
-                                    best_iou_current_event_box.append(iou_current_event_box[i])
-                                    for j in range(i + 1, len(iou_current_event_box)):
+                        
+                        
+                        key_func_x = lambda x: (x['xcenter'], x['ycenter'])
+                        max_box_pick = lambda x: x[event_name] + x['confidence']
+                        for key, group in itertools.groupby(sorted_event_box, key_func_x):
+                                             multiple_list = list(group)
+                                             if len(multiple_list) > 5:
+                                                 box_pick = max(multiple_list, key = max_box_pick)
+                                                 best_sorted_event_box.append(box_pick)
+                            
+                            
+                        for i in range(0,len(best_sorted_event_box)):
+                              
+                                    best_iou_current_event_box.append(best_sorted_event_box[i])
+                                    for j in range(i + 1, len(best_sorted_event_box)):
                                         
-                                                bbox_iou = self.bbox_iou(iou_current_event_box[i], iou_current_event_box[j])
-                                                if bbox_iou < self.iou_threshold and bbox_iou > 0:
-                                                    #EXTRA good event found     
-                                                        remove_boxes.append(iou_current_event_box[j]) 
+                                                bbox_iou = self.bbox_iou(best_sorted_event_box[i], best_sorted_event_box[j])
+                                                if bbox_iou > self.iou_threshold:
+                                                      
+                                                        remove_boxes.append(best_sorted_event_box[j]) 
                         for k in range(len(remove_boxes)):    
                             if remove_boxes[k] in best_iou_current_event_box:                             
                                  best_iou_current_event_box.remove(remove_boxes[k])
-                        best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
+                        best_iou_classedboxes[event_name] = [best_iou_current_event_box] 
         self.iou_classedboxes = best_iou_classedboxes                
     
 
    
-    def get_nearest(self, ycenter, xcenter, tcenter):
-        
-        location = (ycenter, xcenter)
-        tree, indices = self.marker_tree[str(int(tcenter))]
-        distance, nearest_location = tree.query(location)
-        if distance <= 20:
-          nearest_location = int(indices[nearest_location][0]), int(indices[nearest_location][1]) 
-        else:
-            nearest_location = location      
-        return nearest_location[0], nearest_location[1]
+
     
     def to_csv(self):
         
         for (event_name,event_label) in self.key_categories.items():
                    
                    if event_label > 0:
-                              xlocations = []
-                              ylocations = []
-                              scores = []
-                              confidences = []
-                              tlocations = []   
-                              radiuses = []
-                              angles = []
+                                      xlocations = []
+                                      ylocations = []
+                                      scores = []
+                                      confidences = []
+                                      tlocations = []   
+                                      radiuses = []
+                                      angles = []
                               
-                              try:
+                             
                                       iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                       iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
                                       for iou_current_event_box in iou_current_event_boxes:
@@ -489,8 +485,8 @@ class NEATDynamic(object):
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                               #Replace the detection with the nearest marker location
-                                              ycenter, xcenter = self.get_nearest(ycenter, xcenter, tcenter)
-                                              if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2 and confidence > 0.6:
+                                              
+                                              if confidence > 0.6:
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)
                                                       scores.append(score)
@@ -513,8 +509,7 @@ class NEATDynamic(object):
                                          writer.writerows(event_data)
                                          event_data = []           
                               
-                              except: 
-                                  pass
+                             
 
 
                       

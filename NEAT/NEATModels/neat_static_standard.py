@@ -401,7 +401,7 @@ class NEATStatic(object):
                                     for j in range(i + 1, len(sorted_event_box)):
                                         
                                                 bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                                if bbox_iou > self.iou_threshold and bbox_iou > 0:
+                                                if bbox_iou > self.iou_threshold:
                                                     #EXTRA good event found     
                                                         remove_boxes.append(sorted_event_box[j]) 
                         for k in range(len(remove_boxes)):    

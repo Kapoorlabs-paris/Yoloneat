@@ -526,7 +526,7 @@ def WatershedwithMask(Image, Label,mask, grid):
 Prediction function for whole image/tile, output is Prediction vector for each image patch it passes over
 """    
 
-def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type):
+def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type, marker_tree = None):
     
                              LocationBoxes = []
                              j = 0
@@ -540,7 +540,7 @@ def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key
                                       if k > time_prediction.shape[0]:
                                           break;
                       
-                                      Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories,key_cord, inputtime, mode, event_type)
+                                      Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories,key_cord, inputtime, mode, event_type, marker_tree)
                                       #Append the box and the maximum likelehood detected class
                                       if Classybox is not None:
                                         if Classybox['confidence'] > 0.5:
@@ -560,7 +560,7 @@ def nonfcn_yoloprediction(image,sy, sx, time_prediction, stride, inputtime, conf
                                         if Classybox['confidence'] > 0.5:
                                             LocationBoxes.append(Classybox)         
                                 return LocationBoxes                            
-def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputtime, mode, event_type):
+def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputtime, mode, event_type, marker_tree):
 
                                           total_classes = len(key_categories) 
                                           total_coords = len(key_cord)
@@ -587,12 +587,14 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           tcenter = 0
                                           boxtcenter = 0
                                           confidencemean = 0
+                                          scoremean = 0
                                           trainshapex = config['imagex']
                                           trainshapey = config['imagey']
                                           
                                           for b in range(0,nboxes):
                                                   xcenter = xstart + prediction_vector[total_classes + config['x'] + b * total_coords ] * trainshapex
                                                   ycenter = ystart + prediction_vector[total_classes + config['y'] + b * total_coords ] * trainshapey
+                                                  
                                                   try:
                                                       height = prediction_vector[total_classes + config['h'] + b * total_coords] * trainshapex  
                                                       width = prediction_vector[total_classes + config['w'] + b * total_coords] * trainshapey
@@ -626,7 +628,6 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                            confidence = 1
                                                            
                                                            
-                                                
                                                   xcentermean = xcentermean + xcenter
                                                   ycentermean = ycentermean + ycenter
                                                   heightmean = heightmean + height
@@ -647,7 +648,11 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           
                                           max_prob_label = np.argmax(prediction_vector[:total_classes])
                                           max_prob_class = prediction_vector[max_prob_label]
+                                          
+                                          
                                           if max_prob_label > 0:
+                                              
+                                                  
                                                   if event_type == 'dynamic':
                                                           if mode == 'detection':
                                                                   
@@ -657,13 +662,14 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                                   real_time_event = int(inputtime)
                                                                   box_time_event = int(inputtime)
                                                           if config['yolo_v2']:        
-                                                                     realangle = math.pi * (anglemean - 0.5) - math.pi/2
+                                                                     realangle = math.pi * (anglemean - 0.5) 
                                                                      rawangle = anglemean
                                                           else:
                                                               
                                                                realangle = 2
                                                                rawangle = 2
-                                                               
+                                                          if marker_tree is not None:
+                                                                ycentermean , xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)      
                                                           #Compute the box vectors 
                                                           box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
                                                             'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean, 'realangle' : realangle, 'rawangle' : rawangle}
@@ -673,6 +679,10 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                                   box_time_event = int(inputtime)
                                                                   realangle = 0
                                                                   rawangle = 0
+                                                                  
+                                                                  if marker_tree is not None:
+                                                                        ycentermean , xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
+                                                                  
                                                                   box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
                                                             'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean}
                                                   
@@ -686,6 +696,18 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                   return classybox
                                       
                                          
+
+def get_nearest(marker_tree, ycenter, xcenter, tcenter):
+        
+        location = (ycenter, xcenter)
+        tree, indices = marker_tree[str(int(tcenter))]
+        distance, nearest_location = tree.query(location)
+        if distance <= 20:
+          nearest_location = int(indices[nearest_location][0]), int(indices[nearest_location][1]) 
+        else:
+            nearest_location = location      
+        return nearest_location[0], nearest_location[1]
+
                                       
 def draw_labelimages(image, location, time, timelocation ):
 

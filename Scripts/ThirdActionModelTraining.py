@@ -38,13 +38,13 @@ residual = False
 #NUmber of starting convolutional filters, is doubled down with increasing depth
 startfilter = 48
 #CNN network start layer, mid layers and lstm layer kernel size
-start_kernel = 3
+start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
 depth = 38
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
-learning_rate = 1.0E-6
+learning_rate = 1.0E-4
 #For stochastic gradient decent, the batch size used for computing the gradients
 batch_size = 8
 # use softmax for single event per box, sigmoid for multi event per box
