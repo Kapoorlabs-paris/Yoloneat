@@ -302,7 +302,7 @@ class NEATDynamic(object):
         return self.markers, self.marker_tree, self.density_location
         
         
-    def predict(self,imagename, markers, markers_tree, density_location, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
+    def predict(self,imagename, markers, markers_tree, density_location, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, density_veto = 5):
         
         self.imagename = imagename
         self.image = imread(imagename)
@@ -311,10 +311,12 @@ class NEATDynamic(object):
         self.density_location = density_location
         self.savedir = savedir
         self.n_tiles = n_tiles
+        self.density_veto = density_veto
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
-        
+        self.downsample_regions = {}
+        self.upsample_regions = {}
         
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
        
@@ -330,8 +332,36 @@ class NEATDynamic(object):
             if inputtime < self.image.shape[0] - self.imaget:
                        
                         count = count + 1
+                        down_region = []
+                        up_region = []
+                        all_density_location = self.density_location[str(inputtime)]
+                        density = all_density_location[0]
+                        location = all_density_location[1]
+                        
                         smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
                         smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
+                        # Cut off the region for training movie creation
+                        for i in range(len(density)):
+                                
+                                crop_xminus = location[i][1]  - int(self.imagex/2)
+                                crop_xplus = location[i][1]  + int(self.imagex/2)
+                                crop_yminus = location[i][0]  - int(self.imagey/2)
+                                crop_yplus = location[i][0]   + int(self.imagey/2)
+                                region =(slice(int(inputtime),int(inputtime + self.imaget)),slice(int(crop_yminus), int(crop_yplus)),
+                                      slice(int(crop_xminus), int(crop_xplus)))
+                                if density[i] <= self.density_veto:
+                                     crop_image = smallimage[region] 
+                                     smallimage[region] = 0
+                                     down_region.append([crop_image, location])
+                                     print('region to downsample', location)
+                                if density[i] >= 5 * self.density_veto:
+                                     crop_image = smallimage[region] 
+                                     smallimage[region] = 0
+                                     up_region.append([crop_image, location])
+                                     print('region to upsample', location)
+                                    
+                        self.downsample_regions[str(inputtime)] = down_region
+                        self.upsample_regions[str(inputtime)] = up_region
                         #Break image into tiles if neccessary
                         predictions, allx, ally = self.predict_main(smallimage)
                         #Iterate over tiles
@@ -434,10 +464,14 @@ class NEATDynamic(object):
                         
                         key_func_x = lambda x: (x['xcenter'], x['ycenter'])
                         max_box_pick = lambda x: x[event_name] + x['confidence']
+                        angle_average_box = lambda x:x['realangle']
                         for key, group in itertools.groupby(sorted_event_box, key_func_x):
                                              multiple_list = list(group)
                                              if len(multiple_list) > 5:
+                                                 
+                                                 angle_average = sum(d['realangle'] for d in multiple_list) / len(multiple_list)
                                                  box_pick = max(multiple_list, key = max_box_pick)
+                                                 box_pick['realangle'] = angle_average
                                                  best_sorted_event_box.append(box_pick)
                             
                             
@@ -486,7 +520,7 @@ class NEATDynamic(object):
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                               #Replace the detection with the nearest marker location
                                               
-                                              if confidence > 0.6:
+                                              if confidence >=self.event_threshold:
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)
                                                       scores.append(score)
@@ -497,6 +531,7 @@ class NEATDynamic(object):
                                               
                                     
                                       event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
+                                      event_count = sorted(event_count, key = lambda x:x[0], reverse = True)
                                       event_data = []
                                       csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                       writer = csv.writer(open(csvname  +".csv", "a"))
