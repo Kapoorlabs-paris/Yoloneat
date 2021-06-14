@@ -348,22 +348,13 @@ class NEATDynamic(object):
                         # Cut off the region for training movie creation
                         for i in range(len(density)):
                                 
-                                crop_xminus = location[i][1]  - int(self.imagex/2)
-                                crop_xplus = location[i][1]  + int(self.imagex/2)
-                                crop_yminus = location[i][0]  - int(self.imagey/2)
-                                crop_yplus = location[i][0]   + int(self.imagey/2)
-                                region =(slice(int(inputtime),int(inputtime + self.imaget)),slice(int(crop_yminus), int(crop_yplus)),
-                                      slice(int(crop_xminus), int(crop_xplus)))
+                            
                                 if density[i] <= self.density_veto:
-                                     crop_image = smallimage[region] 
-                                     smallimage[region] = 0
-                                     down_region.append([crop_image, location])
+                                     down_region.append(location)
                                      self.remove_marker_locations(inputtime, location)
                                      print('region to downsample', location)
                                 if density[i] >= 5 * self.density_veto:
-                                     crop_image = smallimage[region] 
-                                     smallimage[region] = 0
-                                     up_region.append([crop_image, location])
+                                     up_region.append(location)
                                      self.remove_marker_locations(inputtime, location)
                                      print('region to upsample', location)
                                     
@@ -447,7 +438,6 @@ class NEATDynamic(object):
                                                 
                                                 crop_image = smallimage[region] 
                                                 candidate_region.append([crop_image, location])
-                                                print('Current scale candidate regions', location)
                                                 
                                                 #Now apply the prediction for counting real events
                                                 ycenter = location[0]
@@ -457,6 +447,9 @@ class NEATDynamic(object):
                                                 
                                                 boxprediction['xcenter'] = xcenter
                                                 boxprediction['ycenter'] = ycenter
+                                                boxprediction['xstart'] = xcenter - int(self.imagex/2)
+                                                boxprediction['ystart'] = ycenter - int(self.imagey/2)
+                                                
                                                 
                                                 if boxprediction is not None:
                                                           eventboxes = eventboxes + boxprediction
