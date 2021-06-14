@@ -1,7 +1,7 @@
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction
 from keras import callbacks
 import os
 import math
@@ -20,6 +20,7 @@ from tifffile import imread, imwrite
 import csv
 import napari
 import glob
+from scipy import spatial
 import itertools
 from napari.qt.threading import thread_worker
 import matplotlib.pyplot  as plt
@@ -302,12 +303,12 @@ class NEATDynamic(object):
         return self.markers, self.marker_tree, self.density_location
         
         
-    def predict(self,imagename, markers, markers_tree, density_location, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, density_veto = 5):
+    def predict(self,imagename, markers, marker_tree, density_location, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, density_veto = 5):
         
         self.imagename = imagename
         self.image = imread(imagename)
         self.markers = markers
-        self.markers_tree = markers_tree
+        self.marker_tree = marker_tree
         self.density_location = density_location
         self.savedir = savedir
         self.n_tiles = n_tiles
@@ -317,6 +318,7 @@ class NEATDynamic(object):
         self.event_threshold = event_threshold
         self.downsample_regions = {}
         self.upsample_regions = {}
+        self.candidate_regions = {}
         
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
        
@@ -326,8 +328,11 @@ class NEATDynamic(object):
         count = 0
         
 
-        
-        print('Detecting event locations')
+        if self.marker_tree is None:
+           print('Detecting event locations')
+        if self.marker_tree is not None:
+            print('Detecting negative events to exclude from prediction')
+        #Do the prediction in the fully convolutional way if no marker image is input it is the only way we get the candidate points
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
                        
@@ -353,11 +358,13 @@ class NEATDynamic(object):
                                      crop_image = smallimage[region] 
                                      smallimage[region] = 0
                                      down_region.append([crop_image, location])
+                                     self.remove_marker_locations(inputtime, location)
                                      print('region to downsample', location)
                                 if density[i] >= 5 * self.density_veto:
                                      crop_image = smallimage[region] 
                                      smallimage[region] = 0
                                      up_region.append([crop_image, location])
+                                     self.remove_marker_locations(inputtime, location)
                                      print('region to upsample', location)
                                     
                         self.downsample_regions[str(inputtime)] = down_region
@@ -377,27 +384,114 @@ class NEATDynamic(object):
                                   
                                   if boxprediction is not None:
                                           eventboxes = eventboxes + boxprediction
-                                     
-                        for (event_name,event_label) in self.key_categories.items(): 
-                                 
-                            if event_label > 0:
-                                 current_event_box = []
-                                 for box in eventboxes:
+                        if self.marker_tree is None:             
+                                    for (event_name,event_label) in self.key_categories.items(): 
+                                             
+                                        if event_label > 0:
+                                             current_event_box = []
+                                             for box in eventboxes:
+                                        
+                                                event_prob = box[event_name]
+                                                if event_prob >= self.event_threshold:
+                                                   
+                                                    current_event_box.append(box)
+                                             classedboxes[event_name] = [current_event_box]
+                                         
+                                    self.classedboxes = classedboxes    
+                                    self.eventboxes =  eventboxes
+                                    #nms over time
+                                    if count%self.imaget==0:
+                                            self.nms()
+                                            self.to_csv()
+                                            eventboxes = []
+                                            classedboxes = {}    
+                                            count = 0
+                                    
+                        else:
                             
-                                    event_prob = box[event_name]
-                                    if event_prob >= self.event_threshold:
-                                       
-                                        current_event_box.append(box)
-                                 classedboxes[event_name] = [current_event_box]
-                             
-                        self.classedboxes = classedboxes    
-                        self.eventboxes =  eventboxes
-                        #nms over time
-                        self.nms()
-                        self.to_csv()
-                        eventboxes = []
-                        classedboxes = {}    
-                        count = 0
+                            for (event_name,event_label) in self.key_categories.items(): 
+                                         
+                                        #Record locations of all the negative events  
+                                        if event_label == 0:
+                                             for box in eventboxes:
+                                        
+                                                event_prob = box[event_name]
+                                                if event_prob >= self.event_threshold:
+                                                   
+                                                    ycenter = box['ycenter']
+                                                    xcenter = box['xcenter']
+                                                    remove_location = (ycenter, xcenter)
+                                                    tcenter = box['real_time_event']
+                                                    # remove the negative marker
+                                                    self.remove_marker_locations(tcenter, remove_location)
+        
+                                                    
+        # Do the prediction in a non Fully Convolutional way, marker by marker
+        if self.marker_tree is not None:
+                   count = 0 
+                   print('Detecting event locations')
+                   for inputtime in tqdm(range(0, self.image.shape[0])):
+                                            smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
+                                            smallimage = normalizeFloatZeroOne(smallimage,1,99.8)         
+                                            count = count + 1                        
+                                            tree, location = self.marker_tree[str(int(inputtime))]
+                                            candidate_region = []
+                                            for i in range(len(location)):
+                                                
+                                                crop_xminus = location[i][1]  - int(self.imagex/2)
+                                                crop_xplus = location[i][1]  + int(self.imagex/2)
+                                                crop_yminus = location[i][0]  - int(self.imagey/2)
+                                                crop_yplus = location[i][0]   + int(self.imagey/2)
+                                                region =(slice(int(inputtime),int(inputtime + self.imaget)),slice(int(crop_yminus), int(crop_yplus)),
+                                                      slice(int(crop_xminus), int(crop_xplus)))
+                                                
+                                                crop_image = smallimage[region] 
+                                                candidate_region.append([crop_image, location])
+                                                print('Current scale candidate regions', location)
+                                                
+                                                #Now apply the prediction for counting real events
+                                                ycenter = location[0]
+                                                xcenter = location[1]
+                                                prediction_vector = self.make_patches(crop_image)
+                                                boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                                
+                                                boxprediction['xcenter'] = xcenter
+                                                boxprediction['ycenter'] = ycenter
+                                                
+                                                if boxprediction is not None:
+                                                          eventboxes = eventboxes + boxprediction
+                                            for (event_name,event_label) in self.key_categories.items(): 
+                                                             
+                                                        if event_label > 0:
+                                                             current_event_box = []
+                                                             for box in eventboxes:
+                                                        
+                                                                event_prob = box[event_name]
+                                                                if event_prob >= self.event_threshold:
+                                                                   
+                                                                    current_event_box.append(box)
+                                                             classedboxes[event_name] = [current_event_box]
+                                                         
+                                            self.classedboxes = classedboxes    
+                                            self.eventboxes =  eventboxes
+                                            #nms over time
+                                            if count%self.imaget==0:
+                                                    self.nms()
+                                                    self.to_csv()
+                                                    eventboxes = []
+                                                    classedboxes = {}    
+                                                    count = 0
+                                
+                            
+    def remove_marker_locations(self, tcenter, location):
+
+                     tree, indices = self.marker_tree[str(int(tcenter))]
+                     indices.remove(location)
+                     tree = spatial.cKDTree(indices)
+                     #Update the tree
+                     self.marker_tree[str(int(tcenter))] =  [tree, indices]
+            
+                
                 
         
     def bbox_iou(self,box1, box2):
@@ -704,7 +798,9 @@ class NEATDynamic(object):
              self.sy = rowout
              self.sx = column            
           
-        
+    
+
+    
     def predict_main(self,sliceregion):
             try:
                 self.overlaptiles(sliceregion)
