@@ -1,7 +1,7 @@
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms
 from keras import callbacks
 import os
 import math
@@ -335,7 +335,8 @@ class NEATDynamic(object):
         #Do the prediction in the fully convolutional way if no marker image is input it is the only way we get the candidate points
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
-                       
+                        tree, indices = self.marker_tree[str(int(inputtime))]
+                        print('Initial Markers at', inputtime, len(indices))
                         count = count + 1
                         down_region = []
                         up_region = []
@@ -352,11 +353,9 @@ class NEATDynamic(object):
                                 if density[i] <= self.density_veto:
                                      down_region.append(location)
                                      self.remove_marker_locations(inputtime, location)
-                                     print('region to downsample', location)
                                 if density[i] >= 5 * self.density_veto:
                                      up_region.append(location)
                                      self.remove_marker_locations(inputtime, location)
-                                     print('region to upsample', location)
                                     
                         self.downsample_regions[str(inputtime)] = down_region
                         self.upsample_regions[str(inputtime)] = up_region
@@ -416,7 +415,8 @@ class NEATDynamic(object):
                                                     # remove the negative marker
                                                     self.remove_marker_locations(tcenter, remove_location)
         
-                                                    
+                            tree, indices = self.marker_tree[str(int(inputtime))]
+                            print('Markers remaining', inputtime, len(indices))                        
         # Do the prediction in a non Fully Convolutional way, marker by marker
         if self.marker_tree is not None:
                    count = 0 
@@ -477,8 +477,12 @@ class NEATDynamic(object):
     def remove_marker_locations(self, tcenter, location):
 
                      tree, indices = self.marker_tree[str(int(tcenter))]
-                     indices.remove(location)
+                     try:
+                        indices.remove(location)
+                     except:
+                         pass
                      tree = spatial.cKDTree(indices)
+                    
                      #Update the tree
                      self.marker_tree[str(int(tcenter))] =  [tree, indices]
             
@@ -522,65 +526,21 @@ class NEATDynamic(object):
     def nms(self):
         
         
-        iou_classedboxes = {}
         best_iou_classedboxes = {}
         self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
                #Get all events
-               event_box = self.classedboxes[event_name][0]
                
-               #Highest probability is first
+               event_box = self.classedboxes[event_name][0]
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
-               best_iou_current_event_box = []
-               best_sorted_event_box = []
-               if sorted_event_box is not None:
-                    
-                    if len(sorted_event_box) == 0 :
-                        
-                        return []
-                    else:
-                        
-                                    
-                        iou_classedboxes[event_name] = [sorted_event_box]
-                        #lAST ROUND
-                        remove_boxes = []
-                        
-                        
-                            
-                        key_func_x = lambda x: (x['xcenter'], x['ycenter'])
-                        max_box_pick = lambda x: x[event_name] + x['confidence']
-                        angle_average_box = lambda x:x['realangle']
-                        if self.marker_tree is None:
-                              for key, group in itertools.groupby(sorted_event_box, key_func_x):
-                                             multiple_list = list(group)
-                                             if len(multiple_list) > 5:
-                                                 
-                                                 angle_average = sum(d['realangle'] for d in multiple_list) / len(multiple_list)
-                                                 box_pick = max(multiple_list, key = max_box_pick)
-                                                 box_pick['realangle'] = angle_average
-                                                 best_sorted_event_box.append(box_pick)
-                            
-                        else:
-                            
-                             for i in range(0, len(sorted_event_box)):
-                                  
-                                  best_sorted_event_box.append(sorted_event_box[i])
-                        
-                        
-                        for i in range(0,len(best_sorted_event_box)):
-                              
-                                    best_iou_current_event_box.append(best_sorted_event_box[i])
-                                    for j in range(i + 1, len(best_sorted_event_box)):
-                                        
-                                                bbox_iou = self.bbox_iou(best_sorted_event_box[i], best_sorted_event_box[j])
-                                                if bbox_iou > self.iou_threshold:
-                                                      
-                                                        remove_boxes.append(best_sorted_event_box[j]) 
-                        for k in range(len(remove_boxes)):    
-                            if remove_boxes[k] in best_iou_current_event_box:                             
-                                 best_iou_current_event_box.remove(remove_boxes[k])
-                        best_iou_classedboxes[event_name] = [best_sorted_event_box] 
+               
+               scores = [sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold)
+               best_sorted_event_box = [sorted_event_box[i] for i in range(len(nms_indices))]
+              
+               best_iou_classedboxes[event_name] = [best_sorted_event_box] 
+               
         self.iou_classedboxes = best_iou_classedboxes                
     
 
@@ -613,7 +573,7 @@ class NEATDynamic(object):
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
                                                       
-                                                      if confidence >=self.event_threshold:
+                                                      if confidence >=0.9:
                                                               xlocations.append(xcenter)
                                                               ylocations.append(ycenter)
                                                               scores.append(score)
@@ -624,7 +584,7 @@ class NEATDynamic(object):
                                                       
                                             
                                               event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
-                                              event_count = sorted(event_count, key = lambda x:x[0], reverse = True)
+                                              event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                                               event_data = []
                                               csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                               writer = csv.writer(open(csvname  +".csv", "a"))

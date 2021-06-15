@@ -8,7 +8,7 @@ Created on Sun Apr 25 13:32:04 2021
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import  load_json, yoloprediction, normalizeFloatZeroOne
+from NEATUtils.helpers import  load_json, yoloprediction, normalizeFloatZeroOne, fastnms
 from keras import callbacks
 import os
 import tensorflow as tf
@@ -412,42 +412,21 @@ class NEATPredict(object):
     def nms(self):
         
         
-        iou_classedboxes = {}
         best_iou_classedboxes = {}
         self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
                #Get all events
+               
                event_box = self.classedboxes[event_name][0]
-               
-               #Highest probability is first
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
-               best_iou_current_event_box = []
                
-               if sorted_event_box is not None:
-                    
-                    if len(sorted_event_box) == 0 :
-                        
-                        return []
-                    else:
-                        
-                                    
-                                    
-                        iou_classedboxes[event_name] = [sorted_event_box]
-               #lAST ROUND
-               remove_boxes = []
-               for i in range(len(sorted_event_box)):
-                            best_iou_current_event_box.append(sorted_event_box[i])
-                            for j in range(i + 1, len(sorted_event_box)):
-                                
-                                        bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                        if bbox_iou > self.iou_threshold:
-                                            #EXTRA good event found     
-                                                remove_boxes.append(sorted_event_box[j]) 
-               for k in range(len(remove_boxes)):    
-                    if remove_boxes[k] in best_iou_current_event_box:                             
-                         best_iou_current_event_box.remove(remove_boxes[k])
-               best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
+               scores = [sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold)
+               best_sorted_event_box = [sorted_event_box[i] for i in range(len(nms_indices))]
+              
+               best_iou_classedboxes[event_name] = [best_sorted_event_box] 
+               
         self.iou_classedboxes = best_iou_classedboxes                
         
     def to_csv(self):

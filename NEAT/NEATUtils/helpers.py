@@ -482,9 +482,12 @@ def MakeTrees(segimage):
         AllTrees = {}
         print("Creating Dictionary of marker location for fast search")
         for i in tqdm(range(0, segimage.shape[0])):
+            
+                indices = []
                 currentimage = segimage[i, :].astype('uint16')
                 waterproperties = measure.regionprops(currentimage, currentimage)
-                indices = [prop.centroid for prop in waterproperties] 
+                for prop in waterproperties:
+                    indices.append(prop.centroid)
                 if len(indices) > 0:
                     tree = spatial.cKDTree(indices)
                 
@@ -494,7 +497,59 @@ def MakeTrees(segimage):
                            
         return AllTrees
     
+def compare_function(box1, box2):
+        
+        
+        w1, h1 = box1['width'], box1['height']
+        w2, h2 = box2['width'], box2['height']
+        
+        xA =max( box1['xstart'] , box2['xstart'] )
+        xB = min ( box1['xstart'] + w1, box2['xstart'] + w2)
+        yA = max( box1['ystart'] , box2['ystart'] )
+        yB = min (box1['ystart'] + h1, box2['ystart'] + h2)
+
+        intersect = max(0, xB - xA) * max(0, yB - yA)
+
+
+
+        union = w1*h1 + w2*h2 - intersect
+
+        return float(np.true_divide(intersect, union))    
     
+    
+def fastnms(boxes, scores, nms_threshold, score_threshold ):
+
+
+    
+
+    if len(boxes) == 0:
+        return []
+
+    assert len(scores) == len(boxes)
+    assert scores is not None
+
+
+    # Do Non Maximal Suppression
+    # This is an interpretation of NMS from the OpenCV source in nms.cpp and nms.
+    adaptive_threshold = nms_threshold
+    indicies = []
+
+    for i in range(0, len(scores)):
+        idx = int(scores[i])
+        keep = True
+        for k in range(0, len(indicies)):
+            if not keep:
+                break
+            kept_idx = indicies[k]
+            overlap = compare_function(boxes[idx], boxes[kept_idx])
+            keep = (overlap <= adaptive_threshold)
+
+        if keep:
+            indicies.append(idx)
+
+        
+
+    return indicies
     
     
 """
