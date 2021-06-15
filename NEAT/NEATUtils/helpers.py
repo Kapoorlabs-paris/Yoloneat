@@ -529,9 +529,6 @@ def fastnms(boxes, scores, nms_threshold, score_threshold ):
     assert scores is not None
 
 
-    # Do Non Maximal Suppression
-    # This is an interpretation of NMS from the OpenCV source in nms.cpp and nms.
-    adaptive_threshold = nms_threshold
     indicies = []
 
     for i in range(0, len(scores)):
@@ -542,7 +539,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold ):
                 break
             kept_idx = indicies[k]
             overlap = compare_function(boxes[idx], boxes[kept_idx])
-            keep = (overlap <= adaptive_threshold)
+            keep = (overlap <= nms_threshold)
 
         if keep:
             indicies.append(idx)
