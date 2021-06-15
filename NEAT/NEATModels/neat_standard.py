@@ -374,8 +374,7 @@ class NEATDynamic(object):
                                   
                                   if boxprediction is not None:
                                           eventboxes = eventboxes + boxprediction
-                        if self.marker_tree is None:             
-                                    for (event_name,event_label) in self.key_categories.items(): 
+                        for (event_name,event_label) in self.key_categories.items(): 
                                              
                                         if event_label > 0:
                                              current_event_box = []
@@ -387,91 +386,18 @@ class NEATDynamic(object):
                                                     current_event_box.append(box)
                                              classedboxes[event_name] = [current_event_box]
                                          
-                                    self.classedboxes = classedboxes    
-                                    self.eventboxes =  eventboxes
-                                    #nms over time
-                                    if count%self.imaget==0:
+                        self.classedboxes = classedboxes    
+                        self.eventboxes =  eventboxes
+                        #nms over time
+                        if count%self.imaget==0:
                                             self.nms()
                                             self.to_csv()
                                             eventboxes = []
                                             classedboxes = {}    
                                             count = 0
                                     
-                        else:
-                            
-                            for (event_name,event_label) in self.key_categories.items(): 
-                                         
-                                        #Record locations of all the negative events  
-                                        if event_label == 0:
-                                             for box in eventboxes:
-                                        
-                                                event_prob = box[event_name]
-                                                if event_prob >= 0.8:
-                                                   
-                                                    ycenter = box['ycenter']
-                                                    xcenter = box['xcenter']
-                                                    remove_location = (ycenter, xcenter)
-                                                    tcenter = box['real_time_event']
-                                                    # remove the negative marker
-                                                    self.remove_marker_locations(tcenter, remove_location)
-        
-                            tree, indices = self.marker_tree[str(int(inputtime))]
-                            print('Markers remaining', inputtime, len(indices))                        
-        # Do the prediction in a non Fully Convolutional way, marker by marker
-        if self.marker_tree is not None:
-                   count = 0 
-                   print('Detecting event locations')
-                   for inputtime in tqdm(range(0, self.image.shape[0])):
-                                            smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
-                                            smallimage = normalizeFloatZeroOne(smallimage,1,99.8)         
-                                            count = count + 1                        
-                                            tree, location = self.marker_tree[str(int(inputtime))]
-                                            for i in range(len(location)):
-                                                
-                                                crop_xminus = location[i][1]  - int(self.imagex/2)
-                                                crop_xplus = location[i][1]  + int(self.imagex/2)
-                                                crop_yminus = location[i][0]  - int(self.imagey/2)
-                                                crop_yplus = location[i][0]   + int(self.imagey/2)
-                                                region =(slice(0,int(smallimage.shape[0])),slice(int(crop_yminus), int(crop_yplus)),
-                                                      slice(int(crop_xminus), int(crop_xplus)))
-                                                
-                                                crop_image = smallimage[region] 
-                                                if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex:                                                
-                                                            #Now apply the prediction for counting real events
-                                                            ycenter = location[i][0]
-                                                            xcenter = location[i][1]
-                                                            prediction_vector = self.make_patches(crop_image)
-                                                            
-                                                            boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
-                                                            if len(boxprediction) > 0:
-                                                                    boxprediction[0]['xcenter'] = xcenter
-                                                                    boxprediction[0]['ycenter'] = ycenter
-                                                                    boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
-                                                                    boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)
-                                                                    
-                                                            
-                                                            if boxprediction is not None:
-                                                                      eventboxes = eventboxes + boxprediction
-                                            for (event_name,event_label) in self.key_categories.items(): 
-                                                                       
-                                                                    if event_label > 0:
-                                                                         current_event_box = []
-                                                                         for box in eventboxes:
-                                                                    
-                                                                            event_prob = box[event_name]
-                                                                            if event_prob >= self.event_threshold:
-                                                                               
-                                                                                current_event_box.append(box)
-                                                                         classedboxes[event_name] = [current_event_box]
-                                                                     
-                                            self.classedboxes = classedboxes    
-                                            self.eventboxes =  eventboxes
-                                            #nms over time
-                                            self.nms()
-                                            self.to_csv()
-                                            eventboxes = []
-                                            classedboxes = {}    
-                                            count = 0
+                        
+                                           
                                 
                             
     def remove_marker_locations(self, tcenter, location):
