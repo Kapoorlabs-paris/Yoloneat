@@ -328,16 +328,12 @@ class NEATDynamic(object):
         count = 0
         
 
-        if self.marker_tree is None:
-           print('Detecting event locations')
-        if self.marker_tree is not None:
-            print('Detecting negative events to exclude from prediction')
         #Do the prediction in the fully convolutional way if no marker image is input it is the only way we get the candidate points
         if self.marker_tree is None: 
+                print('Detecting event locations')
                 for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
                                 tree, indices = self.marker_tree[str(int(inputtime))]
-                                print('Initial Markers at', inputtime, len(indices))
                                 count = count + 1
                                 down_region = []
                                 up_region = []
