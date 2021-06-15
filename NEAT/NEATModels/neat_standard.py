@@ -333,7 +333,7 @@ class NEATDynamic(object):
         if self.marker_tree is not None:
             print('Detecting negative events to exclude from prediction')
         #Do the prediction in the fully convolutional way if no marker image is input it is the only way we get the candidate points
-        for inputtime in tqdm(range(0, self.image.shape[0], 2)):
+        for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
                        
                         count = count + 1
@@ -407,7 +407,7 @@ class NEATDynamic(object):
                                              for box in eventboxes:
                                         
                                                 event_prob = box[event_name]
-                                                if event_prob >= self.event_threshold:
+                                                if event_prob >= 0.8:
                                                    
                                                     ycenter = box['ycenter']
                                                     xcenter = box['xcenter']
@@ -426,55 +426,52 @@ class NEATDynamic(object):
                                             smallimage = normalizeFloatZeroOne(smallimage,1,99.8)         
                                             count = count + 1                        
                                             tree, location = self.marker_tree[str(int(inputtime))]
-                                            candidate_region = []
                                             for i in range(len(location)):
                                                 
                                                 crop_xminus = location[i][1]  - int(self.imagex/2)
                                                 crop_xplus = location[i][1]  + int(self.imagex/2)
                                                 crop_yminus = location[i][0]  - int(self.imagey/2)
                                                 crop_yplus = location[i][0]   + int(self.imagey/2)
-                                                region =(slice(int(inputtime),int(inputtime + self.imaget)),slice(int(crop_yminus), int(crop_yplus)),
+                                                region =(slice(0,int(smallimage.shape[0])),slice(int(crop_yminus), int(crop_yplus)),
                                                       slice(int(crop_xminus), int(crop_xplus)))
                                                 
                                                 crop_image = smallimage[region] 
-                                                candidate_region.append([crop_image, location])
-                                                
-                                                #Now apply the prediction for counting real events
-                                                ycenter = location[0]
-                                                xcenter = location[1]
-                                                prediction_vector = self.make_patches(crop_image)
-                                                
-                                                boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
-                                                
-                                                boxprediction['xcenter'] = xcenter
-                                                boxprediction['ycenter'] = ycenter
-                                                boxprediction['xstart'] = xcenter - int(self.imagex/2)
-                                                boxprediction['ystart'] = ycenter - int(self.imagey/2)
-                                                
-                                                
-                                                if boxprediction is not None:
-                                                          eventboxes = eventboxes + boxprediction
+                                                if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex:                                                
+                                                            #Now apply the prediction for counting real events
+                                                            ycenter = location[i][0]
+                                                            xcenter = location[i][1]
+                                                            prediction_vector = self.make_patches(crop_image)
+                                                            
+                                                            boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
+                                                            if len(boxprediction) > 0:
+                                                                    boxprediction[0]['xcenter'] = xcenter
+                                                                    boxprediction[0]['ycenter'] = ycenter
+                                                                    boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
+                                                                    boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)
+                                                                    
+                                                            
+                                                            if boxprediction is not None:
+                                                                      eventboxes = eventboxes + boxprediction
                                             for (event_name,event_label) in self.key_categories.items(): 
-                                                             
-                                                        if event_label > 0:
-                                                             current_event_box = []
-                                                             for box in eventboxes:
-                                                        
-                                                                event_prob = box[event_name]
-                                                                if event_prob >= self.event_threshold:
-                                                                   
-                                                                    current_event_box.append(box)
-                                                             classedboxes[event_name] = [current_event_box]
-                                                         
+                                                                       
+                                                                    if event_label > 0:
+                                                                         current_event_box = []
+                                                                         for box in eventboxes:
+                                                                    
+                                                                            event_prob = box[event_name]
+                                                                            if event_prob >= self.event_threshold:
+                                                                               
+                                                                                current_event_box.append(box)
+                                                                         classedboxes[event_name] = [current_event_box]
+                                                                     
                                             self.classedboxes = classedboxes    
                                             self.eventboxes =  eventboxes
                                             #nms over time
-                                            if count%self.imaget==0:
-                                                    self.nms()
-                                                    self.to_csv()
-                                                    eventboxes = []
-                                                    classedboxes = {}    
-                                                    count = 0
+                                            self.nms()
+                                            self.to_csv()
+                                            eventboxes = []
+                                            classedboxes = {}    
+                                            count = 0
                                 
                             
     def remove_marker_locations(self, tcenter, location):
@@ -550,10 +547,12 @@ class NEATDynamic(object):
                         remove_boxes = []
                         
                         
+                            
                         key_func_x = lambda x: (x['xcenter'], x['ycenter'])
                         max_box_pick = lambda x: x[event_name] + x['confidence']
                         angle_average_box = lambda x:x['realangle']
-                        for key, group in itertools.groupby(sorted_event_box, key_func_x):
+                        if self.marker_tree is None:
+                              for key, group in itertools.groupby(sorted_event_box, key_func_x):
                                              multiple_list = list(group)
                                              if len(multiple_list) > 5:
                                                  
@@ -562,7 +561,13 @@ class NEATDynamic(object):
                                                  box_pick['realangle'] = angle_average
                                                  best_sorted_event_box.append(box_pick)
                             
+                        else:
                             
+                             for i in range(0, len(sorted_event_box)):
+                                  
+                                  best_sorted_event_box.append(sorted_event_box[i])
+                        
+                        
                         for i in range(0,len(best_sorted_event_box)):
                               
                                     best_iou_current_event_box.append(best_sorted_event_box[i])
@@ -575,7 +580,7 @@ class NEATDynamic(object):
                         for k in range(len(remove_boxes)):    
                             if remove_boxes[k] in best_iou_current_event_box:                             
                                  best_iou_current_event_box.remove(remove_boxes[k])
-                        best_iou_classedboxes[event_name] = [best_iou_current_event_box] 
+                        best_iou_classedboxes[event_name] = [best_sorted_event_box] 
         self.iou_classedboxes = best_iou_classedboxes                
     
 
@@ -595,44 +600,46 @@ class NEATDynamic(object):
                                       radiuses = []
                                       angles = []
                               
-                             
-                                      iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
-                                      for iou_current_event_box in iou_current_event_boxes:
-                                              xcenter = iou_current_event_box['xcenter']
-                                              ycenter = iou_current_event_box['ycenter']
-                                              tcenter = iou_current_event_box['real_time_event']
-                                              confidence = iou_current_event_box['confidence']
-                                              angle = iou_current_event_box['realangle']
-                                              score = iou_current_event_box[event_name]
-                                              radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                              #Replace the detection with the nearest marker location
-                                              
-                                              if confidence >=self.event_threshold:
-                                                      xlocations.append(xcenter)
-                                                      ylocations.append(ycenter)
-                                                      scores.append(score)
-                                                      confidences.append(confidence)
-                                                      tlocations.append(tcenter)
-                                                      radiuses.append(radius)
-                                                      angles.append(angle)
-                                              
-                                    
-                                      event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
-                                      event_count = sorted(event_count, key = lambda x:x[0], reverse = True)
-                                      event_data = []
-                                      csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
-                                      writer = csv.writer(open(csvname  +".csv", "a"))
-                                      filesize = os.stat(csvname + ".csv").st_size
-                                      if filesize < 1:
-                                         writer.writerow(['T','Y','X','Score','Size','Confidence','Angle'])
-                                      for line in event_count:
-                                         if line not in event_data:  
-                                            event_data.append(line)
-                                         writer.writerows(event_data)
-                                         event_data = []           
+                                      try:
+                                              iou_current_event_boxes = self.iou_classedboxes[event_name][0]
+                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
+                                              for iou_current_event_box in iou_current_event_boxes:
+                                                      xcenter = iou_current_event_box['xcenter']
+                                                      ycenter = iou_current_event_box['ycenter']
+                                                      tcenter = iou_current_event_box['real_time_event']
+                                                      confidence = iou_current_event_box['confidence']
+                                                      angle = iou_current_event_box['realangle']
+                                                      score = iou_current_event_box[event_name]
+                                                      radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                                      #Replace the detection with the nearest marker location
+                                                      
+                                                      if confidence >=self.event_threshold:
+                                                              xlocations.append(xcenter)
+                                                              ylocations.append(ycenter)
+                                                              scores.append(score)
+                                                              confidences.append(confidence)
+                                                              tlocations.append(tcenter)
+                                                              radiuses.append(radius)
+                                                              angles.append(angle)
+                                                      
+                                            
+                                              event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
+                                              event_count = sorted(event_count, key = lambda x:x[0], reverse = True)
+                                              event_data = []
+                                              csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                              writer = csv.writer(open(csvname  +".csv", "a"))
+                                              filesize = os.stat(csvname + ".csv").st_size
+                                              if filesize < 1:
+                                                 writer.writerow(['T','Y','X','Score','Size','Confidence','Angle'])
+                                              for line in event_count:
+                                                 if line not in event_data:  
+                                                    event_data.append(line)
+                                                 writer.writerows(event_data)
+                                                 event_data = []           
                               
-                             
+                                      except:
+                                          
+                                          pass
 
 
                       

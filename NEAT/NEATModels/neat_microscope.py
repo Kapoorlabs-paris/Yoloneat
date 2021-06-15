@@ -272,6 +272,7 @@ class NEATPredict(object):
         self.nb_prediction = nb_prediction
         self.fileextension = fileextension
         self.n_tiles = n_tiles
+        self.Z_n_tiles = Z_n_tiles
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
@@ -300,18 +301,21 @@ class NEATPredict(object):
                                   else:
                                       projection = np.amax(self.Z_movie_input[self.Z_start], axis = 0)
                                   imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
-                                  Z_start = Z_start + 1
-                                 
-            
-                          Raw_path = os.path.join(self.imagedir, '.tif')
+                                  Z_start = self.Z_start + 1
+                                  
+                                
+                          Raw_path = os.path.join(self.imagedir, '*tif')
                           filesRaw = glob.glob(Raw_path)
                           filesRaw = natsorted(filesRaw)
+                          
+                          
                           for movie_name in filesRaw:  
                                               Name = os.path.basename(os.path.splitext(movie_name)[0])
                                               #Check for unique filename
+                                              
                                               if Name not in self.movie_name_list:
                                                   
-                                              
+                                                                            
                                                       
                                                       
                                                       image = imread(movie_name)
@@ -365,7 +369,7 @@ class NEATPredict(object):
                                                                 
                                                                   self.nms()
                                                                   self.to_csv()
-                                                                  self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, start + 1, Z_start, fileextension = self.fileextension, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
+                                                                  self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, self.start + 1, Z_start, fileextension = self.fileextension, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
                             
                          
         
@@ -451,6 +455,7 @@ class NEATPredict(object):
         for (event_name,event_label) in self.key_categories.items():
                    
                    if event_label > 0:
+                                  try:   
                                       xlocations = []
                                       ylocations = []
                                       scores = []
@@ -489,7 +494,9 @@ class NEATPredict(object):
                                               writer.writerow(["y="+str(live_event_data[0][1])])
                                               live_event_data = []  
                                               count = count + 1
-                             
+                                  except:
+                                     print("No event found")
+                                     pass
           
     def overlaptiles(self, sliceregion):
         
