@@ -333,7 +333,7 @@ class NEATDynamic(object):
         if self.marker_tree is not None:
             print('Detecting negative events to exclude from prediction')
         #Do the prediction in the fully convolutional way if no marker image is input it is the only way we get the candidate points
-        for inputtime in tqdm(range(0, self.image.shape[0])):
+        for inputtime in tqdm(range(0, self.image.shape[0], 2)):
             if inputtime < self.image.shape[0] - self.imaget:
                        
                         count = count + 1
@@ -371,7 +371,7 @@ class NEATDynamic(object):
                              #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                              for i in range(0, sum_time_prediction.shape[0]):
                                   time_prediction =  sum_time_prediction[i]
-                                  boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic', self.markers_tree)
+                                  boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic', self.marker_tree)
                                   
                                   if boxprediction is not None:
                                           eventboxes = eventboxes + boxprediction
@@ -443,6 +443,7 @@ class NEATDynamic(object):
                                                 ycenter = location[0]
                                                 xcenter = location[1]
                                                 prediction_vector = self.make_patches(crop_image)
+                                                
                                                 boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
                                                 
                                                 boxprediction['xcenter'] = xcenter

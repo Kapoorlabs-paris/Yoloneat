@@ -547,13 +547,12 @@ def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key
                                             LocationBoxes.append(Classybox)         
                              return LocationBoxes
                          
-def nonfcn_yoloprediction(image, sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type):
+def nonfcn_yoloprediction(image, sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type, marker_tree = None):
     
                                 LocationBoxes = []
                                 j = 1
                                 k = 1
-                      
-                                Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories,key_cord, inputtime, mode, event_type)
+                                Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction[0,:], config, key_categories,key_cord, inputtime, mode, event_type, marker_tree)
                                 #Append the box and the maximum likelehood detected class
                                 if Classybox is not None:
                                         if Classybox['confidence'] > 0.5:
