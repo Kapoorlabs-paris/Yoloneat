@@ -25,7 +25,7 @@ npz_val_name = 'divisionbin2m4valV1.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/home/sancere/Kepler/FinalONEATTraining/EverydayneatmodelV1/'
-model_name = 'divisionm4d47V1.h5'
+model_name = 'divisionm4d29V1.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'DivisionCategories.json'
@@ -42,9 +42,9 @@ start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 47
+depth = 29
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
-learning_rate = 1.0E-4
+learning_rate = 1.0E-6
 #For stochastic gradient decent, the batch size used for computing the gradients
 batch_size = 8
 # use softmax for single event per box, sigmoid for multi event per box
