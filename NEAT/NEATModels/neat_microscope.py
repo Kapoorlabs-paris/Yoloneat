@@ -421,9 +421,10 @@ class NEATPredict(object):
                event_box = self.classedboxes[event_name][0]
                sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
                
-               scores = [sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold)
+               scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                best_sorted_event_box = [sorted_event_box[i] for i in range(len(nms_indices))]
+              
                best_iou_classedboxes[event_name] = [best_sorted_event_box] 
                
         self.iou_classedboxes = best_iou_classedboxes                

@@ -497,31 +497,30 @@ def MakeTrees(segimage):
                            
         return AllTrees
     
-def compare_function(box1, box2):
+def compare_function(box1, box2, event_name):
         
         
         w1, h1 = box1['width'], box1['height']
         w2, h2 = box2['width'], box2['height']
         
-        xA =max( box1['xstart'] , box2['xstart'] )
-        xB = min ( box1['xstart'] + w1, box2['xstart'] + w2)
-        yA = max( box1['ystart'] , box2['ystart'] )
-        yB = min (box1['ystart'] + h1, box2['ystart'] + h2)
+        r1 = np.sqrt(w1 * w1 + h1*h1)/2
+        r2 = np.sqrt(w2 * w2 + h2*h2)/2
+        xA =max( box1['xcenter'] , box2['xcenter'] )
+        xB = min ( box1['xcenter'] + r1, box2['xcenter'] + r2)
+        yA = max( box1['ycenter'] , box2['ycenter'] )
+        yB = min (box1['ycenter'] + r1, box2['ycenter'] + r2)
         
-        tA = box1['real_time_event']
-        tB = box2['real_time_event']
-
         intersect = max(0, xB - xA) * max(0, yB - yA) 
 
 
 
-        union = w1*h1 + w2*h2 - intersect
+        union = r1*r1 + r2*r2  - intersect
 
-        return float(np.true_divide(intersect, union))    
+        return float(np.true_divide(intersect, union))   
     
+
     
-    
-def fastnms(boxes, scores, nms_threshold, score_threshold ):
+def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
 
 
     
@@ -531,23 +530,73 @@ def fastnms(boxes, scores, nms_threshold, score_threshold ):
 
     assert len(scores) == len(boxes)
     assert scores is not None
-    scores = get_max_score_index(scores, score_threshold)
-    indicies = []
-    for i in range(0, len(scores)):
-        idx = int(scores[i][1])
-        keep = True
+    if scores is not None:
+        assert len(scores) == len(boxes)
+
+    boxes = np.array(boxes)
+
+    
+        # if the bounding boxes integers, convert them to floats --
+        # this is important since we'll be doing a bunch of divisions
+    if boxes.dtype.kind == "i":
+        boxes = boxes.astype("float")
+
+    # initialize the list of picked indexes
+    pick = []
+
+    # sort the bounding boxes by the associated scores
+    scores = get_max_score_index(scores, score_threshold, 0, False)
+    idxs = np.array(scores, np.int32)[:, 1]
+
+    while len(idxs) > 0:
+        # grab the last index in the indexes list, add the index
+        # value to the list of picked indexes, then initialize
+        # the suppression list (i.e. indexes that will be deleted)
+        # using the last index
+        last = len(idxs) - 1
+        i = idxs[last]
         
-        for k in range(0, len(indicies)):
-            if not keep:
-                break
-            kept_idx = indicies[k]
-            overlap = compare_function(boxes[idx], boxes[kept_idx])
-            keep = (overlap <= nms_threshold)
-        if keep:
-                 indicies.append(idx)
+        suppress = [last]
 
+        # loop over all indexes in the indexes list
+        for pos in range(0, last):
+            # grab the current index
+            j = idxs[pos]
 
-    return indicies
+            # compute the ratio of overlap between the two boxes and the area of the second box
+            overlap = compare_function(boxes[i], boxes[j],event_name)
+            
+            # if there is sufficient overlap, suppress the current bounding box
+            if overlap > nms_threshold:
+                
+                print(overlap,  boxes[j], pos)
+                   
+                suppress.append(pos)
+                
+            else:
+                if i not in pick:
+                   pick.append(i)
+                                            
+        # delete all indexes from the index list that are in the suppression list
+        idxs = np.delete(idxs, suppress)
+
+    # return only the indicies of the bounding boxes that were picked
+    return pick
+
+def area_function(boxes):
+    
+    
+    """Calculate the area of each polygon in polys
+
+    :param polys: a list of polygons, each specified by its verticies
+    :type polys: list
+    :return: a list of areas corresponding the list of polygons
+    :rtype: list
+    """
+    areas = []
+    for poly in boxes:
+        areas.append(cv2.contourArea(np.array(poly, np.int32)))
+    return areas
     
 def get_max_score_index(scores, threshold=0, top_k=0, descending=True):
     """ Get the max scores with corresponding indicies
