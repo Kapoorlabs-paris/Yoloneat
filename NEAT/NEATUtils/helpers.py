@@ -449,7 +449,7 @@ def DensityCounter(MarkerImage, TrainshapeX, TrainshapeY):
 
 def GenerateMarkers(Image, starmodel, n_tiles):
     
-    Markers = np.zeros_like(Image)
+    Markers = np.zeros([Image.shape[0], Image.shape[1], Image.shape[2]])
     for i in tqdm(range(0, Image.shape[0])):
         
             smallimage = Image[i,:]
@@ -532,7 +532,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold ):
     indicies = []
 
     for i in range(0, len(scores)):
-        idx = int(scores[i])
+        idx = i
         keep = True
         for k in range(0, len(indicies)):
             if not keep:

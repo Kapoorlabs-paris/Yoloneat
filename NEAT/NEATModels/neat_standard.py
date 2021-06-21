@@ -304,9 +304,13 @@ class NEATDynamic(object):
            Path(markerdir).mkdir(exist_ok=True)
            imwrite(markerdir + '/' + Name + '.tif', self.markers)     
         else:
-            
-            self.markers = imread(markerdir + '/' + Name + '.tif')
-            
+            try:
+               self.markers = imread(markerdir + '/' + Name + '.tif')
+            except:
+                self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
+                markerdir = self.savedir + '/' + 'Markers'
+                Path(markerdir).mkdir(exist_ok=True)
+                imwrite(markerdir + '/' + Name + '.tif', self.markers)
         self.marker_tree = MakeTrees(self.markers)
         
         print('Computing density of each marker')
@@ -415,8 +419,10 @@ class NEATDynamic(object):
                                             smallimage = normalizeFloatZeroOne(smallimage,1,99.8)         
                                             count = count + 1                        
                                             tree, location = self.marker_tree[str(int(inputtime))]
+                                            print(len(location))
                                             for i in range(len(location)):
                                                 
+                                                print(location[i])
                                                 crop_xminus = location[i][1]  - int(self.imagex/2)
                                                 crop_xplus = location[i][1]  + int(self.imagex/2)
                                                 crop_yminus = location[i][0]  - int(self.imagey/2)
@@ -456,11 +462,12 @@ class NEATDynamic(object):
                                             self.classedboxes = classedboxes    
                                             self.eventboxes =  eventboxes
                                             #nms over time
-                                            self.nms()
-                                            self.to_csv()
-                                            eventboxes = []
-                                            classedboxes = {}    
-                                            count = 0
+                                            if count%self.imaget == 0:
+                                                    self.nms()
+                                                    self.to_csv()
+                                                    eventboxes = []
+                                                    classedboxes = {}    
+                                                    count = 0
                                 
                             
     def remove_marker_locations(self, tcenter, location):
