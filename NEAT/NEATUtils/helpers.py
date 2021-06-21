@@ -533,15 +533,17 @@ def fastnms(boxes, scores, nms_threshold, score_threshold ):
     assert scores is not None
     scores = get_max_score_index(scores, score_threshold)
     indicies = []
-
     for i in range(0, len(scores)):
         idx = int(scores[i][1])
+        keep = True
+        
         for k in range(0, len(indicies)):
-            keep = True
+            if not keep:
+                break
             kept_idx = indicies[k]
             overlap = compare_function(boxes[idx], boxes[kept_idx])
             keep = (overlap <= nms_threshold)
-            if keep:
+        if keep:
                  indicies.append(idx)
 
 
