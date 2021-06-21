@@ -555,7 +555,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
         # using the last index
         last = len(idxs) - 1
         i = idxs[last]
-        
+        pick.append(i)
         suppress = [last]
 
         # loop over all indexes in the indexes list
@@ -568,20 +568,15 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
             
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
-                
-                print(overlap,  boxes[j], pos)
                    
                 suppress.append(pos)
-                
-            else:
-                if i not in pick:
-                   pick.append(i)
                                             
         # delete all indexes from the index list that are in the suppression list
         idxs = np.delete(idxs, suppress)
 
     # return only the indicies of the bounding boxes that were picked
     return pick
+
 
 def area_function(boxes):
     
