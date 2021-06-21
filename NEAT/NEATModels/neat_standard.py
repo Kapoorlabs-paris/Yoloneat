@@ -404,7 +404,7 @@ class NEATDynamic(object):
                                 self.eventboxes =  eventboxes
                                 #nms over time
                                 self.nms()
-                                if count%self.imaget==0:
+                                if count%2==0:
                                         self.nms()
                                         self.to_csv()
                                         eventboxes = []
@@ -461,7 +461,7 @@ class NEATDynamic(object):
                                             self.classedboxes = classedboxes    
                                             self.eventboxes =  eventboxes
                                             #nms over time
-                                            if count%self.imaget == 0:
+                                            if count%2 == 0:
                                                     self.nms()
                                                     self.to_csv()
                                                     eventboxes = []
@@ -530,7 +530,7 @@ class NEATDynamic(object):
                event_box = self.classedboxes[event_name][0]
                sorted_event_box = sorted(event_box, key = lambda k : k['xcenter'], reverse = False)
                sorted_event_box = sorted(sorted_event_box, key = lambda k : k['ycenter'], reverse = False)
-              
+               sorted_event_box = sorted(sorted_event_box, key = lambda k : k['real_time_event'], reverse = False)
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]

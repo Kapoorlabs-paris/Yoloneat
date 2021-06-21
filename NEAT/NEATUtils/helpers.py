@@ -545,7 +545,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
     pick = []
 
     # sort the bounding boxes by the associated scores
-    scores = get_max_score_index(scores, score_threshold, 0, False)
+    scores = get_max_score_index(scores, score_threshold, 0, True)
     idxs = np.array(scores, np.int32)[:, 1]
 
     while len(idxs) > 0:
