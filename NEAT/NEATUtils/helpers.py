@@ -507,8 +507,11 @@ def compare_function(box1, box2):
         xB = min ( box1['xstart'] + w1, box2['xstart'] + w2)
         yA = max( box1['ystart'] , box2['ystart'] )
         yB = min (box1['ystart'] + h1, box2['ystart'] + h2)
+        
+        tA = box1['real_time_event']
+        tB = box2['real_time_event']
 
-        intersect = max(0, xB - xA) * max(0, yB - yA)
+        intersect = max(0, xB - xA) * max(0, yB - yA) 
 
 
 
@@ -516,6 +519,35 @@ def compare_function(box1, box2):
 
         return float(np.true_divide(intersect, union))    
     
+    
+def pynms(boxes, event_name, nms_threshold):
+    x1 = boxes[:]['xstart']
+    y1 = boxes[:]['ystart']
+    x2 = boxes[:]['xstart'] + boxes[:]['width']
+    y2 = boxes[:]['ystart'] + boxes[:]['height']
+    scores = boxes[:, event_name]
+
+    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+    order = scores.argsort()[::-1]
+
+    keep = []
+    while order.size > 0:
+        i = order[0]
+        keep.append(i)
+        xx1 = np.maximum(x1[i], x1[order[1:]])
+        yy1 = np.maximum(y1[i], y1[order[1:]])
+        xx2 = np.minimum(x2[i], x2[order[1:]])
+        yy2 = np.minimum(y2[i], y2[order[1:]])
+
+        w = np.maximum(0.0, xx2 - xx1 + 1)
+        h = np.maximum(0.0, yy2 - yy1 + 1)
+        inter = w * h
+        ovr = inter / (areas[i] + areas[order[1:]] - inter)
+
+        inds = np.where(ovr <= nms_threshold)[0]
+        order = order[inds + 1]
+
+    return keep    
     
 def fastnms(boxes, scores, nms_threshold, score_threshold ):
 
@@ -527,27 +559,57 @@ def fastnms(boxes, scores, nms_threshold, score_threshold ):
 
     assert len(scores) == len(boxes)
     assert scores is not None
-
-
+    scores = get_max_score_index(scores, score_threshold)
     indicies = []
 
     for i in range(0, len(scores)):
-        idx = i
-        keep = True
+        idx = int(scores[i][1])
         for k in range(0, len(indicies)):
-            if not keep:
-                break
+           
             kept_idx = indicies[k]
             overlap = compare_function(boxes[idx], boxes[kept_idx])
             keep = (overlap <= nms_threshold)
+            if keep:
+                 indicies.append(idx)
 
-        if keep:
-            indicies.append(idx)
-
-        
 
     return indicies
     
+def get_max_score_index(scores, threshold=0, top_k=0, descending=True):
+    """ Get the max scores with corresponding indicies
+
+    Adapted from the OpenCV c++ source in `nms.inl.hpp <https://github.com/opencv/opencv/blob/ee1e1ce377aa61ddea47a6c2114f99951153bb4f/modules/dnn/src/nms.inl.hpp#L33>`__
+
+    :param scores: a list of scores
+    :type scores: list
+    :param threshold: consider scores higher than this threshold
+    :type threshold: float
+    :param top_k: return at most top_k scores; if 0, keep all
+    :type top_k: int
+    :param descending: if True, list is returened in descending order, else ascending
+    :returns: a  sorted by score list  of [score, index]
+    """
+    score_index = []
+
+    # Generate index score pairs
+    for i, score in enumerate(scores):
+        if (threshold > 0) and (score > threshold):
+            score_index.append([score, i])
+        else:
+            score_index.append([score, i])
+
+    # Sort the score pair according to the scores in descending order
+    npscores = np.array(score_index)
+
+    if descending:
+        npscores = npscores[npscores[:,0].argsort()[::-1]] #descending order
+    else:
+        npscores = npscores[npscores[:,0].argsort()] # ascending order
+
+    if top_k > 0:
+        npscores = npscores[0:top_k]
+
+    return npscores.tolist()
     
 """
 This method is used to create a segmentation image of an input image (StarDist probability or distance map) using marker controlled watershedding using a mask image (UNET) 

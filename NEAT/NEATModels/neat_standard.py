@@ -1,7 +1,7 @@
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, pynms
 from keras import callbacks
 import os
 import math
@@ -419,10 +419,8 @@ class NEATDynamic(object):
                                             smallimage = normalizeFloatZeroOne(smallimage,1,99.8)         
                                             count = count + 1                        
                                             tree, location = self.marker_tree[str(int(inputtime))]
-                                            print(len(location))
                                             for i in range(len(location)):
                                                 
-                                                print(location[i])
                                                 crop_xminus = location[i][1]  - int(self.imagex/2)
                                                 crop_xplus = location[i][1]  + int(self.imagex/2)
                                                 crop_yminus = location[i][0]  - int(self.imagey/2)
@@ -569,7 +567,7 @@ class NEATDynamic(object):
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
                                                       
-                                                      if confidence >=0.9:
+                                                      if confidence >= self.event_threshold:
                                                               xlocations.append(xcenter)
                                                               ylocations.append(ycenter)
                                                               scores.append(score)
