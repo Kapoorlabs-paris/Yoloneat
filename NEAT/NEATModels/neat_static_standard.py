@@ -9,7 +9,7 @@ Created on Sat May 23 15:13:01 2020
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, nonfcn_yoloprediction, normalizeFloatZeroOne
+from NEATUtils.helpers import save_json, load_json, yoloprediction, nonfcn_yoloprediction, normalizeFloatZeroOne, fastnms
 from keras import callbacks
 import os
 from tqdm import tqdm
@@ -265,13 +265,14 @@ class NEATStatic(object):
         
         
 
-    def predict(self, imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01, fcn = True, height = None, width = None):
+    def predict(self, imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01, fcn = True, height = None, width = None, RGB = False):
         
         self.imagename = imagename
         self.image = imread(imagename)
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.fcn = fcn
+        self.RGB = RGB
         self.height = height
         self.width = width
         self.overlap_percent = overlap_percent
@@ -281,58 +282,111 @@ class NEATStatic(object):
        
         eventboxes = []
         classedboxes = {}    
-        count = 0    
-        for inputtime in tqdm(range(0, self.image.shape[0])):
-            if inputtime < self.image.shape[0]:
-                       
-                        count = count + 1
-            smallimage = self.image[inputtime,:]
+        count = 0
+        if RGB == False:
+                for inputtime in tqdm(range(0, self.image.shape[0])):
+                    if inputtime < self.image.shape[0]:
+
+                                count = count + 1
+                    smallimage = self.image[inputtime,:]
+
+                    #Break image into tiles if neccessary
+                    if fcn:
+                        smallimage = normalizeFloatZeroOne(smallimage,1,99.8)  
+                        predictions, allx, ally = self.predict_main(smallimage)
+                    else:
+
+                        self.make_non_fcn(smallimage)
+                        predictions, allx, ally = self.predict_nonfcn(smallimage)
+                    #Iterate over tiles
+                    for p in range(0,len(predictions)):   
+
+                      sum_time_prediction = predictions[p]
+
+                      if sum_time_prediction is not None:
+                         #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
+                         for i in range(0, sum_time_prediction.shape[0]):
+                              time_prediction =  sum_time_prediction[i]
+                              if self.fcn:
+                                 boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
+                              else:
+                                 boxprediction = nonfcn_yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
+
+                              if boxprediction is not None:
+                                      eventboxes = eventboxes + boxprediction
+
+                    for (event_name,event_label) in self.key_categories.items(): 
+
+                        if event_label > 0:
+                             current_event_box = []
+                             for box in eventboxes:
+
+                                event_prob = box[event_name]
+                                if event_prob > self.event_threshold:
+
+                                    current_event_box.append(box)
+                             classedboxes[event_name] = [current_event_box]
+
+                    self.classedboxes = classedboxes    
+                    self.eventboxes =  eventboxes  
+
+                    self.nms()
+                    self.to_csv()
+                    eventboxes = []
+                    classedboxes = {}    
+                    count = 0
                     
-            #Break image into tiles if neccessary
-            if fcn:
-                smallimage = normalizeFloatZeroOne(smallimage,1,99.8)  
-                predictions, allx, ally = self.predict_main(smallimage)
-            else:
-                
-                self.make_non_fcn(smallimage)
-                predictions, allx, ally = self.predict_nonfcn(smallimage)
-            #Iterate over tiles
-            for p in range(0,len(predictions)):   
-    
-              sum_time_prediction = predictions[p]
-              
-              if sum_time_prediction is not None:
-                 #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
-                 for i in range(0, sum_time_prediction.shape[0]):
-                      time_prediction =  sum_time_prediction[i]
-                      if self.fcn:
-                         boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
-                      else:
-                         boxprediction = nonfcn_yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
-                          
-                      if boxprediction is not None:
-                              eventboxes = eventboxes + boxprediction
-                         
-            for (event_name,event_label) in self.key_categories.items(): 
-                     
-                if event_label > 0:
-                     current_event_box = []
-                     for box in eventboxes:
-                        
-                        event_prob = box[event_name]
-                        if event_prob > self.event_threshold:
-                           
-                            current_event_box.append(box)
-                     classedboxes[event_name] = [current_event_box]
-                 
-            self.classedboxes = classedboxes    
-            self.eventboxes =  eventboxes  
+        if RGB:
             
-            self.nms()
-            self.to_csv()
-            eventboxes = []
-            classedboxes = {}    
-            count = 0
+            
+                    
+                    smallimage = self.image[:,:,0]
+                    smallimage = normalizeFloatZeroOne(smallimage,1,99.8)    
+                    #Break image into tiles if neccessary
+                    if fcn:
+                        
+                        predictions, allx, ally = self.predict_main(smallimage)
+                    else:
+
+                        self.make_non_fcn(smallimage)
+                        predictions, allx, ally = self.predict_nonfcn(smallimage)
+                    #Iterate over tiles
+                    for p in range(0,len(predictions)):   
+
+                      sum_time_prediction = predictions[p]
+
+                      if sum_time_prediction is not None:
+                         #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
+                         for i in range(0, sum_time_prediction.shape[0]):
+                              time_prediction =  sum_time_prediction[i]
+                              if self.fcn:
+                                 boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, 0, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
+                              else:
+                                 boxprediction = nonfcn_yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
+
+                              if boxprediction is not None:
+                                      eventboxes = eventboxes + boxprediction
+
+                    for (event_name,event_label) in self.key_categories.items(): 
+
+                        if event_label > 0:
+                             current_event_box = []
+                             for box in eventboxes:
+
+                                event_prob = box[event_name]
+                                if event_prob > self.event_threshold:
+
+                                    current_event_box.append(box)
+                             classedboxes[event_name] = [current_event_box]
+
+                    self.classedboxes = classedboxes    
+                    self.eventboxes =  eventboxes  
+
+                    self.nms()
+                    self.to_csv()
+                    eventboxes = []
+                    classedboxes = {}    
+                    count = 0
         
         
     def bbox_iou(self,box1, box2):
@@ -375,40 +429,23 @@ class NEATStatic(object):
     def nms(self):
         
         
-        iou_classedboxes = {}
         best_iou_classedboxes = {}
         self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
                #Get all events
+               
                event_box = self.classedboxes[event_name][0]
+               sorted_event_box = sorted(event_box, key = lambda k : k['xcenter'], reverse = False)
+               sorted_event_box = sorted(sorted_event_box, key = lambda k : k['ycenter'], reverse = False)
+               sorted_event_box = sorted(sorted_event_box, key = lambda k : k[event_name], reverse = False)
+               scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
+               best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
+              
+               best_iou_classedboxes[event_name] = [best_sorted_event_box] 
                
-               #Highest probability is first
-               sorted_event_box = sorted(event_box, key = lambda k : k[event_name], reverse = True)
-               best_iou_current_event_box = []
-               
-               if sorted_event_box is not None:
-                    
-                    if len(sorted_event_box) == 0 :
-                        
-                        return []
-                    else:
-                         
-                        #lAST ROUND
-                        remove_boxes = []
-                        for i in range(len(sorted_event_box)):
-                                    best_iou_current_event_box.append(sorted_event_box[i])
-                                    for j in range(i + 1, len(sorted_event_box)):
-                                        
-                                                bbox_iou = self.bbox_iou(sorted_event_box[i], sorted_event_box[j])
-                                                if bbox_iou > self.iou_threshold:
-                                                    #EXTRA good event found     
-                                                        remove_boxes.append(sorted_event_box[j]) 
-                        for k in range(len(remove_boxes)):    
-                            if remove_boxes[k] in best_iou_current_event_box:                             
-                                 best_iou_current_event_box.remove(remove_boxes[k])
-                        best_iou_classedboxes[event_name] = [best_iou_current_event_box]                
-        self.iou_classedboxes = best_iou_classedboxes                                
+        self.iou_classedboxes = best_iou_classedboxes                              
         
     def to_csv(self):
         
@@ -698,7 +735,7 @@ class NEATStatic(object):
               column = []
               for pair in pairs: 
                    smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, pair)
-                   smallpatch = normalizeFloatZeroOne(smallpatch,1,99.8) 
+               
                    patch.append(smallpatch)
                    rowout.append(smallrowout)
                    column.append(smallcolumn)  
