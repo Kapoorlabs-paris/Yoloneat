@@ -281,19 +281,20 @@ def SegFreeImageLabelDataSet(image_dir, csv_dir,save_dir, static_name, static_la
                   
                          name = os.path.basename(os.path.splitext(fname)[0])   
                          image = imread(fname)
+                         image = image[:,:,0]
                          image = normalizeFloatZeroOne(image,1,99.8)    
                          for i in  range(0, len(static_name)):
                              event_name = static_name[i]
                              trainlabel = static_label[i]
                              if Csvname == csv_name_diff + name + event_name:
                                             dataset = pd.read_csv(csvfname)
-                                            time = dataset[dataset.keys()[0]][1:]
+                                            #time = dataset[dataset.keys()[0]][1:]
                                             y = dataset[dataset.keys()[1]][1:]
-                                            x = dataset[dataset.keys()[2]][1:]     
+                                            x = dataset[dataset.keys()[0]][1:]     
                                             
                                             #Categories + XYHW + Confidence 
-                                            for (key, t) in time.items():
-                                               SegFreeImageMaker(t, y[key], x[key], image, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir)    
+                                            for (key, t) in x.items():
+                                               SegFreeImageMaker(1, y[key], x[key], image, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir)    
                                                count = count + 1                 
     
 def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0oneatVal', static = False):
@@ -305,7 +306,7 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
             files_raw = glob.glob(raw_path)
             files_raw.sort
             if static:
-                  Images= [imread(fname)[0,:] for fname in files_raw]
+                  Images= [imread(fname) for fname in files_raw]
             else:      
                   Images= [imread(fname) for fname in files_raw]
             names = [Readname(fname)  for fname in files_raw]
@@ -394,7 +395,7 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, to
                                     
                                     region =(slice(int(time - 1),int(time)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
                                            slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
-                                   
+                                    
                                     crop_image = image[region]      
                                     seglocationX = (newcenter[1] - crop_Xminus)
                                     seglocationY = (newcenter[0] - crop_Yminus)
@@ -463,16 +464,15 @@ def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, offset, total
                         Label = np.zeros([total_categories + 2])
                          
                         Label[trainlabel] = 1
-                        if x + shift[0]> sizeX/2 and y + shift[1] > sizeY/2 and x + shift[0] + int(ImagesizeX/2) < image.shape[2] and y + shift[1]+ int(ImagesizeY/2) < image.shape[1]:
+                        if x + shift[0]> sizeX/2 and y + shift[1] > sizeY/2 and x + shift[0] + int(ImagesizeX/2) < image.shape[1] and y + shift[1]+ int(ImagesizeY/2) < image.shape[0]:
                                     crop_Xminus = x  - int(ImagesizeX/2)
                                     crop_Xplus = x   + int(ImagesizeX/2)
                                     crop_Yminus = y  - int(ImagesizeY/2)
                                     crop_Yplus = y   + int(ImagesizeY/2)
                                  
                                     
-                                    region =(slice(int(time - 1),int(time)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
+                                    region =(slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
                                            slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
-                                   
                                     crop_image = image[region]      
                                     seglocationX = (newcenter[1] - crop_Xminus)
                                     seglocationY = (newcenter[0] - crop_Yminus)
@@ -482,8 +482,7 @@ def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, offset, total
                                     
 
                                     
-                                    
-                                    if(crop_image.shape[1]== ImagesizeY and crop_image.shape[2]== ImagesizeX):
+                                    if(crop_image.shape[0]== ImagesizeY and crop_image.shape[1]== ImagesizeX):
                                              imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))  
                                              Event_data.append([Label[i] for i in range(0,len(Label))])
                                              if(os.path.exists(save_dir + '/' + (newname) + ".csv")):

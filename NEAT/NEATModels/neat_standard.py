@@ -1,7 +1,7 @@
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, pynms
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms
 from keras import callbacks
 import os
 import math
@@ -286,7 +286,7 @@ class NEATDynamic(object):
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
         
-    def markers(self, imagename, starmodel, savedir,  n_tiles, markerdir = None):
+    def get_markers(self, imagename, starmodel, savedir,  n_tiles, markerdir = None):
         
         
         self.starmodel = starmodel
@@ -530,7 +530,7 @@ class NEATDynamic(object):
                event_box = self.classedboxes[event_name][0]
                sorted_event_box = sorted(event_box, key = lambda k : k['xcenter'], reverse = False)
                sorted_event_box = sorted(sorted_event_box, key = lambda k : k['ycenter'], reverse = False)
-               sorted_event_box = sorted(sorted_event_box, key = lambda k : k['real_time_event'], reverse = False)
+               sorted_event_box = sorted(sorted_event_box, key = lambda k : k[event_name], reverse = False)
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
