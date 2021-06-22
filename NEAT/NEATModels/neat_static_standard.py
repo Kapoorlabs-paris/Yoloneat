@@ -346,6 +346,7 @@ class NEATStatic(object):
                     if fcn:
                         
                         predictions, allx, ally = self.predict_main(smallimage)
+                        
                     else:
 
                         self.make_non_fcn(smallimage)
@@ -381,50 +382,14 @@ class NEATStatic(object):
 
                     self.classedboxes = classedboxes    
                     self.eventboxes =  eventboxes  
-
+                    
                     self.nms()
                     self.to_csv()
                     eventboxes = []
                     classedboxes = {}    
                     count = 0
         
-        
-    def bbox_iou(self,box1, box2):
-        
-        
-        w1, h1 = box1['width'], box1['height']
-        w2, h2 = box2['width'], box2['height']
-        
-        xA =max( box1['xstart'] , box2['xstart'] )
-        xB = min ( box1['xstart'] + w1, box2['xstart'] + w2)
-        yA = max( box1['ystart'] , box2['ystart'] )
-        yB = min (box1['ystart'] + h1, box2['ystart'] + h2)
-
-        intersect = max(0, xB - xA) * max(0, yB - yA)
-
-
-
-        union = w1*h1 + w2*h2 - intersect
-        if union > 0:
-           value =  float(np.true_divide(intersect, union)) 
-        else:
-            value = 1
-        return value
-    
-    
-    def _interval_overlap(self,interval_a, interval_b):
-        x1, x2 = interval_a
-        x3, x4 = interval_b
-        if x3 < x1:
-            if x4 < x1:
-                return 0
-            else:
-                return min(x2,x4) - x1
-        else:
-            if x2 < x3:
-                 return 0
-            else:
-                return min(x2,x4) - x3
+   
         
     def nms(self):
         
@@ -442,7 +407,6 @@ class NEATStatic(object):
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
-              
                best_iou_classedboxes[event_name] = [best_sorted_event_box] 
                
         self.iou_classedboxes = best_iou_classedboxes                              
@@ -471,14 +435,23 @@ class NEATStatic(object):
                                                  radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                               else:
                                                  radius = np.sqrt( self.height * self.height + self.width* self.width  )// 4
-                                              if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2:
+                                              if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2 and self.RGB == False:
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)
                                                       scores.append(score)
                                                       confidences.append(confidence)
                                                       tlocations.append(tcenter)
                                                       radiuses.append(radius)
-                                              
+                                              if ycenter < self.image.shape[0] - self.imagey/2 and xcenter < self.image.shape[1] - self.imagex/2 and self.RGB:
+                                                  
+                                                      xlocations.append(xcenter)
+                                                      ylocations.append(ycenter)
+                                                      scores.append(score)
+                                                      confidences.append(confidence)
+                                                      tlocations.append(tcenter)
+                                                      radiuses.append(radius)
+                                                  
+                                                      
                                     
                                       event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences]) 
                                       event_data = []
