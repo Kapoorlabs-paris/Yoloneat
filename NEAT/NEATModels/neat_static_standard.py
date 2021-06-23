@@ -9,7 +9,7 @@ Created on Sat May 23 15:13:01 2020
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, nonfcn_yoloprediction, normalizeFloatZeroOne, fastnms
+from NEATUtils.helpers import save_json, load_json, yoloprediction, nonfcn_yoloprediction, normalizeFloatZeroOne, fastnms, twod_zero_pad
 from keras import callbacks
 import os
 from tqdm import tqdm
@@ -267,6 +267,7 @@ class NEATStatic(object):
 
     def predict(self, imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01, fcn = True, height = None, width = None, RGB = False):
         
+        
         self.imagename = imagename
         self.image = imread(imagename)
         self.savedir = savedir
@@ -275,6 +276,7 @@ class NEATStatic(object):
         self.RGB = RGB
         self.height = height
         self.width = width
+        
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
@@ -289,10 +291,10 @@ class NEATStatic(object):
 
                                 count = count + 1
                     smallimage = self.image[inputtime,:]
-
+                    smallimage = normalizeFloatZeroOne(smallimage,1,99.8) 
                     #Break image into tiles if neccessary
                     if fcn:
-                        smallimage = normalizeFloatZeroOne(smallimage,1,99.8)  
+                        
                         predictions, allx, ally = self.predict_main(smallimage)
                     else:
 
@@ -329,7 +331,7 @@ class NEATStatic(object):
 
                     self.classedboxes = classedboxes    
                     self.eventboxes =  eventboxes  
-
+               
                     self.nms()
                     self.to_csv()
                     eventboxes = []
@@ -360,10 +362,11 @@ class NEATStatic(object):
                          #For each tile the prediction vector has shape N H W Categories + Trainng Vector labels
                          for i in range(0, sum_time_prediction.shape[0]):
                               time_prediction =  sum_time_prediction[i]
+                              
                               if self.fcn:
                                  boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, 0, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
                               else:
-                                 boxprediction = nonfcn_yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
+                                 boxprediction = nonfcn_yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, 0, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
 
                               if boxprediction is not None:
                                       eventboxes = eventboxes + boxprediction
@@ -382,7 +385,6 @@ class NEATStatic(object):
 
                     self.classedboxes = classedboxes    
                     self.eventboxes =  eventboxes  
-                    
                     self.nms()
                     self.to_csv()
                     eventboxes = []
@@ -431,25 +433,19 @@ class NEATStatic(object):
                                               tcenter = iou_current_event_box['real_time_event']
                                               confidence = iou_current_event_box['confidence']
                                               score = iou_current_event_box[event_name]
+                                              
                                               if self.height is None and self.width is None:
                                                  radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                               else:
                                                  radius = np.sqrt( self.height * self.height + self.width* self.width  )// 4
-                                              if ycenter < self.image.shape[1] - self.imagey/2 and xcenter < self.image.shape[2] - self.imagex/2 and self.RGB == False:
-                                                      xlocations.append(xcenter)
-                                                      ylocations.append(ycenter)
-                                                      scores.append(score)
-                                                      confidences.append(confidence)
-                                                      tlocations.append(tcenter)
-                                                      radiuses.append(radius)
-                                              if ycenter < self.image.shape[0] - self.imagey/2 and xcenter < self.image.shape[1] - self.imagex/2 and self.RGB:
+                                            
                                                   
-                                                      xlocations.append(xcenter)
-                                                      ylocations.append(ycenter)
-                                                      scores.append(score)
-                                                      confidences.append(confidence)
-                                                      tlocations.append(tcenter)
-                                                      radiuses.append(radius)
+                                                 xlocations.append(xcenter)
+                                                 ylocations.append(ycenter)
+                                                 scores.append(score)
+                                                 confidences.append(confidence)
+                                                 tlocations.append(tcenter)
+                                                 radiuses.append(radius)
                                                   
                                                       
                                     
@@ -503,10 +499,9 @@ class NEATStatic(object):
          multiplot_widget = FigureCanvas(figure)
          ax = multiplot_widget.figure.subplots(1, 1)
          width = 400
-         dock_widget = self.viewer.window.add_dock_widget(
-         multiplot_widget, name="CellTypeStats", area='right')
+         
          multiplot_widget.figure.tight_layout()
-         self.viewer.window._qt_window.resizeDocks([dock_widget], [width], Qt.Horizontal)    
+         
          celltypeidbox.currentIndexChanged.connect(lambda eventid = celltypeidbox : CellTypeViewer(
                  self.viewer,
                  imread(imageidbox.currentText()),
@@ -548,14 +543,13 @@ class NEATStatic(object):
                        
                        patchshape = (sliceregion.shape[0], sliceregion.shape[1])  
                       
-                       smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, [0,0])
                        patch = []
                        rowout = []
                        column = []
                        
-                       patch.append(smallpatch)
-                       rowout.append(smallrowout)
-                       column.append(smallcolumn)
+                       patch.append(sliceregion)
+                       rowout.append(0)
+                       column.append(0)
                      
             else:
                   
@@ -586,12 +580,12 @@ class NEATStatic(object):
               #Include the last patch   
               rowstart = sliceregion.shape[0] - patchy
               colstart = 0
-              while colstart < sliceregion.shape[1]:
+              while colstart < sliceregion.shape[1] :
                             pairs.append([rowstart, colstart])
                             colstart+=jumpx
               rowstart = 0
               colstart = sliceregion.shape[1] - patchx
-              while rowstart < sliceregion.shape[0]:
+              while rowstart < sliceregion.shape[0] :
                             pairs.append([rowstart, colstart])
                             rowstart+=jumpy              
                             
@@ -611,11 +605,9 @@ class NEATStatic(object):
                         patch = []
                         rowout = []
                         column = []
-                        patchshape = (sliceregion.shape[0], sliceregion.shape[1]) 
-                        smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, [0,0])
-                        patch.append(smallpatch)
-                        rowout.append(smallrowout)
-                        column.append(smallcolumn)
+                        patch.append(sliceregion)
+                        rowout.append(0)
+                        column.append(0)
                        
             self.patch = patch          
             self.sy = rowout
@@ -732,10 +724,9 @@ def chunk_list(image, patchshape, pair):
 
             region = (slice(rowstart, endrow),
                       slice(colstart, endcol))
-
+           
             # The actual pixels in that region.
             patch = image[region]
-
             # Always normalize patch that goes into the netowrk for getting a prediction score 
 
 
@@ -754,13 +745,12 @@ class CellTypeViewer(object):
            self.canvas = canvas
            self.key_categories = key_categories
            self.savedir = savedir
-           self.ax = ax
-           self.figure = figure
+         
            self.plot()
     
     def plot(self):
         
-        self.ax.cla()
+        
         
         for (celltype_name,event_label) in self.key_categories.items():
                         if event_label > 0 and self.celltype_name == celltype_name:
@@ -776,13 +766,7 @@ class CellTypeViewer(object):
                              self.viewer.add_image(self.image, name='Image')               
                              self.viewer.add_points(np.asarray(event_locations), size = size_locations ,name = celltype_name, face_color = [0]*4, edge_color = "red", edge_width = 1)
                              self.viewer.theme = 'light'
-                             self.ax.plot(timelist, eventlist, '-r')
-                             self.ax.set_title(celltype_name + "Instances")
-                             self.ax.set_xlabel("Time")
-                             self.ax.set_ylabel("Counts")
-                             self.figure.canvas.draw()
-                             self.figure.canvas.flush_events()
-                             plt.savefig(self.savedir  + celltype_name   + '.png') 
+                            
                              
     def event_counter(self, csv_file):
      

@@ -403,9 +403,7 @@ def chunk_list(image, patchshape, stride, pair):
             # The actual pixels in that region.
             patch = image[region]
                 
-            # Always normalize patch that goes into the netowrk for getting a prediction score 
-            patch = normalizeFloatZeroOne(patch,1,99.8)
-            patch = zero_pad(patch, stride,stride)
+            
          
         
             return patch, rowstart, colstart     
@@ -684,7 +682,7 @@ def nonfcn_yoloprediction(image, sy, sx, time_prediction, stride, inputtime, con
                                 LocationBoxes = []
                                 j = 1
                                 k = 1
-                                Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction[0,:], config, key_categories,key_cord, inputtime, mode, event_type, marker_tree)
+                                Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories,key_cord, inputtime, mode, event_type, marker_tree)
                                 #Append the box and the maximum likelehood detected class
                                 if Classybox is not None:
                                         if Classybox['confidence'] > 0.5:
@@ -700,6 +698,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           y = (k - 1) * stride
                                           x = (j - 1) * stride
                                           prediction_vector = time_prediction[k-1,j-1,:]
+                                          
                                           xstart = x + sx
                                           ystart = y + sy
                                           Class = {}
@@ -826,6 +825,8 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                   for d in [Class,box]:
                                                       classybox.update(d) 
                                                   
+                                                 
+                                                    
                                                   return classybox
                                       
                                          

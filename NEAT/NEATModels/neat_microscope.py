@@ -453,7 +453,7 @@ class NEATPredict(object):
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                               if ycenter < self.image.shape[1] - self.imagey and xcenter < self.image.shape[2] - self.imagex:
-                                                      print(ycenter, self.image.shape[1], self.imagey, xcenter, self.image.shape[2], self.imagex)
+                                                      print(round(xcenter), round(ycenter), score)
                                                       xlocations.append(xcenter)
                                                       ylocations.append(ycenter)
                                                       scores.append(score)
