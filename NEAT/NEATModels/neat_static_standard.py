@@ -385,8 +385,8 @@ class NEATStatic(object):
 
                     self.classedboxes = classedboxes    
                     self.eventboxes =  eventboxes  
-                    #self.iou_classedboxes = classedboxes
-                    self.nms()
+                    self.iou_classedboxes = classedboxes
+                    #self.nms()
                     self.to_csv()
                     eventboxes = []
                     classedboxes = {}    
@@ -796,7 +796,7 @@ class CellTypeViewer(object):
              if size > 1:
                  size_locations.append(size)
              else:
-                 size_locations.append(20)
+                 size_locations.append(2)
              
             
          return event_locations, size_locations, timelist, eventlist                                 
