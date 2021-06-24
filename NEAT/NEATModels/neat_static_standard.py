@@ -9,7 +9,7 @@ Created on Sat May 23 15:13:01 2020
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, nonfcn_yoloprediction, normalizeFloatZeroOne, fastnms, twod_zero_pad
+from NEATUtils.helpers import save_json, load_json, yoloprediction, nonfcn_yoloprediction, normalizeFloatZeroOne, fastnms, twod_zero_pad, averagenms
 from keras import callbacks
 import os
 from tqdm import tqdm
@@ -385,6 +385,7 @@ class NEATStatic(object):
 
                     self.classedboxes = classedboxes    
                     self.eventboxes =  eventboxes  
+                    #self.iou_classedboxes = classedboxes
                     self.nms()
                     self.to_csv()
                     eventboxes = []
@@ -402,13 +403,11 @@ class NEATStatic(object):
             if event_label > 0:
                #Get all events
                
-               event_box = self.classedboxes[event_name][0]
-               sorted_event_box = sorted(event_box, key = lambda k : k['xcenter'], reverse = False)
-               sorted_event_box = sorted(sorted_event_box, key = lambda k : k['ycenter'], reverse = False)
-               sorted_event_box = sorted(sorted_event_box, key = lambda k : k[event_name], reverse = False)
+               sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
+               #best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'static' )
                best_iou_classedboxes[event_name] = [best_sorted_event_box] 
                
         self.iou_classedboxes = best_iou_classedboxes                              
