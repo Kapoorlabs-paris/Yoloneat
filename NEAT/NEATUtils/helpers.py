@@ -706,7 +706,8 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                 
         
                 suppress.append(pos)
-        Averageboxes.append(newbox)                                    
+        if newbox is not None:        
+             Averageboxes.append(newbox)                                    
         # delete all indexes from the index list that are in the suppression list
         idxs = np.delete(idxs, suppress)
 

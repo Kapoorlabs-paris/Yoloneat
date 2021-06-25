@@ -27,6 +27,8 @@ import csv
 from natsort import natsorted
 import glob
 import matplotlib.pyplot as plt
+import h5py
+
 class NEATPredict(object):
     
 
@@ -276,6 +278,12 @@ class NEATPredict(object):
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
+        
+        f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
+        data_p = f.attrs['training_config']
+        data_p = data_p.decode().replace("learning_rate","lr").encode()
+        f.attrs['training_config'] = data_p
+        f.close()
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
 
         #Z slice folder listener   

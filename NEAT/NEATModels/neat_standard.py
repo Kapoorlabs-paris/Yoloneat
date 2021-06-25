@@ -29,7 +29,7 @@ from matplotlib.backends.backend_qt5agg import \
 from matplotlib.figure import Figure
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
-
+import h5py
 Boxname = 'ImageIDBox'
 EventBoxname = 'EventIDBox'
 
@@ -335,7 +335,11 @@ class NEATDynamic(object):
         self.downsample_regions = {}
         self.upsample_regions = {}
         self.candidate_regions = {}
-        
+        f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
+        data_p = f.attrs['training_config']
+        data_p = data_p.decode().replace("learning_rate","lr").encode()
+        f.attrs['training_config'] = data_p
+        f.close()
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
        
             

@@ -34,7 +34,7 @@ from matplotlib.figure import Figure
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import glob
-
+import h5py
 
 
 Boxname = 'ImageIDBox'
@@ -280,8 +280,13 @@ class NEATStatic(object):
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
+        f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
+        data_p = f.attrs['training_config']
+        data_p = data_p.decode().replace("learning_rate","lr").encode()
+        f.attrs['training_config'] = data_p
+        f.close()
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
-       
+        
         eventboxes = []
         classedboxes = {}    
         count = 0
@@ -385,8 +390,8 @@ class NEATStatic(object):
 
                     self.classedboxes = classedboxes    
                     self.eventboxes =  eventboxes  
-                    self.iou_classedboxes = classedboxes
-                    #self.nms()
+                    #self.iou_classedboxes = classedboxes
+                    self.nms()
                     self.to_csv()
                     eventboxes = []
                     classedboxes = {}    
@@ -406,8 +411,8 @@ class NEATStatic(object):
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-               best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
-               #best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'static' )
+               #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
+               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'static' )
                best_iou_classedboxes[event_name] = [best_sorted_event_box] 
                
         self.iou_classedboxes = best_iou_classedboxes                              
