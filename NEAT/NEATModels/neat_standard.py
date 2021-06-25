@@ -1,7 +1,7 @@
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms
 from keras import callbacks
 import os
 import math
@@ -439,8 +439,7 @@ class NEATDynamic(object):
                                                             ycenter = location[i][0]
                                                             xcenter = location[i][1]
                                                             prediction_vector = self.make_patches(crop_image)
-                                                            
-                                                            boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
+                                                            boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector[0], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
                                                             if len(boxprediction) > 0:
                                                                     boxprediction[0]['xcenter'] = xcenter
                                                                     boxprediction[0]['ycenter'] = ycenter
@@ -533,10 +532,11 @@ class NEATDynamic(object):
                
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-               best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
-              
-               best_iou_classedboxes[event_name] = [best_sorted_event_box] 
+               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
+               #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
+               #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
+               
+               best_iou_classedboxes[event_name] = [best_sorted_event_box]
                
         self.iou_classedboxes = best_iou_classedboxes                
     
