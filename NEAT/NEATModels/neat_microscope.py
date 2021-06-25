@@ -8,7 +8,7 @@ Created on Sun Apr 25 13:32:04 2021
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import  load_json, yoloprediction, normalizeFloatZeroOne, fastnms
+from NEATUtils.helpers import  load_json, yoloprediction, normalizeFloatZeroOne, fastnms, averagenms
 from keras import callbacks
 import os
 import tensorflow as tf
@@ -428,10 +428,11 @@ class NEATPredict(object):
                
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               #best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
                nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
-              
-               best_iou_classedboxes[event_name] = [best_sorted_event_box] 
+               
+               best_iou_classedboxes[event_name] = [sorted_event_box]
                
         self.iou_classedboxes = best_iou_classedboxes                  
         
@@ -440,7 +441,7 @@ class NEATPredict(object):
         for (event_name,event_label) in self.key_categories.items():
                    
                    if event_label > 0:
-                                  try:   
+                                  
                                       xlocations = []
                                       ylocations = []
                                       scores = []
@@ -479,9 +480,8 @@ class NEATPredict(object):
                                               writer.writerow(["y="+str(live_event_data[0][1])])
                                               live_event_data = []  
                                               count = count + 1
-                                  except:
-                                     print("No event found")
-                                     pass
+                 
+                                    
           
     def overlaptiles(self, sliceregion):
         

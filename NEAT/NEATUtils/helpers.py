@@ -599,6 +599,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
     # initialize the list of picked indexes
     pick = []
     Averageboxes = []
+    newbox = None
     # sort the bounding boxes by the associated scores
     scores = get_max_score_index(scores, score_threshold, 0, True)
     idxs = np.array(scores, np.int32)[:, 1]
@@ -706,11 +707,11 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                 
         
                 suppress.append(pos)
-        if newbox is not None:        
+                
+        if newbox is not None and newbox not in Averageboxes:        
              Averageboxes.append(newbox)                                    
         # delete all indexes from the index list that are in the suppression list
         idxs = np.delete(idxs, suppress)
-
     # return only the indicies of the bounding boxes that were picked
     return Averageboxes
 
