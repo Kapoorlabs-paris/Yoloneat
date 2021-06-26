@@ -309,7 +309,7 @@ class NEATPredict(object):
                                   else:
                                       projection = np.amax(self.Z_movie_input[self.Z_start], axis = 0)
                                   imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
-                                  Z_start = self.Z_start + 1
+                                  self.Z_start = self.Z_start + 1
                                   
                                 
                           Raw_path = os.path.join(self.imagedir, '*tif')
