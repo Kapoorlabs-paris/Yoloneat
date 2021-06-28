@@ -41,7 +41,7 @@ import h5py
 Boxname = 'ImageIDBox'
 EventBoxname = 'EventIDBox'
 
-class NEATDynamic(object):
+class NEATDynamicSegFree(object):
     
 
     """

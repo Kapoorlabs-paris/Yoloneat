@@ -23,13 +23,14 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 Z_imagedir = '/home/sancere/Kepler/FinalONEATTraining/Z_ONEAT_fly_test/'
 imagedir = '/home/sancere/Kepler/FinalONEATTraining/ONEAT_fly_test/'
 model_dir =  '/home/sancere/Kepler/FinalONEATTraining/PreMicroneatmodel/'
-model_name = 'premicroseqnetbin2d56'
+model_name = 'premicroseqnetbin2d38lstm8'
 projection_model_name = 'projectionmodelbin2'
 division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'MicroscopeCord.json'
 cordconfig = load_json(division_cord_json)
 fileextension = '*TIF'
+
 
 model = NEATPredict(None, model_dir , model_name,catconfig, cordconfig)
 projection_model = ProjectionCARE(config = None, name = projection_model_name, basedir = model_dir)
