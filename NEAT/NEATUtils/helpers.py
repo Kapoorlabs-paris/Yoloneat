@@ -897,8 +897,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                            confidence = prediction_vector[total_classes + config['c'] + b * total_coords]
                                                       if config['yolo_v0']:
                                                            confidence = 1
-                                                           
-                                                           
+                                                          
                                                   xcentermean = xcentermean + xcenter
                                                   ycentermean = ycentermean + ycenter
                                                   heightmean = heightmean + height
@@ -944,7 +943,6 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                           #Compute the box vectors 
                                                           box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
                                                             'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean, 'realangle' : realangle, 'rawangle' : rawangle}
-                                                  
                                                   if event_type == 'static':
                                                                   real_time_event = int(inputtime)
                                                                   box_time_event = int(inputtime)

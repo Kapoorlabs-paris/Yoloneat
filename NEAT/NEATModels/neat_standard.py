@@ -407,8 +407,7 @@ class NEATDynamic(object):
                                 self.classedboxes = classedboxes    
                                 self.eventboxes =  eventboxes
                                 #nms over time
-                                self.nms()
-                                if count%2==0:
+                                if count%(self.imaget/2)==0:
                                         self.nms()
                                         self.to_csv()
                                         eventboxes = []
@@ -487,39 +486,7 @@ class NEATDynamic(object):
                 
                 
         
-    def bbox_iou(self,box1, box2):
-        
-        
-        w1, h1 = box1['width'], box1['height']
-        w2, h2 = box2['width'], box2['height']
-        
-        xA =max( box1['xstart'] , box2['xstart'] )
-        xB = min ( box1['xstart'] + w1, box2['xstart'] + w2)
-        yA = max( box1['ystart'] , box2['ystart'] )
-        yB = min (box1['ystart'] + h1, box2['ystart'] + h2)
 
-        intersect = max(0, xB - xA) * max(0, yB - yA)
-
-
-
-        union = w1*h1 + w2*h2 - intersect
-
-        return float(np.true_divide(intersect, union)) 
-    
-    
-    def _interval_overlap(self,interval_a, interval_b):
-        x1, x2 = interval_a
-        x3, x4 = interval_b
-        if x3 < x1:
-            if x4 < x1:
-                return 0
-            else:
-                return min(x2,x4) - x1
-        else:
-            if x2 < x3:
-                 return 0
-            else:
-                return min(x2,x4) - x3
         
     def nms(self):
         
@@ -569,7 +536,6 @@ class NEATDynamic(object):
                                                       score = iou_current_event_box[event_name]
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
-                                                      
                                                       if confidence >= self.event_threshold:
                                                               xlocations.append(xcenter)
                                                               ylocations.append(ycenter)
@@ -578,7 +544,7 @@ class NEATDynamic(object):
                                                               tlocations.append(tcenter)
                                                               radiuses.append(radius)
                                                               angles.append(angle)
-                                                      
+                                                               
                                             
                                               event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
                                               event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
@@ -902,7 +868,8 @@ class EventViewer(object):
          angle_locations = []
          line_locations = []
          for i in range(len(listtime)):
-             tcenter = listtime[i] 
+             tcenter = int(listtime[i])
+             print(tcenter)
              ycenter = listy[i]
              xcenter = listx[i]
              size = listsize[i]
