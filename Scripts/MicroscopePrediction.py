@@ -19,8 +19,8 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 # In[ ]:
 
-
-Z_imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Z_ONEAT_fly_test/'
+Z_imagedir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/Raw_Datasets/Dros3DModel/GT/'
+#Z_imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Z_ONEAT_fly_test/'
 imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/ONEAT_fly_test/'
 model_dir =  '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Microneatmodel/'
 model_name = 'microseqnetbin2d65'
@@ -29,7 +29,7 @@ division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'MicroscopeCord.json'
 cordconfig = load_json(division_cord_json)
-fileextension = '*TIF'
+fileextension = '*tif'
 
 
 model = NEATPredict(None, model_dir , model_name,catconfig, cordconfig)
@@ -38,8 +38,8 @@ projection_model = ProjectionCARE(config = None, name = projection_model_name, b
 
 
 n_tiles = (1,1)
-Z_n_tiles = (1,1,1)
-event_threshold = 1 - 1.0E-07
+Z_n_tiles = (1,4,4)
+event_threshold = 0.999
 iou_threshold = 0.01
 nb_predictions = 10
 
