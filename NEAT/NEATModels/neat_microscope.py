@@ -292,41 +292,73 @@ class NEATPredict(object):
               Z_Raw_path = os.path.join(self.Z_imagedir, self.fileextension)
               Z_filesRaw = glob.glob(Z_Raw_path)
               Z_filesRaw = natsorted(Z_filesRaw)
+              
+              Raw_path = os.path.join(self.imagedir, '*tif')
+              filesRaw = glob.glob(Raw_path)
+              filesRaw = natsorted(filesRaw)
               for Z_movie_name in Z_filesRaw:  
                           Z_Name = os.path.basename(os.path.splitext(Z_movie_name)[0])
                           #Check for unique filename
                           if Z_Name not in self.Z_movie_name_list:
                               
                           
-                                  
-                                     image_info = TiffFile(Z_movie_name)
-                                     print(image_info) 
-                                     Z_image = imread(Z_movie_name)
+                                   
                                      self.Z_movie_name_list.append(Z_Name)
-                                     self.Z_movie_input.append(Z_image)
-                                     total_movies = len(self.Z_movie_input)
+                                     self.Z_movie_input.append(Z_movie_name)
+                                     total_Z_movies = len(self.Z_movie_input)
                                   
 
-                                     
-                                     if self.projection_model is not None:
-                                         projection = self.projection_model.predict(self.Z_movie_input[self.Z_start], 'ZYX', n_tiles = Z_n_tiles)
-                                     else:
-                                         projection = np.amax(self.Z_movie_input[self.Z_start], axis = 0)
-                                     imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
-                                     self.Z_start = self.Z_start + 1
-                                 
-                                     
-                                  
-                                  
-                                  
+              for movie_name in filesRaw:  
+                          Name = os.path.basename(os.path.splitext(movie_name)[0])
+                          #Check for unique filename
+                          if Name not in self.movie_name_list:
                               
-                                           
-                          Raw_path = os.path.join(self.imagedir, '*tif')
-                          filesRaw = glob.glob(Raw_path)
-                          filesRaw = natsorted(filesRaw)
                           
+                                   
+                                     self.movie_name_list.append(Name)
+                                     self.movie_input.append(movie_name)
+                                     total_movies = len(self.movie_input)                       
+
+              doproject = True
+              for  i in range(len(self.Z_movie_name_list)):
+                   
+                    Z_Name = self.Z_movie_name_list[i]
+                    Z_path = self.Z_movie_input[i]
+                    
+                    for j in range(self.movie_name_list):
+                        
+                        Name = self.movie_name_list[j]
+                        path = self.movie_input[i]
+                        
+                        if Name == Z_Name:
+                            
+                             doproject = False
+                        
+                  
+                   if doproject:
+                                     try:
+                                             Z_image = imread(Z_path)
+                                             if self.projection_model is not None:
+                                                 projection = self.projection_model.predict(Z_image, 'ZYX', n_tiles = Z_n_tiles)
+                                             else:
+                                                 projection = np.amax(Z_image, axis = 0)
+                                             imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
+                                             self.Z_start = self.Z_start + 1
+                                 
+                                     except:
+                                           if Z_Name in self.Z_movie_name_list:
+                                              self.Z_movie_name_list.remove(Z_Name)
+                                           if Z_movie_name in self.Z_movie_input:      
+                                              self.Z_movie_input.remove(Z_movie_name)
+                                           if Name in self.movie_name_list:   
+                                              self.movie_name_list.remove(Name)
+                                           if movie_name in self.movie_input:   
+                                              self.movie_input.remove(movie_name)
+                                  
+                                  
+                   
                           
-                          for movie_name in filesRaw:  
+              for movie_name in filesRaw:  
                                               Name = os.path.basename(os.path.splitext(movie_name)[0])
                                               #Check for unique filename
                                               
@@ -336,10 +368,9 @@ class NEATPredict(object):
                                                       
                                                  
                                                       image = imread(movie_name)
-                                                      self.movie_name_list.append(Name)
+                                                      
                                                       sizey = image.shape[0]
                                                       sizex = image.shape[1]
-                                                      self.movie_input.append(image)
                                                       total_movies = len(self.movie_input)
                                                       if total_movies > self.size_tminus + self.start:
                                                                   current_movies = self.movie_input[self.start:self.start + self.size_tminus + 1]
@@ -392,41 +423,7 @@ class NEATPredict(object):
                                                 
         
         
-        
-    def bbox_iou(self,box1, box2):
-        
-        
-        w1, h1 = box1['width'], box1['height']
-        w2, h2 = box2['width'], box2['height']
-        
-        xA =max( box1['xstart'] , box2['xstart'] )
-        xB = max ( box1['xstart'] + w1, box2['xstart'] + w2)
-        yA = max( box1['ystart'] , box2['ystart'] )
-        yB = max (box1['ystart'] + h1, box2['ystart'] + h2)
 
-        intersect = max(0, xB - xA) * max(0, yB - yA)
-
-
-
-        union = w1*h1 + w2*h2 - intersect
-
-        return float(np.true_divide(intersect, union)) - 1
-    
-    
-    def _interval_overlap(self,interval_a, interval_b):
-        x1, x2 = interval_a
-        x3, x4 = interval_b
-        if x3 < x1:
-            if x4 < x1:
-                return 0
-            else:
-                return min(x2,x4) - x1
-        else:
-            if x2 < x3:
-                 return 0
-            else:
-                return min(x2,x4) - x3
-        
     def nms(self):
         
         
