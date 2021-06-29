@@ -299,19 +299,27 @@ class NEATPredict(object):
                               
                           
                                   
+                                  try:    
+                                     Z_image = imread(Z_movie_name)
+                                     self.Z_movie_name_list.append(Z_Name)
+                                     self.Z_movie_input.append(Z_image)
+                                     total_movies = len(self.Z_movie_input)
                                   
-                                  Z_image = imread(Z_movie_name)
-                                  self.Z_movie_name_list.append(Z_Name)
-                                  self.Z_movie_input.append(Z_image)
-                                  total_movies = len(self.Z_movie_input)
-                                  if self.projection_model is not None:
-                                       projection = self.projection_model.predict(self.Z_movie_input[self.Z_start], 'ZYX', n_tiles = Z_n_tiles)
-                                  else:
-                                      projection = np.amax(self.Z_movie_input[self.Z_start], axis = 0)
-                                  imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
-                                  self.Z_start = self.Z_start + 1
+
+                                     
+                                     if self.projection_model is not None:
+                                         projection = self.projection_model.predict(self.Z_movie_input[self.Z_start], 'ZYX', n_tiles = Z_n_tiles)
+                                     else:
+                                         projection = np.amax(self.Z_movie_input[self.Z_start], axis = 0)
+                                         imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
+                                         self.Z_start = self.Z_start + 1
+                                  except:
+                                      pass
                                   
-                                
+                                  
+                                  
+                              
+                                           
                           Raw_path = os.path.join(self.imagedir, '*tif')
                           filesRaw = glob.glob(Raw_path)
                           filesRaw = natsorted(filesRaw)
@@ -325,7 +333,7 @@ class NEATPredict(object):
                                                   
                                                                             
                                                       
-                                                      
+                                                 
                                                       image = imread(movie_name)
                                                       self.movie_name_list.append(Name)
                                                       sizey = image.shape[0]
@@ -378,8 +386,9 @@ class NEATPredict(object):
                                                                   self.nms()
                                                                   self.to_csv()
                                                                   self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, self.start + 1, Z_start, fileextension = self.fileextension, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
-                            
-                         
+                               
+                                 
+                                                
         
         
         
@@ -450,7 +459,8 @@ class NEATPredict(object):
                                       predcount = 0
                                       iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                       iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)
-                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = True) 
+                                      #iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = False) 
+                                      print(iou_current_event_boxes)
                                       for iou_current_event_box in iou_current_event_boxes:
                                               if predcount > self.nb_prediction:
                                                    break
