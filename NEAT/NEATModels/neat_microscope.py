@@ -22,7 +22,7 @@ from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 from keras.models import load_model
-from tifffile import imread, imwrite
+from tifffile import imread, imwrite, TiffFile
 import csv
 from natsort import natsorted
 import glob
@@ -299,7 +299,8 @@ class NEATPredict(object):
                               
                           
                                   
-                                  try:    
+                                     image_info = TiffFile(Z_movie_name)
+                                     print(image_info) 
                                      Z_image = imread(Z_movie_name)
                                      self.Z_movie_name_list.append(Z_Name)
                                      self.Z_movie_input.append(Z_image)
@@ -313,8 +314,8 @@ class NEATPredict(object):
                                          projection = np.amax(self.Z_movie_input[self.Z_start], axis = 0)
                                      imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
                                      self.Z_start = self.Z_start + 1
-                                  except:
-                                      pass
+                                 
+                                     
                                   
                                   
                                   
@@ -458,9 +459,9 @@ class NEATPredict(object):
                                       radiuses = []
                                       predcount = 0
                                       iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)
-                                      #iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = False) 
-                                      print(iou_current_event_boxes)
+                                      #iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)
+                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = False) 
+                                      
                                       for iou_current_event_box in iou_current_event_boxes:
                                               if predcount > self.nb_prediction:
                                                    break
