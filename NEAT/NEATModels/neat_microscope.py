@@ -325,7 +325,7 @@ class NEATPredict(object):
                     Z_Name = self.Z_movie_name_list[i]
                     Z_path = self.Z_movie_input[i]
                     
-                    for j in range(self.movie_name_list):
+                    for j in range(len(self.movie_name_list)):
                         
                         Name = self.movie_name_list[j]
                         path = self.movie_input[i]
@@ -335,7 +335,7 @@ class NEATPredict(object):
                              doproject = False
                         
                   
-                   if doproject:
+                    if doproject:
                                      try:
                                              Z_image = imread(Z_path)
                                              if self.projection_model is not None:
@@ -358,22 +358,24 @@ class NEATPredict(object):
                                   
                    
                           
-              for movie_name in filesRaw:  
-                                              Name = os.path.basename(os.path.splitext(movie_name)[0])
-                                              #Check for unique filename
-                                              
-                                              if Name not in self.movie_name_list:
+              for movie_name in filesRaw:
+
+                        
+                                                      Name = os.path.basename(os.path.splitext(movie_name)[0])
+                                                      #Check for unique filename
+                                                                    
+                                            
                                                   
-                                                                            
-                                                      
+                                                                      
                                                  
-                                                      image = imread(movie_name)
                                                       
-                                                      sizey = image.shape[0]
-                                                      sizex = image.shape[1]
+                                                      
+                                                     
                                                       total_movies = len(self.movie_input)
                                                       if total_movies > self.size_tminus + self.start:
-                                                                  current_movies = self.movie_input[self.start:self.start + self.size_tminus + 1]
+                                                                  current_movies = imread(self.movie_input[self.start:self.start + self.size_tminus + 1])
+                                                                  sizey = current_movies.shape[1]
+                                                                  sizex = current_movies.shape[2]
                                                                   print('Predicting on Movies:',movie_name_list[self.start:self.start + self.size_tminus + 1]) 
                                                                   inputtime = self.start + self.size_tminus
                                                                   smallimage = np.zeros([self.size_tminus + 1, sizey, sizex])
