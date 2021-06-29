@@ -390,7 +390,7 @@ class NEATDynamicSegFree(object):
                                 self.classedboxes = classedboxes    
                                 self.eventboxes =  eventboxes
                                 #nms over time
-                                if count%(self.imaget/2)==0:
+                                if count%(self.imaget)==0:
                                         self.nms()
                                         self.to_csv()
                                         eventboxes = []
@@ -457,8 +457,8 @@ class NEATDynamicSegFree(object):
                                       try:
                                               iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                               iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)
-                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]) , reverse = False)
-                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['ycenter'] - self.image.shape[1]) , reverse = False)
+                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) , reverse = True)
+                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['ycenter'] - self.image.shape[1]//2) , reverse = True)
 
  
                                               for iou_current_event_box in iou_current_event_boxes:

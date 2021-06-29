@@ -40,9 +40,9 @@ projection_model = ProjectionCARE(config = None, name = projection_model_name, b
 
 
 n_tiles = (1,1)
-Z_n_tiles = (1,2,2)
-event_threshold = 0.9999
-iou_threshold = 0.3
+Z_n_tiles = (1,1,1)
+event_threshold = 1-1.0E-10
+iou_threshold = 0.01
 nb_predictions = 10
 
 
