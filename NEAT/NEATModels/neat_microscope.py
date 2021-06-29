@@ -311,8 +311,8 @@ class NEATPredict(object):
                                          projection = self.projection_model.predict(self.Z_movie_input[self.Z_start], 'ZYX', n_tiles = Z_n_tiles)
                                      else:
                                          projection = np.amax(self.Z_movie_input[self.Z_start], axis = 0)
-                                         imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
-                                         self.Z_start = self.Z_start + 1
+                                     imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
+                                     self.Z_start = self.Z_start + 1
                                   except:
                                       pass
                                   
