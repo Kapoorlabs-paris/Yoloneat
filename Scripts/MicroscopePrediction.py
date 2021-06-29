@@ -39,11 +39,11 @@ projection_model = ProjectionCARE(config = None, name = projection_model_name, b
 
 n_tiles = (1,1)
 Z_n_tiles = (1,4,4)
-event_threshold = 0.999
+event_threshold = 1
 iou_threshold = 0.01
 nb_predictions = 10
 
 
 
-model.predict(imagedir, [], [], Z_imagedir, [], [], 0, 0, fileextension = fileextension, nb_prediction = nb_predictions, n_tiles = n_tiles, Z_n_tiles = Z_n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, projection_model = projection_model)
+model.predict(imagedir, {}, {}, Z_imagedir, [], [], 0, 0, fileextension = fileextension, nb_prediction = nb_predictions, n_tiles = n_tiles, Z_n_tiles = Z_n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, projection_model = projection_model)
 

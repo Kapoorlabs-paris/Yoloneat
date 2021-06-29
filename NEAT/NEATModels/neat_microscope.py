@@ -302,12 +302,12 @@ class NEATPredict(object):
                           if Z_Name not in self.Z_movie_name_list:
                               
                           
-                                   
+                                               
                                      self.Z_movie_name_list.append(Z_Name)
                                      self.Z_movie_input.append(Z_movie_name)
                                      total_Z_movies = len(self.Z_movie_input)
                                   
-
+              
               for movie_name in filesRaw:  
                           Name = os.path.basename(os.path.splitext(movie_name)[0])
                           #Check for unique filename
@@ -315,27 +315,31 @@ class NEATPredict(object):
                               
                           
                                    
-                                     self.movie_name_list.append(Name)
-                                     self.movie_input.append(movie_name)
+                                     self.movie_name_list[Name] = Name
+                                     self.movie_input[Name] = movie_name 
+                                     
                                      total_movies = len(self.movie_input)                       
 
               doproject = True
+             
               for  i in range(len(self.Z_movie_name_list)):
                    
                     Z_Name = self.Z_movie_name_list[i]
                     Z_path = self.Z_movie_input[i]
                     
-                    for j in range(len(self.movie_name_list)):
-                        
-                        Name = self.movie_name_list[j]
-                        path = self.movie_input[i]
-                        
-                        if Name == Z_Name:
+                    if Z_Name in  self.movie_name_list:
+                        print(Z_Name)     
+                        Name = self.movie_name_list[Z_Name]
+                        path = self.movie_input[Z_Name]
+                       
+                         
                             
-                             doproject = False
-                        
-                  
+                        doproject = False
+                    else:
+                         doproject = True    
+                    
                     if doproject:
+                                    
                                      try:
                                              Z_image = imread(Z_path)
                                              if self.projection_model is not None:
@@ -343,18 +347,15 @@ class NEATPredict(object):
                                              else:
                                                  projection = np.amax(Z_image, axis = 0)
                                              imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
-                                             self.Z_start = self.Z_start + 1
+                                            
                                  
                                      except:
                                            if Z_Name in self.Z_movie_name_list:
                                               self.Z_movie_name_list.remove(Z_Name)
                                            if Z_movie_name in self.Z_movie_input:      
                                               self.Z_movie_input.remove(Z_movie_name)
-                                           if Name in self.movie_name_list:   
-                                              self.movie_name_list.remove(Name)
-                                           if movie_name in self.movie_input:   
-                                              self.movie_input.remove(movie_name)
-                                  
+                                           
+                                           pass 
                                   
                    
                           
