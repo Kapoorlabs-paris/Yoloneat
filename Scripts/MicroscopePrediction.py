@@ -22,8 +22,8 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 Z_imagedir = '/home/sancere/Kepler/FinalONEATTraining/Z_ONEAT_fly_test/'
 imagedir = '/home/sancere/Kepler/FinalONEATTraining/ONEAT_fly_test/'
-model_dir =  '/home/sancere/Kepler/FinalONEATTraining/PreMicroneatmodel/'
-model_name = 'premicroseqnetbin2d38lstm8'
+model_dir =  '/home/sancere/Kepler/FinalONEATTraining/Microneatmodel/'
+model_name = 'microseqnetbin2d65'
 projection_model_name = 'projectionmodelbin2'
 division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
