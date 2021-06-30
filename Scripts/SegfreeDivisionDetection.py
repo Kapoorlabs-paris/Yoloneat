@@ -14,7 +14,7 @@ from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
 from stardist.models import StarDist2D
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -23,9 +23,9 @@ from pathlib import Path
 
 
 imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Microneatmodel/'
-savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/Mic56/'
-model_name = 'microseqnetbin2d56'
+model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/PreMicroneatmodel/'
+savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/Pre56/'
+model_name = 'premicroseqnetbin2d56'
 
 division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
@@ -34,7 +34,7 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
-event_threshold = 1 - 1.0E-7
+event_threshold = 1 
 iou_threshold = 0.01
 yolo_v2 = False
 

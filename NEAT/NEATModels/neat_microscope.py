@@ -28,7 +28,7 @@ from natsort import natsorted
 import glob
 import matplotlib.pyplot as plt
 import h5py
-
+import cv2
 class NEATPredict(object):
     
 
@@ -257,7 +257,7 @@ class NEATPredict(object):
         
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
-    def predict(self, imagedir,  movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start, Z_start, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), Z_n_tiles = (1,2,2), overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01, projection_model = None):
+    def predict(self, imagedir,  movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start, Z_start, downsample = False, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), Z_n_tiles = (1,2,2), overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01, projection_model = None):
         
         self.imagedir = imagedir
         self.basedirResults = self.imagedir + '/' + "live_results"
@@ -278,7 +278,7 @@ class NEATPredict(object):
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
-        
+        self.downsample = downsample
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate","lr").encode()
@@ -386,6 +386,18 @@ class NEATPredict(object):
                                                                   current_movies = imread(self.movie_input_list[self.start:self.start + self.size_tminus + 1])
                                                                   sizey = current_movies.shape[1]
                                                                   sizex = current_movies.shape[2]
+                                                                  if self.downsample:
+                                                                             	scale_percent = 50 # percent of original size
+                                                                                width=int(sizex * scale_percent / 100)
+                                                                                iheight=int(sizey * scale_percent / 100)
+                                                                                dim = (width, height)
+                                                                                sizey = height
+                                                                                sizex = width
+                                                                                # resize image
+                                                                                for j in range(current_movies.shape[0]):
+                                                                                        current_movies[j,:] = cv2.resize(current_movies[j,:], dim, interpolation = cv2.INTER_AREA)
+                                                                                 
+
                                                                   print('Predicting on Movies:',self.movie_input_list[self.start:self.start + self.size_tminus + 1]) 
                                                                   inputtime = self.start + self.size_tminus
                                                                   smallimage = np.zeros([self.size_tminus + 1, sizey, sizex])
