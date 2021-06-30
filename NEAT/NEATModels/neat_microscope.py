@@ -384,28 +384,32 @@ class NEATPredict(object):
               total_movies = len(self.movie_input_list)
               if total_movies > self.size_tminus + self.start:
                                                                   current_movies = imread(self.movie_input_list[self.start:self.start + self.size_tminus + 1])
+                                                                  
                                                                   sizey = current_movies.shape[1]
                                                                   sizex = current_movies.shape[2]
                                                                   if self.downsample:
                                                                                 scale_percent = 50
-                                                                                width=int(sizex * scale_percent / 100)
-                                                                                height=int(sizey * scale_percent / 100)
+                                                                                width=int(sizey * scale_percent / 100)
+                                                                                height=int(sizex * scale_percent / 100)
                                                                                 dim = (width, height)
-                                                                                sizey = height
-                                                                                sizex = width
+                                                                                sizex = height
+                                                                                sizey = width
+                                                                                print(sizey, sizex)
+                                                                                current_movies_down = np.zeros([current_movies.shape[0], sizey, sizex])
                                                                                 # resize image
                                                                                 for j in range(current_movies.shape[0]):
-                                                                                        current_movies[j,:] = cv2.resize(current_movies[j,:], dim, interpolation = cv2.INTER_AREA)
-                                                                                 
-
+                                                                                        current_movies_down[j,:] = cv2.resize(current_movies[j,:], dim, interpolation = cv2.INTER_AREA)
+                                                                  else:                             
+                                                                        current_movies_down = current_movies
+                                                                  print(current_movies_down.shape) 
                                                                   print('Predicting on Movies:',self.movie_input_list[self.start:self.start + self.size_tminus + 1]) 
                                                                   inputtime = self.start + self.size_tminus
-                                                                  smallimage = np.zeros([self.size_tminus + 1, sizey, sizex])
-                                                                  for i in range(0, self.size_tminus + 1):
-                                                                       smallimage[i,:] = current_movies[i]
+                                                                  
                                                                       
                                                                   eventboxes = []
                                                                   classedboxes = {}
+                                                                  smallimage = CreateVolume(current_movies_down, self.size_tminus + 1, 0,sizex, sizey)
+                                
                                                                   smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
                                                                   #Break image into tiles if neccessary
                                                                   self.image = smallimage
@@ -413,6 +417,7 @@ class NEATPredict(object):
                                                                   start_time = time.time()
                                                                   predictions, allx, ally = self.predict_main(smallimage)
                                                                   print("____ Prediction took %s seconds ____ ", (time.time() - start_time  ) )
+                                                                 
                                                                   #Iterate over tiles
                                                                   for p in tqdm(range(0,len(predictions))):   
                                                         
@@ -422,7 +427,7 @@ class NEATPredict(object):
                                                                              for i in range(0, sum_time_prediction.shape[0]):
                                                                                   time_prediction =  sum_time_prediction[i]
                                                                                   
-                                                                                  boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                                                                  boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'prediction', 'dynamic')
                                                                                   
                                                                                   if boxprediction is not None:
                                                                                           eventboxes = eventboxes + boxprediction
@@ -443,11 +448,12 @@ class NEATPredict(object):
                                                                   self.eventboxes =  eventboxes  
                                                                   print('Performining non maximal supression')
                                                                   start_time = time.time()
-                                                                  self.nms()
+                                                                  self.iou_classedboxes = classedboxes
+                                                                  #self.nms()
                                                                   print("____ NMS took %s seconds ____ ", (time.time() - start_time  ) )
                                                                   print('Generating ini file')
                                                                   self.to_csv()
-                                                                  self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, self.start + 1, Z_start, fileextension = self.fileextension, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
+                                                                  self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, self.start + 1, Z_start, fileextension = self.fileextension, downsample = self.downsample, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
                                
                                  
                                                 
@@ -497,14 +503,13 @@ class NEATPredict(object):
                                               tcenter = iou_current_event_box['real_time_event']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                              if ycenter < self.image.shape[1] - self.imagey and xcenter < self.image.shape[2] - self.imagex:
-                                                      print(round(xcenter), round(ycenter), score)
-                                                      xlocations.append(xcenter)
-                                                      ylocations.append(ycenter)
-                                                      scores.append(score)
-                                                      tlocations.append(tcenter)
-                                                      radiuses.append(radius)
-                                                      predcount = predcount + 1
+                                              print(round(xcenter), round(ycenter), score)
+                                              xlocations.append(xcenter)
+                                              ylocations.append(ycenter)
+                                              scores.append(score)
+                                              tlocations.append(tcenter)
+                                              radiuses.append(radius)
+                                              predcount = predcount + 1
                                       event_count = np.column_stack([xlocations,ylocations]) 
                                       csvname = self.basedirResults + "/" + event_name 
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
