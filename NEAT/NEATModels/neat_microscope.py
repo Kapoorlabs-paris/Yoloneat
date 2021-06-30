@@ -394,14 +394,14 @@ class NEATPredict(object):
                                                                                 dim = (width, height)
                                                                                 sizex = height
                                                                                 sizey = width
-                                                                                print(sizey, sizex)
+                                                                                
                                                                                 current_movies_down = np.zeros([current_movies.shape[0], sizey, sizex])
                                                                                 # resize image
                                                                                 for j in range(current_movies.shape[0]):
                                                                                         current_movies_down[j,:] = cv2.resize(current_movies[j,:], dim, interpolation = cv2.INTER_AREA)
                                                                   else:                             
                                                                         current_movies_down = current_movies
-                                                                  print(current_movies_down.shape) 
+                                                                  #print(current_movies_down.shape) 
                                                                   print('Predicting on Movies:',self.movie_input_list[self.start:self.start + self.size_tminus + 1]) 
                                                                   inputtime = self.start + self.size_tminus
                                                                   
@@ -409,7 +409,9 @@ class NEATPredict(object):
                                                                   eventboxes = []
                                                                   classedboxes = {}
                                                                   smallimage = CreateVolume(current_movies_down, self.size_tminus + 1, 0,sizex, sizey)
-                                
+                                                                  #markerdir = self.imagedir + '/' + 'test'
+                                                                  #Path(markerdir).mkdir(exist_ok=True)
+                                                                  #imwrite(markerdir + '/' + str(start) + '.tif', smallimage)
                                                                   smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
                                                                   #Break image into tiles if neccessary
                                                                   self.image = smallimage
@@ -439,7 +441,7 @@ class NEATPredict(object):
                                                                            for box in eventboxes:
                                                                     
                                                                               event_prob = box[event_name]
-                                                                              if event_prob > self.event_threshold:
+                                                                              if event_prob >= self.event_threshold:
                                                                                
                                                                                   current_event_box.append(box)
                                                                            classedboxes[event_name] = [current_event_box]
