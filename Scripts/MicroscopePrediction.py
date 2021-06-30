@@ -19,7 +19,7 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 # In[ ]:
 
-Z_imagedir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/Raw_Datasets/Dros3DModel/GT/'
+Z_imagedir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/Raw_Datasets/BorialisS1S2/Test/GT/'
 #Z_imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Z_ONEAT_fly_test/'
 imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/ONEAT_fly_test/'
 model_dir =  '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Microneatmodel/'
@@ -39,7 +39,7 @@ projection_model = ProjectionCARE(config = None, name = projection_model_name, b
 
 n_tiles = (1,1)
 Z_n_tiles = (1,4,4)
-event_threshold = 1
+event_threshold = 0.9999
 iou_threshold = 0.01
 nb_predictions = 10
 

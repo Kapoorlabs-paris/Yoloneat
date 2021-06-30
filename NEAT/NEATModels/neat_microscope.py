@@ -12,7 +12,7 @@ from NEATUtils.helpers import  load_json, yoloprediction, normalizeFloatZeroOne,
 from keras import callbacks
 import os
 import tensorflow as tf
-
+import time
 from NEATModels import nets
 from NEATModels.nets import Concat
 from NEATModels.loss import dynamic_yolo_loss
@@ -328,7 +328,7 @@ class NEATPredict(object):
                     Z_path = self.Z_movie_input[i]
                     
                     if Z_Name in  self.movie_name_list:
-                        print(Z_Name)     
+                       
                         Name = self.movie_name_list[Z_Name]
                         path = self.movie_input[Z_Name]
                        
@@ -337,24 +337,35 @@ class NEATPredict(object):
                         doproject = False
                     else:
                          doproject = True    
-                    
+                   
                     if doproject:
                                     
-                                     try:
+                                     try:    
+                                             start_time = time.time()
+                                             print('Reading Z stack for projection')
                                              Z_image = imread(Z_path)
                                              if self.projection_model is not None:
+                                                 print('Projecting using the projection model')
                                                  projection = self.projection_model.predict(Z_image, 'ZYX', n_tiles = Z_n_tiles)
                                              else:
+                                                 print('Doing max projection')
                                                  projection = np.amax(Z_image, axis = 0)
                                              imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
-                                            
+                                             print("____ Projection took %s seconds ____ ", (time.time() - start_time  ) )
                                  
                                      except:
                                            if Z_Name in self.Z_movie_name_list:
                                               self.Z_movie_name_list.remove(Z_Name)
                                            if Z_movie_name in self.Z_movie_input:      
                                               self.Z_movie_input.remove(Z_movie_name)
-                                           
+                                           if Name in self.movie_name_list:
+                                              del self.movie_name_list[Name]
+                                           if movie_name in self.movie_input:
+                                              del self.movie_input[movie_name]
+
+
+                                               
+                                                       
                                            pass 
                                   
                    
@@ -371,7 +382,7 @@ class NEATPredict(object):
                                                       
               self.movie_input_list = []
               for (k,v) in self.movie_input.items():
-                              print(k,v)                           
+                                                       
                               self.movie_input_list.append(v)
               total_movies = len(self.movie_input_list)
               if total_movies > self.size_tminus + self.start:
@@ -381,7 +392,7 @@ class NEATPredict(object):
                                                                   print('Predicting on Movies:',self.movie_input_list[self.start:self.start + self.size_tminus + 1]) 
                                                                   inputtime = self.start + self.size_tminus
                                                                   smallimage = np.zeros([self.size_tminus + 1, sizey, sizex])
-                                                                  for i in tqdm(range(0, self.size_tminus + 1)):
+                                                                  for i in range(0, self.size_tminus + 1):
                                                                        smallimage[i,:] = current_movies[i]
                                                                       
                                                                   eventboxes = []
@@ -389,7 +400,10 @@ class NEATPredict(object):
                                                                   smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
                                                                   #Break image into tiles if neccessary
                                                                   self.image = smallimage
+                                                                  print('Doing ONEAT prediction')
+                                                                  start_time = time.time()
                                                                   predictions, allx, ally = self.predict_main(smallimage)
+                                                                  print("____ Prediction took %s seconds ____ ", (time.time() - start_time  ) )
                                                                   #Iterate over tiles
                                                                   for p in tqdm(range(0,len(predictions))):   
                                                         
@@ -418,8 +432,11 @@ class NEATPredict(object):
                                                                      
                                                                   self.classedboxes = classedboxes    
                                                                   self.eventboxes =  eventboxes  
-                                                                
+                                                                  print('Performining non maximal supression')
+                                                                  start_time = time.time()
                                                                   self.nms()
+                                                                  print("____ NMS took %s seconds ____ ", (time.time() - start_time  ) )
+                                                                  print('Generating ini file')
                                                                   self.to_csv()
                                                                   self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, self.start + 1, Z_start, fileextension = self.fileextension, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
                                
