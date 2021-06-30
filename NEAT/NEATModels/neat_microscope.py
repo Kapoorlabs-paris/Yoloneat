@@ -372,10 +372,7 @@ class NEATPredict(object):
                           
              
 
-                        
-                                                                                                             
-                                            
-                                                  
+                    
                                                                       
                                                  
                                                       
