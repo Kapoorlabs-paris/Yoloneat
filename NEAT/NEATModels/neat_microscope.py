@@ -387,7 +387,7 @@ class NEATPredict(object):
                                                                   sizey = current_movies.shape[1]
                                                                   sizex = current_movies.shape[2]
                                                                   if self.downsample:
-                                                                             	 scale_percent = 50 # percent of original size
+                                                                                scale_percent = 50
                                                                                 width=int(sizex * scale_percent / 100)
                                                                                 height=int(sizey * scale_percent / 100)
                                                                                 dim = (width, height)
