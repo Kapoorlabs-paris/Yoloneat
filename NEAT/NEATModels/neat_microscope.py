@@ -346,6 +346,11 @@ class NEATPredict(object):
                                              start_time = time.time()
                                              print('Reading Z stack for projection')
                                              Z_image = imread(Z_path)
+                                             print('Read')
+                                     except:
+                                         
+                                           Z_image = None
+                                     if Z_image is not None:      
                                              if self.projection_model is not None:
                                                  print('Projecting using the projection model')
                                                  projection = self.projection_model.predict(Z_image, 'ZYX', n_tiles = Z_n_tiles)
@@ -355,29 +360,11 @@ class NEATPredict(object):
                                              imwrite(self.imagedir + '/' + Z_Name + '.tif' , projection.astype('float32'))
                                              print("____ Projection took %s seconds ____ ", (time.time() - start_time  ) )
                                  
-                                     except:
+                                     else:
                                            if Z_Name in self.Z_movie_name_list:
                                               self.Z_movie_name_list.remove(Z_Name)
                                            if Z_movie_name in self.Z_movie_input:      
                                               self.Z_movie_input.remove(Z_movie_name)
-                                           #if Name in self.movie_name_list:
-                                              #del self.movie_name_list[Name]
-                                           #if movie_name in self.movie_input:
-                                              #del self.movie_input[movie_name]
-
-
-                                               
-                                                       
-                                           pass 
-                                  
-                   
-                          
-             
-
-                    
-                                                                      
-                                                 
-                                                      
                                                       
               self.movie_input_list = []
               for (k,v) in self.movie_input.items():
