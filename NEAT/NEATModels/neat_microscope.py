@@ -29,6 +29,8 @@ import glob
 import matplotlib.pyplot as plt
 import h5py
 import cv2
+from PIL import Image
+
 class NEATPredict(object):
     
 
@@ -518,11 +520,13 @@ class NEATPredict(object):
                                       
                                       StaticImage = self.image[self.image.shape[0] - 1,:]
                                       StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
+                                      Colorimage = np.zeros_like(StaticImage)
+                                      
                                       for j in range(len(xlocations)):
                                          startlocation = (int(xlocations[j] - radius), int(ylocations[j]-radius))
                                          endlocation =  (int(xlocations[j] + radius), int(ylocations[j]+radius)) 
-                                         cv2.rectangle(StaticImage, startlocation, endlocation, 'red', thickness = 1 )
-                                      imwrite((csvimagename  + str(self.start) + '.tif'  ) , StaticImage)    
+                                         cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
+                                      imwrite((csvimagename  + str(self.start) + '.tif'  ), [StaticImage,Colorimage])    
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
                                       writer.writerow(["[main]"])  
                                       writer.writerow(["nbPredictions="+str(self.nb_prediction)])
