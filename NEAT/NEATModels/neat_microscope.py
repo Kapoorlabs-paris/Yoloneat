@@ -520,23 +520,11 @@ class NEATPredict(object):
                                               live_event_data = []
                                                   
                                               count = count + 1  
-                                      StaticImage = self.image[self.image.shape[0] - 1,:]
-                                      StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
-                                      Colorimage = np.zeros_like(StaticImage)
-
-                                      copyxlocations = xlocations.copy()
-                                      copyylocations = ylocations.copy()    
-                                      for j in range(len(copyxlocations)):
-                                         startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
-                                         endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j])) 
-                                         cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
-                                      RGBImage = [StaticImage, Colorimage, Colorimage]
-                                      copystart = self.start   
-                                      imwrite((csvimagename  + str(copystart) + '.tif'  ), RGBImage, photometric = 'rgb')    
+                                      self.saveimage(xlocations, ylocations, radiuses, csvimagename)  
                                       
                  
                                    
-    def saveimage(self, xlocations; ylocations, radius, csvimagename):
+    def saveimage(self, xlocations, ylocations, radius, csvimagename):
 
                         
 
