@@ -502,11 +502,9 @@ class NEATPredict(object):
                                               predcount = predcount + 1
                                       event_count = np.column_stack([xlocations,ylocations]) 
                                       csvname = self.basedirResults + "/" + event_name
-                                      csvimagename = self.basedirResults + "/" + event_name
+                                      csvimagename = self.basedirResults + "/" + event_name + 'LocationData'
                                       
-                                      StaticImage = self.image[self.image.shape[0] - 1,:]
-                                      StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
-                                      Colorimage = np.zeros_like(StaticImage)
+                                      
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
                                       writer.writerow(["[main]"])  
                                       writer.writerow(["nbPredictions="+str(self.nb_prediction)])
@@ -514,23 +512,49 @@ class NEATPredict(object):
                                       count = 1
                                       
                                       for line in event_count:
-                                              print(line)
+                                              
                                               live_event_data.append(line)
                                               writer.writerow(["["+str(count - 1)+"]"])
                                               writer.writerow(["x="+str(live_event_data[0][0])])
                                               writer.writerow(["y="+str(live_event_data[0][1])])
-                                              live_event_data = []  
-                                              count = count + 1   
-                                      for j in range(len(xlocations)):
-                                         startlocation = (int(xlocations[j] - radius), int(ylocations[j]-radius))
-                                         endlocation =  (int(xlocations[j] + radius), int(ylocations[j]+radius)) 
+                                              live_event_data = []
+                                                  
+                                              count = count + 1  
+                                      StaticImage = self.image[self.image.shape[0] - 1,:]
+                                      StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
+                                      Colorimage = np.zeros_like(StaticImage)
+
+                                      copyxlocations = xlocations.copy()
+                                      copyylocations = ylocations.copy()    
+                                      for j in range(len(copyxlocations)):
+                                         startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
+                                         endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j])) 
                                          cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
                                       RGBImage = [StaticImage, Colorimage, Colorimage]
-                                      imwrite((csvimagename  + str(self.start) + '.tif'  ), RGBImage, photometric = 'rgb')    
+                                      copystart = self.start   
+                                      imwrite((csvimagename  + str(copystart) + '.tif'  ), RGBImage, photometric = 'rgb')    
                                       
                  
-                                    
-          
+                                   
+    def saveimage(self, xlocations; ylocations, radius, csvimagename):
+
+                        
+
+                                      StaticImage = self.image[self.image.shape[0] - 1,:]
+                                      StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
+                                      Colorimage = np.zeros_like(StaticImage)
+
+                                      copyxlocations = xlocations.copy()
+                                      copyylocations = ylocations.copy()
+                                      for j in range(len(copyxlocations)):
+                                         startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
+                                         endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
+                                         cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
+                                      RGBImage = [StaticImage, Colorimage, Colorimage]
+                                      copystart = self.start
+                                      imwrite((csvimagename  + str(copystart) + '.tif'  ), RGBImage, photometric = 'rgb')
+
+       
     def overlaptiles(self, sliceregion):
         
              if self.n_tiles == (1, 1):
