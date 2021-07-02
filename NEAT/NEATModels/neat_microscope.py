@@ -22,15 +22,16 @@ from keras import optimizers
 from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 from keras.models import load_model
-from tifffile import imread, imwrite, TiffFile
+from tifffile import imread, imwrite, TiffFile, imsave
 import csv
 from natsort import natsorted
 import glob
 import matplotlib.pyplot as plt
 import h5py
 import cv2
+import imageio
 from PIL import Image
-
+import matplotlib.pyplot as plt
 class NEATPredict(object):
     
 
@@ -502,9 +503,8 @@ class NEATPredict(object):
                                               predcount = predcount + 1
                                       event_count = np.column_stack([xlocations,ylocations]) 
                                       csvname = self.basedirResults + "/" + event_name
-                                      csvimagename = self.basedirResults + "/" + event_name + 'LocationData'
                                       
-                                      
+
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
                                       writer.writerow(["[main]"])  
                                       writer.writerow(["nbPredictions="+str(self.nb_prediction)])
@@ -512,19 +512,26 @@ class NEATPredict(object):
                                       count = 1
                                       
                                       for line in event_count:
-                                              
+                                                                                            
                                               live_event_data.append(line)
                                               writer.writerow(["["+str(count - 1)+"]"])
                                               writer.writerow(["x="+str(live_event_data[0][0])])
                                               writer.writerow(["y="+str(live_event_data[0][1])])
                                               live_event_data = []
                                                   
-                                              count = count + 1  
-                                      self.saveimage(xlocations, ylocations, radiuses, csvimagename)  
+                                              count = count + 1
+                                           
+                                      ImageResults = self.basedirResults + '/' + 'ImageLocations'
+                                      Path(ImageResults).mkdir(exist_ok=True)
+
+                                      csvimagename = ImageResults + "/" + event_name + 'LocationData'
+                                      name = str(self.start)
+                                      self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
+  
                                       
                  
                                    
-    def saveimage(self, xlocations, ylocations, radius, csvimagename):
+    def saveimage(self, xlocations, ylocations, radius, csvimagename, name):
 
                         
 
@@ -539,8 +546,9 @@ class NEATPredict(object):
                                          endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
                                          cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
                                       RGBImage = [StaticImage, Colorimage, Colorimage]
-                                      copystart = self.start
-                                      imwrite((csvimagename  + str(copystart) + '.tif'  ), RGBImage, photometric = 'rgb')
+                                      RGBImage = np.swapaxes(np.asarray(RGBImage),0, 2)
+                                      RGBImage = np.swapaxes(RGBImage, 0,1) 
+                                      imageio.imwrite((csvimagename  + name + '.tif' ), RGBImage)
 
        
     def overlaptiles(self, sliceregion):
