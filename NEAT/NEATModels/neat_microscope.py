@@ -507,13 +507,6 @@ class NEATPredict(object):
                                       StaticImage = self.image[self.image.shape[0] - 1,:]
                                       StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
                                       Colorimage = np.zeros_like(StaticImage)
-                                         
-                                      for j in range(len(xlocations)):
-                                         startlocation = (int(xlocations[j] - radius), int(ylocations[j]-radius))
-                                         endlocation =  (int(xlocations[j] + radius), int(ylocations[j]+radius)) 
-                                         cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
-                                      RGBImage = [StaticImage, Colorimage, Colorimage]
-                                      imwrite((csvimagename  + str(self.start) + '.tif'  ), RGBImage, photometric = 'rgb')    
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
                                       writer.writerow(["[main]"])  
                                       writer.writerow(["nbPredictions="+str(self.nb_prediction)])
@@ -527,7 +520,14 @@ class NEATPredict(object):
                                               writer.writerow(["x="+str(live_event_data[0][0])])
                                               writer.writerow(["y="+str(live_event_data[0][1])])
                                               live_event_data = []  
-                                              count = count + 1
+                                              count = count + 1   
+                                      for j in range(len(xlocations)):
+                                         startlocation = (int(xlocations[j] - radius), int(ylocations[j]-radius))
+                                         endlocation =  (int(xlocations[j] + radius), int(ylocations[j]+radius)) 
+                                         cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
+                                      RGBImage = [StaticImage, Colorimage, Colorimage]
+                                      imwrite((csvimagename  + str(self.start) + '.tif'  ), RGBImage, photometric = 'rgb')    
+                                      
                  
                                     
           
