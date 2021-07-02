@@ -41,7 +41,7 @@ n_tiles = (1,1)
 Z_n_tiles = (1,1,1)
 event_threshold = 1
 iou_threshold = 0.01
-nb_predictions = 10
+nb_predictions = 100
 downsample = False
 
 

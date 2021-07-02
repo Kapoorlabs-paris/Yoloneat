@@ -438,7 +438,7 @@ class NEATPredict(object):
                                                                   print('Performining non maximal supression')
                                                                   start_time = time.time()
                                                                   self.iou_classedboxes = classedboxes
-                                                                  #self.nms()
+                                                                  self.nms()
                                                                   print("____ NMS took %s seconds ____ ", (time.time() - start_time  ) )
                                                                   print('Generating ini file')
                                                                   self.to_csv()
@@ -460,9 +460,9 @@ class NEATPredict(object):
                
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
-               #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-               #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
+               #best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
+               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
+               best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                
@@ -487,6 +487,7 @@ class NEATPredict(object):
                                       for iou_current_event_box in iou_current_event_boxes:
                                               if predcount > self.nb_prediction:
                                                    break
+                                             
                                               xcenter = iou_current_event_box['xcenter']
                                               ycenter = iou_current_event_box['ycenter']
                                               tcenter = iou_current_event_box['real_time_event']
@@ -506,12 +507,13 @@ class NEATPredict(object):
                                       StaticImage = self.image[self.image.shape[0] - 1,:]
                                       StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
                                       Colorimage = np.zeros_like(StaticImage)
-                                      
+                                         
                                       for j in range(len(xlocations)):
                                          startlocation = (int(xlocations[j] - radius), int(ylocations[j]-radius))
                                          endlocation =  (int(xlocations[j] + radius), int(ylocations[j]+radius)) 
                                          cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
-                                      imwrite((csvimagename  + str(self.start) + '.tif'  ), [StaticImage,Colorimage], photometric = 'rgb')    
+                                      RGBImage = [StaticImage, Colorimage, Colorimage]
+                                      imwrite((csvimagename  + str(self.start) + '.tif'  ), RGBImage, photometric = 'rgb')    
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
                                       writer.writerow(["[main]"])  
                                       writer.writerow(["nbPredictions="+str(self.nb_prediction)])
