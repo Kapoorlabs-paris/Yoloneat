@@ -398,9 +398,7 @@ class NEATPredict(object):
                                                                   eventboxes = []
                                                                   classedboxes = {}
                                                                   smallimage = CreateVolume(current_movies_down, self.size_tminus + 1, 0,sizex, sizey)
-                                                                  #markerdir = self.imagedir + '/' + 'test'
-                                                                  #Path(markerdir).mkdir(exist_ok=True)
-                                                                  #imwrite(markerdir + '/' + str(start) + '.tif', smallimage)
+                                                                  
                                                                   smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
                                                                   #Break image into tiles if neccessary
                                                                   self.image = smallimage
@@ -513,7 +511,7 @@ class NEATPredict(object):
                                          startlocation = (int(xlocations[j] - radius), int(ylocations[j]-radius))
                                          endlocation =  (int(xlocations[j] + radius), int(ylocations[j]+radius)) 
                                          cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
-                                      imwrite((csvimagename  + str(self.start) + '.tif'  ), [StaticImage,Colorimage])    
+                                      imwrite((csvimagename  + str(self.start) + '.tif'  ), [StaticImage,Colorimage], photometric = 'rgb')    
                                       writer = csv.writer(open(csvname + ".ini", 'w'))
                                       writer.writerow(["[main]"])  
                                       writer.writerow(["nbPredictions="+str(self.nb_prediction)])
