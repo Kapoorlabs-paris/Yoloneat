@@ -519,7 +519,9 @@ class NEATPredict(object):
                                       writer.writerow(["nbPredictions="+str(self.nb_prediction)])
                                       live_event_data = []
                                       count = 1
+                                      
                                       for line in event_count:
+                                              print(line)
                                               live_event_data.append(line)
                                               writer.writerow(["["+str(count - 1)+"]"])
                                               writer.writerow(["x="+str(live_event_data[0][0])])
