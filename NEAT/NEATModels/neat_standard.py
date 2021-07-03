@@ -349,7 +349,7 @@ class NEATDynamic(object):
         classedboxes = {}    
         count = 0
         
-
+        self.Colorimage = np.zeros_like(self.image)   
         #Do the prediction in the fully convolutional way if no marker image is input it is the only way we get the candidate points
         if self.marker_tree is None: 
                 print('Detecting event locations')
@@ -571,25 +571,22 @@ class NEATDynamic(object):
 
      
 
-    def saveimage(self, xlocations, ylocations, tlocations, radius, csvimagename, name):
+    def saveimage(self, xlocations, ylocations, tlocations, radius, csvimagename):
 
                         
 
-                                      StaticImage = self.image
-                                      StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
-                                      Colorimage = np.zeros_like(self.image)
+                                      
+                                      
 
                                       copyxlocations = xlocations.copy()
                                       copyylocations = ylocations.copy()
                                       for j in range(len(copyxlocations)):
                                          startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
                                          endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
-                                         tlocation = int(tlocations[j])
-                                         cv2.rectangle(Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
-                                      RGBImage = [StaticImage, Colorimage, Colorimage]
-                                      RGBImage = np.swapaxes(np.asarray(RGBImage),1, 3)
-                                      RGBImage = np.swapaxes(RGBImage, 1,2) 
-                                      imageio.imwrite((csvimagename  + name + '.tif' ), RGBImage)
+                                         tlocation = int(round(tlocations[j]))
+                                         cv2.rectangle(self.Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
+                                      
+                                      imwrite((csvimagename + '.tif' ), self.Colorimage.astype('uint8'))
     
           
     def showNapari(self, imagedir, savedir, yolo_v2 = False):

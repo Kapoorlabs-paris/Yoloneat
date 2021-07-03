@@ -352,7 +352,7 @@ class NEATDynamicSegFree(object):
         
 
         #Do the prediction in the fully convolutional way if no marker image is input it is the only way we get the candidate points
-        
+        self.Colorimage = np.zeros_like(self.image)
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
@@ -512,7 +512,7 @@ class NEATDynamicSegFree(object):
                         
 
                                       
-                                      Colorimage = np.zeros_like(self.image)
+                                      
 
                                       copyxlocations = xlocations.copy()
                                       copyylocations = ylocations.copy()
@@ -520,9 +520,9 @@ class NEATDynamicSegFree(object):
                                          startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
                                          endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
                                          tlocation = int(round(tlocations[j]))
-                                         cv2.rectangle(Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
+                                         cv2.rectangle(self.Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
                                       
-                                      imwrite((csvimagename + '.tif' ), Colorimage.astype('uint8'))
+                                      imwrite((csvimagename + '.tif' ), self.Colorimage.astype('uint8'))
 
     
           
