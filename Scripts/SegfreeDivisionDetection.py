@@ -23,18 +23,18 @@ from pathlib import Path
 
 
 imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/'
-savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/ModelV1d38/'
-model_name = 'divisionm4d38V1'
+model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Microneatmodel/'
+savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/FourFramePrediction/'
+model_name = 'microseqnetbin2d65'
 
-division_categories_json = model_dir + 'DivisionCategories.json'
+division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'DivisionCord.json'
+division_cord_json = model_dir + 'MicroscopeCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
-event_threshold = 1-1.0E-5 
+event_threshold = 1-1.0E-8 
 iou_threshold = 0.01
 yolo_v2 = False
 

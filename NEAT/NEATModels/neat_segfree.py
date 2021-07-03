@@ -496,24 +496,23 @@ class NEATDynamicSegFree(object):
                                                  writer.writerows(event_data)
                                                  event_data = []           
                               
-                                              ImageResults = self.savedir + '/' + 'ImageLocations'
+                                              ImageResults = self.savedir + '/'+ event_name + 'ImageLocations' + (os.path.splitext(os.path.basename(self.imagename))[0])
                                               Path(ImageResults).mkdir(exist_ok=True)
         
-                                              csvimagename = ImageResults + "/" + event_name + 'LocationData'
-                                              name = str(self.start)
-                                              self.saveimage(xlocations, ylocations, tlocations, radiuses, csvimagename, name)
+                                              
+                                              name = os.path.splitext(os.path.basename(self.imagename))[0]
+                                              self.saveimage(xlocations, ylocations, tlocations, radiuses, ImageResults)
 
 
                       
 
      
 
-    def saveimage(self, xlocations, ylocations, tlocations, radius, csvimagename, name):
+    def saveimage(self, xlocations, ylocations, tlocations, radius, csvimagename):
 
                         
 
-                                      StaticImage = self.image
-                                      StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
+                                      
                                       Colorimage = np.zeros_like(self.image)
 
                                       copyxlocations = xlocations.copy()
@@ -523,10 +522,8 @@ class NEATDynamicSegFree(object):
                                          endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
                                          tlocation = int(tlocations[j])
                                          cv2.rectangle(Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
-                                      RGBImage = [StaticImage, Colorimage, Colorimage]
-                                      RGBImage = np.swapaxes(np.asarray(RGBImage),1, 3)
-                                      RGBImage = np.swapaxes(RGBImage, 1,2) 
-                                      imageio.imwrite((csvimagename  + name + '.tif' ), RGBImage)
+                                      
+                                      imwrite((csvimagename + '.tif' ), Colorimage.astype('float8'))
 
     
           
