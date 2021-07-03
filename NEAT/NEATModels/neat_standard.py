@@ -30,6 +30,8 @@ from matplotlib.figure import Figure
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
+import cv2
+import imageio
 Boxname = 'ImageIDBox'
 EventBoxname = 'EventIDBox'
 
@@ -569,7 +571,25 @@ class NEATDynamic(object):
 
      
 
+    def saveimage(self, xlocations, ylocations, tlocations, radius, csvimagename, name):
 
+                        
+
+                                      StaticImage = self.image
+                                      StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
+                                      Colorimage = np.zeros_like(self.image)
+
+                                      copyxlocations = xlocations.copy()
+                                      copyylocations = ylocations.copy()
+                                      for j in range(len(copyxlocations)):
+                                         startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
+                                         endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
+                                         tlocation = int(tlocations[j])
+                                         cv2.rectangle(Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
+                                      RGBImage = [StaticImage, Colorimage, Colorimage]
+                                      RGBImage = np.swapaxes(np.asarray(RGBImage),1, 3)
+                                      RGBImage = np.swapaxes(RGBImage, 1,2) 
+                                      imageio.imwrite((csvimagename  + name + '.tif' ), RGBImage)
     
           
     def showNapari(self, imagedir, savedir, yolo_v2 = False):

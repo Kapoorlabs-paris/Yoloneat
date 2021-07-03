@@ -38,6 +38,8 @@ from matplotlib.figure import Figure
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
+import cv2
+import imageio
 Boxname = 'ImageIDBox'
 EventBoxname = 'EventIDBox'
 
@@ -446,15 +448,15 @@ class NEATDynamicSegFree(object):
         for (event_name,event_label) in self.key_categories.items():
                    
                    if event_label > 0:
-                                      xlocations = []
-                                      ylocations = []
-                                      scores = []
-                                      confidences = []
-                                      tlocations = []   
-                                      radiuses = []
-                                      angles = []
+                                              xlocations = []
+                                              ylocations = []
+                                              scores = []
+                                              confidences = []
+                                              tlocations = []   
+                                              radiuses = []
+                                              angles = []
                               
-                                      try:
+                                     
                                               iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                               iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)
                                               iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = True)
@@ -494,15 +496,37 @@ class NEATDynamicSegFree(object):
                                                  writer.writerows(event_data)
                                                  event_data = []           
                               
-                                      except:
-                                          
-                                          pass
+                                              ImageResults = self.basedirResults + '/' + 'ImageLocations'
+                                              Path(ImageResults).mkdir(exist_ok=True)
+        
+                                              csvimagename = ImageResults + "/" + event_name + 'LocationData'
+                                              name = str(self.start)
+                                              self.saveimage(xlocations, ylocations, tlocations, radiuses, csvimagename, name)
 
 
                       
 
      
 
+    def saveimage(self, xlocations, ylocations, tlocations, radius, csvimagename, name):
+
+                        
+
+                                      StaticImage = self.image
+                                      StaticImage = normalizeFloatZeroOne(StaticImage,1,99.8)
+                                      Colorimage = np.zeros_like(self.image)
+
+                                      copyxlocations = xlocations.copy()
+                                      copyylocations = ylocations.copy()
+                                      for j in range(len(copyxlocations)):
+                                         startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
+                                         endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
+                                         tlocation = int(tlocations[j])
+                                         cv2.rectangle(Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
+                                      RGBImage = [StaticImage, Colorimage, Colorimage]
+                                      RGBImage = np.swapaxes(np.asarray(RGBImage),1, 3)
+                                      RGBImage = np.swapaxes(RGBImage, 1,2) 
+                                      imageio.imwrite((csvimagename  + name + '.tif' ), RGBImage)
 
     
           
