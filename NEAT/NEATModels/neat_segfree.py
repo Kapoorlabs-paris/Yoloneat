@@ -496,7 +496,7 @@ class NEATDynamicSegFree(object):
                                                  writer.writerows(event_data)
                                                  event_data = []           
                               
-                                              ImageResults = self.basedirResults + '/' + 'ImageLocations'
+                                              ImageResults = self.savedir + '/' + 'ImageLocations'
                                               Path(ImageResults).mkdir(exist_ok=True)
         
                                               csvimagename = ImageResults + "/" + event_name + 'LocationData'

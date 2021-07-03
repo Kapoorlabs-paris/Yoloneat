@@ -771,8 +771,11 @@ class NEATDynamic(object):
                 
                 print('Out of memory, increasing overlapping tiles for prediction')
                 
-                self.n_tiles[0] = self.n_tiles[0]  + 1
-                self.n_tiles[1] = self.n_tiles[1]  + 1
+                self.list_n_tiles = list(self.n_tiles)
+                self.list_n_tiles[0] = self.n_tiles[0]  + 1
+                self.list_n_tiles[1] = self.n_tiles[1]  + 1
+                self.n_tiles = tuple(self.list_n_tiles) 
+                
                 
                 self.predict_main(sliceregion)
                 
