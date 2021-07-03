@@ -497,8 +497,7 @@ class NEATDynamicSegFree(object):
                                                  event_data = []           
                               
                                               ImageResults = self.savedir + '/'+ event_name + 'ImageLocations' + (os.path.splitext(os.path.basename(self.imagename))[0])
-                                              Path(ImageResults).mkdir(exist_ok=True)
-        
+                                              
                                               
                                               name = os.path.splitext(os.path.basename(self.imagename))[0]
                                               self.saveimage(xlocations, ylocations, tlocations, radiuses, ImageResults)
@@ -520,10 +519,10 @@ class NEATDynamicSegFree(object):
                                       for j in range(len(copyxlocations)):
                                          startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
                                          endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
-                                         tlocation = int(tlocations[j])
+                                         tlocation = int(round(tlocations[j]))
                                          cv2.rectangle(Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
                                       
-                                      imwrite((csvimagename + '.tif' ), Colorimage.astype('float8'))
+                                      imwrite((csvimagename + '.tif' ), Colorimage.astype('uint8'))
 
     
           
