@@ -304,7 +304,7 @@ class NEATDynamic(object):
            self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
            markerdir = self.savedir + '/' + 'Markers'
            Path(markerdir).mkdir(exist_ok=True)
-           imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('uint16'))     
+           imwrite(markerdir + '/' + Name + '.tif', self.markers)     
         else:
             try:
                self.markers = imread(markerdir + '/' + Name + '.tif')
