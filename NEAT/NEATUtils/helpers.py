@@ -16,11 +16,15 @@ import math
 from csbdeep.utils import normalize
 from tifffile import imread, imwrite
 from tqdm import tqdm    
+from skimage.segmentation import  relabel_sequential
 from skimage.util import invert as invertimage
 from skimage.measure import label
 from skimage.filters import sobel
+from scipy.ndimage.measurements import find_objects
 from skimage.morphology import erosion, dilation, square, binary_dilation, disk
 from scipy.ndimage import morphology
+from skimage.filters import threshold_local, threshold_otsu
+from scipy.ndimage.morphology import binary_fill_holes
 from skimage.segmentation import watershed
 """
  @author: Varun Kapoor
@@ -444,18 +448,58 @@ def DensityCounter(MarkerImage, TrainshapeX, TrainshapeY):
     
     return AllDensity
 
+def _fill_label_holes(lbl_img, **kwargs):
+    lbl_img_filled = np.zeros_like(lbl_img)
+    for l in (set(np.unique(lbl_img)) - set([0])):
+        mask = lbl_img==l
+        mask_filled = binary_fill_holes(mask,**kwargs)
+        lbl_img_filled[mask_filled] = l
+    return lbl_img_filled
+def fill_label_holes(lbl_img, **kwargs):
+    """Fill small holes in label image."""
+    # TODO: refactor 'fill_label_holes' and 'edt_prob' to share code
+    def grow(sl,interior):
+        return tuple(slice(s.start-int(w[0]),s.stop+int(w[1])) for s,w in zip(sl,interior))
+    def shrink(interior):
+        return tuple(slice(int(w[0]),(-1 if w[1] else None)) for w in interior)
+    objects = find_objects(lbl_img)
+    lbl_img_filled = np.zeros_like(lbl_img)
+    for i,sl in enumerate(objects,1):
+        if sl is None: continue
+        interior = [(s.start>0,s.stop<sz) for s,sz in zip(sl,lbl_img.shape)]
+        shrink_slice = shrink(interior)
+        grown_mask = lbl_img[grow(sl,interior)]==i
+        mask_filled = binary_fill_holes(grown_mask,**kwargs)[shrink_slice]
+        lbl_img_filled[sl][mask_filled] = i
+    return lbl_img_filled
 
-def GenerateMarkers(Image, starmodel, n_tiles):
+
+def dilate_label_holes(lbl_img, iterations):
+    lbl_img_filled = np.zeros_like(lbl_img)
+    for l in (range(np.min(lbl_img), np.max(lbl_img) + 1)):
+        mask = lbl_img==l
+        mask_filled = binary_dilation(mask,iterations = iterations)
+        lbl_img_filled[mask_filled] = l
+    return lbl_img_filled
+def GenerateMarkers(Image, unetmodel, n_tiles):
     
     Markers = np.zeros([Image.shape[0], Image.shape[1], Image.shape[2]])
     for i in tqdm(range(0, Image.shape[0])):
         
             smallimage = Image[i,:]
-            smallimage = normalize(smallimage, 1, 99.8, axis = (0,1))
-            shape = [smallimage.shape[0], smallimage.shape[1]]
-            resize_smallimage = twod_zero_pad(smallimage, 64, 64)
-            midimage, details = starmodel.predict_instances(resize_smallimage, n_tiles = n_tiles)
-            starimage = midimage[:shape[0],:shape[1]] 
+            
+            Segmented = unetmodel.predict(smallimage, 'YX', n_tiles = n_tiles)
+    
+            try:
+               thresh = threshold_otsu(Segmented)
+               Binary = Segmented > thresh
+            except:
+                Binary = Segmented > 0
+            #Postprocessing steps
+            Filled = binary_fill_holes(Binary)
+            Finalimage = label(Filled)
+            Finalimage = fill_label_holes(Finalimage)
+            starimage = relabel_sequential(Finalimage)[0]
             properties = measure.regionprops(starimage, starimage)
             Coordinates = [prop.centroid for prop in properties]
             
