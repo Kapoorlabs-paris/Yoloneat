@@ -487,7 +487,7 @@ def GenerateMarkers(Image, model, n_tiles, star):
     for i in tqdm(range(0, Image.shape[0])):
         
             smallimage = Image[i,:]
-            if self.star == False:
+            if star == False:
                         Segmented = model.predict(smallimage, 'YX', n_tiles = n_tiles)
                 
                         try:
