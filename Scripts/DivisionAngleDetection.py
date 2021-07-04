@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 from stardist.models import StarDist2D
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -25,10 +25,10 @@ from pathlib import Path
 
 
 imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/'
-savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/MarkerNineFramePrediction/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV2/'
+savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/MarkerAngleNineFramePrediction/'
 markerdir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/MarkerNineFramePrediction/Markers/'
-model_name = 'divisionm4d65'
+model_name = 'divisionm4d65V2'
 marker_model_name = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/bin2stardist/'
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
@@ -40,7 +40,7 @@ Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
 event_threshold = 0.99999
 iou_threshold = 0.01
-yolo_v2 = False
+yolo_v2 = True
 
 
 # # In the code block below compute the markers and make a dictionary for each image
