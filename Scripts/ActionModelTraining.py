@@ -19,13 +19,13 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 # In[2]:
 
 
-npz_directory = '/home/sancere/Kepler/FinalONEATTraining/Divisionbin2m4modelV1/'
-npz_name = 'divisionbin2m4V1.npz'
-npz_val_name = 'divisionbin2m4valV1.npz'
+npz_directory = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Divisionbin2m4modelV2/'
+npz_name = 'divisionbin2m4V2.npz'
+npz_val_name = 'divisionbin2m4valV2.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/home/sancere/Kepler/FinalONEATTraining/EverydayneatmodelV1/'
-model_name = 'divisionm4d29V1.h5'
+model_dir =  '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV2/'
+model_name = 'divisionm4d65V2.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'DivisionCategories.json'
@@ -42,7 +42,7 @@ start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 29
+depth = 65
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-6
 #For stochastic gradient decent, the batch size used for computing the gradients
@@ -60,8 +60,8 @@ size_tplus = 5
 imagex = 64
 imagey = 64
 yolo_v0 = False
-yolo_v1 = True
-yolo_v2 = False
+yolo_v1 = False
+yolo_v2 = True
 
 
 # In[4]:

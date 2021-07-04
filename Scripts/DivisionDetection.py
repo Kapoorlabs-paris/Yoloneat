@@ -29,13 +29,13 @@ model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Everydaynea
 savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/MarkerNineFramePrediction/'
 markerdir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/MarkerNineFramePrediction/Markers/'
 model_name = 'divisionm4d65'
-unet_model_name = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/UNETDrosophilaMembrane/'
+marker_model_name = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/bin2stardist/'
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'DivisionCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamic(None, model_dir , model_name,catconfig, cordconfig)
-unetmodel = CARE(config = None, name = unet_model_name, basedir = model_dir)
+marker_model = StarDist2D(config = None, name = marker_model_name, basedir = model_dir)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
 event_threshold = 0.99
@@ -53,7 +53,7 @@ X = glob.glob(Raw_path)
 
 marker_dict = {}
 for imagename in X:
-     markers, markers_tree, density_location =  model.get_markers(imagename, unetmodel,savedir, n_tiles = n_tiles, markerdir = markerdir)
+     markers, markers_tree, density_location =  model.get_markers(imagename, marker_model,savedir, n_tiles = n_tiles, markerdir = markerdir)
      
      model.predict(imagename,markers, markers_tree, density_location, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold)
 
