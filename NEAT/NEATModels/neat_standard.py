@@ -288,7 +288,7 @@ class NEATDynamic(object):
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
         
-    def get_markers(self, imagename, starmodel, savedir,  n_tiles, markerdir = None):
+    def get_markers(self, imagename, starmodel, savedir,  n_tiles, markerdir = None, star = True):
         
         
         self.starmodel = starmodel
@@ -296,12 +296,13 @@ class NEATDynamic(object):
         self.image = imread(imagename)
         Name = os.path.basename(os.path.splitext(self.imagename)[0])
         self.savedir = savedir
+        self.star = star
         Path(self.savedir).mkdir(exist_ok=True)
         
         self.n_tiles = n_tiles
         print('Obtaining Markers')
         if markerdir is None:
-           self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
+           self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles,self.star )
            markerdir = self.savedir + '/' + 'Markers'
            Path(markerdir).mkdir(exist_ok=True)
            imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('float32'))     
