@@ -53,7 +53,7 @@ X = glob.glob(Raw_path)
 
 marker_dict = {}
 for imagename in X:
-     markers, markers_tree, density_location =  model.get_markers(imagename, starmodel,savedir, n_tiles = n_tiles, markerdir = markerdir)
+     markers, markers_tree, density_location =  model.get_markers(imagename, unetmodel,savedir, n_tiles = n_tiles, markerdir = markerdir)
      
      model.predict(imagename,markers, markers_tree, density_location, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold)
 
