@@ -573,7 +573,7 @@ class NEATDynamic(object):
 
      
 
-    def saveimage(self, xlocations, ylocations, tlocations, radius, csvimagename):
+    def saveimage(self, xlocations, ylocations, tlocations, anglelocations, radius, csvimagename):
 
                         
 
@@ -586,8 +586,15 @@ class NEATDynamic(object):
                                          startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
                                          endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
                                          tlocation = int(round(tlocations[j]))
+                                         anglelocation = anglelocations[j]
                                          cv2.rectangle(self.Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
-                                      
+                                         if self.yolo_v2:
+                                              
+                                              x1 =  copyxlocations[j]
+                                              y1 =  copyylocations[j] 
+                                              x2 = x1 + radius[j] * math.cos(anglelocation)
+                                              y2 = y1 + radius[j] * math.sin(anglelocation)
+                                              cv2.line(self.Colorimage[tlocation,:], (x1,y1), (x2,y2), (255,255,255), 1) 
                                       imwrite((csvimagename + '.tif' ), self.Colorimage.astype('uint8'))
     
           
