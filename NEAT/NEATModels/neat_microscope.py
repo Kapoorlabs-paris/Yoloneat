@@ -347,7 +347,7 @@ class NEATPredict(object):
                                              start_time = time.time()
                                              print('Reading Z stack for projection')
                                              Z_image = imread(Z_path)
-                                             print('Read')
+                                             print('Read properly')
                                      except:
                                          
                                            Z_image = None

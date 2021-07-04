@@ -304,7 +304,7 @@ class NEATDynamic(object):
            self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
            markerdir = self.savedir + '/' + 'Markers'
            Path(markerdir).mkdir(exist_ok=True)
-           imwrite(markerdir + '/' + Name + '.tif', self.markers)     
+           imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('uint16'))     
         else:
             try:
                self.markers = imread(markerdir + '/' + Name + '.tif')
@@ -518,15 +518,15 @@ class NEATDynamic(object):
         for (event_name,event_label) in self.key_categories.items():
                    
                    if event_label > 0:
-                                      xlocations = []
-                                      ylocations = []
-                                      scores = []
-                                      confidences = []
-                                      tlocations = []   
-                                      radiuses = []
-                                      angles = []
+                                              xlocations = []
+                                              ylocations = []
+                                              scores = []
+                                              confidences = []
+                                              tlocations = []   
+                                              radiuses = []
+                                              angles = []
                               
-                                      try:
+                                    
                                               iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                               iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
                                               for iou_current_event_box in iou_current_event_boxes:
@@ -562,9 +562,10 @@ class NEATDynamic(object):
                                                  writer.writerows(event_data)
                                                  event_data = []           
                               
-                                      except:
-                                          
-                                          pass
+                                              ImageResults = self.savedir + '/'+ event_name + 'ImageLocations' + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                              
+                                              
+                                              self.saveimage(xlocations, ylocations, tlocations, radiuses, ImageResults)
 
 
                       

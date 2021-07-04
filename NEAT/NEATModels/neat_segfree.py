@@ -499,7 +499,6 @@ class NEATDynamicSegFree(object):
                                               ImageResults = self.savedir + '/'+ event_name + 'ImageLocations' + (os.path.splitext(os.path.basename(self.imagename))[0])
                                               
                                               
-                                              name = os.path.splitext(os.path.basename(self.imagename))[0]
                                               self.saveimage(xlocations, ylocations, tlocations, radiuses, ImageResults)
 
 
