@@ -38,7 +38,7 @@ model = NEATDynamic(None, model_dir , model_name,catconfig, cordconfig)
 marker_model = StarDist2D(config = None, name = marker_model_name, basedir = model_dir)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
-event_threshold = 0.99999
+event_threshold = 0.9999
 iou_threshold = 0.01
 yolo_v2 = True
 

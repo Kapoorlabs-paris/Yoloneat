@@ -595,7 +595,7 @@ class NEATDynamic(object):
                                               y1 =  copyylocations[j] 
                                               x2 = x1 + radius[j] * math.cos(anglelocation)
                                               y2 = y1 + radius[j] * math.sin(anglelocation)
-                                              cv2.line(self.Colorimage[tlocation,:], (x1,y1), (x2,y2), (255,255,255), 1) 
+                                              cv2.line(self.Colorimage[tlocation,:], (int(x1),int(y1)), (int(x2),int(y2)), (255,255,255), 1) 
                                       imwrite((csvimagename + '.tif' ), self.Colorimage.astype('uint8'))
     
           
