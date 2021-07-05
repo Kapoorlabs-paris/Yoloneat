@@ -526,12 +526,12 @@ class NEATPredict(object):
 
                                       csvimagename = ImageResults + "/" + event_name + 'LocationData'
                                       name = str(self.start)
-                                      self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
+                                      self.saveimage(xlocations, ylocations, radiuses, scores, csvimagename, name)
   
                                       
                  
                                    
-    def saveimage(self, xlocations, ylocations, radius, csvimagename, name):
+    def saveimage(self, xlocations, ylocations, radius, scores, csvimagename, name):
 
                         
 
@@ -544,7 +544,17 @@ class NEATPredict(object):
                                       for j in range(len(copyxlocations)):
                                          startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
                                          endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
-                                         cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
+                                         score = scores[j]
+                                         if score == 1:
+                                             color = (0,0,255)
+                                         if score > 0.95 and score <=1:
+                                             color = (0, 255,0)
+                                         if score > 0.9 and score <= 0.95:
+                                             color = (255,0,0)
+                                         else:
+                                             color = (0,0,0)
+                                                 
+                                         cv2.rectangle(Colorimage, startlocation, endlocation, color, 1 )
                                       RGBImage = [StaticImage, Colorimage, Colorimage]
                                       RGBImage = np.swapaxes(np.asarray(RGBImage),0, 2)
                                       RGBImage = np.swapaxes(RGBImage, 0,1) 
