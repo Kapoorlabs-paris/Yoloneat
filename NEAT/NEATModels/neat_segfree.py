@@ -79,7 +79,7 @@ class NEATDynamicSegFree(object):
     """
     
     
-    def __init__(self, config, model_dir, model_name, catconfig = None, cordconfig = None):
+    def __init__(self, config, model_dir, model_name, second_model_name = None, catconfig = None, cordconfig = None):
 
         
         self.config = config
@@ -87,6 +87,7 @@ class NEATDynamicSegFree(object):
         self.cordconfig = cordconfig
         self.model_dir = model_dir
         self.model_name = model_name 
+        self.second_model_name = second_model_name
         if self.config !=None:
                 self.npz_directory = config.npz_directory
                 self.npz_name = config.npz_name
@@ -344,7 +345,15 @@ class NEATDynamicSegFree(object):
         f.attrs['training_config'] = data_p
         f.close()
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
-       
+        
+        if self.second_model_name is not None:
+                       f_second = h5py.File(self.model_dir + self.second_model_name + '.h5', 'r+')
+                       data_p_second = f_second.attrs['training_config']
+                       data_p_second = data_p_second.decode().replace("learning_rate","lr").encode()
+                       f_second.attrs['training_config'] = data_p_second
+                       f_second.close()
+                       self.second_model =  load_model( self.model_dir + self.second_model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
+
             
         eventboxes = []
         classedboxes = {}    
@@ -458,7 +467,7 @@ class NEATDynamicSegFree(object):
                               
                                      
                                               iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)
+                                              
                                               iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = True)
                                              
 
@@ -719,7 +728,12 @@ class NEATDynamicSegFree(object):
        
        
        prediction_vector = self.model.predict(np.expand_dims(predict_im,-1), verbose = 0)
-         
+       if self.second_model is not None:
+           prediction_vector_second = self.second_model.predict(np.expand_dims(predict_im,-1), verbose = 0)
+       else:
+          prediction_vector_second = prediction_vector
+       for i, bi in enumerate(prediction_vector_second): prediction_vector[i] += bi
+       for i, bi in enumerate(prediction_vector_second): prediction_vector[i] /= 2   
             
        return prediction_vector
    
