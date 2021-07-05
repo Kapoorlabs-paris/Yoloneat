@@ -13,7 +13,7 @@ from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
 from csbdeep.models import ProjectionCARE
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -29,11 +29,11 @@ division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'MicroscopeCord.json'
 cordconfig = load_json(division_cord_json)
-fileextension = '*tif'
+fileextension = '*TIF'
 
 
 model = NEATPredict(None, model_dir , model_name,catconfig, cordconfig)
-projection_model = None #ProjectionCARE(config = None, name = projection_model_name, basedir = model_dir)
+projection_model = ProjectionCARE(config = None, name = projection_model_name, basedir = model_dir)
 
 
 
@@ -41,7 +41,7 @@ n_tiles = (1,1)
 Z_n_tiles = (1,1,1)
 event_threshold = 1
 iou_threshold = 0.01
-nb_predictions = 100
+nb_predictions = 10
 downsample = False
 
 
