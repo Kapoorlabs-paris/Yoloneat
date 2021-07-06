@@ -475,17 +475,19 @@ class NEATPredict(object):
                    
                    if event_label > 0:
                                   
-                                      xlocations = []
-                                      ylocations = []
-                                      scores = []
-                                      tlocations = []   
-                                      radiuses = []
-                                      predcount = 0
-                                      iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                      #iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)
-                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = False) 
-                                      
-                                      for iou_current_event_box in iou_current_event_boxes:
+                                   xlocations = []
+                                   ylocations = []
+                                   scores = []
+                                   tlocations = []   
+                                   radiuses = []
+                                   predcount = 0
+                                   iou_current_event_boxes = self.iou_classedboxes[event_name][0]
+                                   iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)                    
+                                   
+                                   #dist_iou_current_event_boxes = sorted(dist_iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = False) 
+                                      #for d in [iou_current_event_boxes]:
+                                                      #dist_iou_current_event_boxes.update(d)                                      
+                                   for iou_current_event_box in iou_current_event_boxes:
                                               if predcount > self.nb_prediction:
                                                    break
                                              
@@ -546,7 +548,7 @@ class NEATPredict(object):
                                          endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
                                       
                                                  
-                                         cv2.rectangle(Colorimage, startlocation, endlocation, (255,255,255), 1 )
+                                         cv2.rectangle(Colorimage, startlocation, endlocation, (0,255,255), 1 )
                                       RGBImage = [StaticImage, Colorimage, Colorimage]
                                       RGBImage = np.swapaxes(np.asarray(RGBImage),0, 2)
                                       RGBImage = np.swapaxes(RGBImage, 0,1) 
