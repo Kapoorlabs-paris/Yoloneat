@@ -468,7 +468,7 @@ class NEATDynamicSegFree(object):
                                      
                                               iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                               
-                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = True)
+                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:math.sqrt((x['xcenter'] - self.image.shape[2]//2) * (x['xcenter'] - self.image.shape[2]//2) + ((x['ycenter'] - self.image.shape[1]//2))* ((x['ycenter'] - self.image.shape[1]//2))  ), reverse = True)
                                              
 
  
@@ -481,7 +481,7 @@ class NEATDynamicSegFree(object):
                                                       score = iou_current_event_box[event_name]
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
-                                                      if confidence >= self.event_threshold:
+                                                      if confidence >= self.event_threshold and abs(xcenter) > self.imagex and abs(ycenter) > self.imagey and abs(self.image.shape[2] - xcenter) > self.imagex and abs(self.image.shape[1] -ycenter) > self.imagey:
                                                               xlocations.append(xcenter)
                                                               ylocations.append(ycenter)
                                                               scores.append(score)

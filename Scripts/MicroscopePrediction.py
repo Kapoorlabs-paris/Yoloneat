@@ -13,7 +13,7 @@ from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
 from csbdeep.models import ProjectionCARE
-os.environ["CUDA_VISIBLE_DEVICES"]="3"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -23,7 +23,7 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 Z_imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Z_ONEAT_fly_test/'
 imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/ONEAT_fly_test/'
 model_dir =  '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Microneatmodel/'
-model_name = 'microseqnetbin2d65'
+model_name = 'microseqnetbin2d56'
 projection_model_name = 'projectionmodelbin2'
 division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
@@ -34,12 +34,13 @@ fileextension = '*TIF'
 
 model = NEATPredict(None, model_dir , model_name,catconfig, cordconfig)
 projection_model = ProjectionCARE(config = None, name = projection_model_name, basedir = model_dir)
+ 
 
 
 
 n_tiles = (1,1)
 Z_n_tiles = (1,1,1)
-event_threshold = 0.9999
+event_threshold = 1
 iou_threshold = 0.01
 nb_predictions = 20
 downsample = False
