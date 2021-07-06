@@ -503,17 +503,17 @@ class NEATPredict(object):
                                               tlocations.append(tcenter)
                                               radiuses.append(radius)
                                               predcount = predcount + 1
-                                      event_count = np.column_stack([xlocations,ylocations]) 
-                                      csvname = self.basedirResults + "/" + event_name
+                                   event_count = np.column_stack([xlocations,ylocations]) 
+                                   csvname = self.basedirResults + "/" + event_name
                                       
 
-                                      writer = csv.writer(open(csvname + ".ini", 'w'))
-                                      writer.writerow(["[main]"])  
-                                      writer.writerow(["nbPredictions="+str(self.nb_prediction)])
-                                      live_event_data = []
-                                      count = 1
+                                   writer = csv.writer(open(csvname + ".ini", 'w'))
+                                   writer.writerow(["[main]"])  
+                                   writer.writerow(["nbPredictions="+str(self.nb_prediction)])
+                                   live_event_data = []
+                                   count = 1
                                       
-                                      for line in event_count:
+                                   for line in event_count:
                                                                                             
                                               live_event_data.append(line)
                                               writer.writerow(["["+str(count)+"]"])
@@ -523,12 +523,12 @@ class NEATPredict(object):
                                                   
                                               count = count + 1
                                            
-                                      ImageResults = self.basedirResults + '/' + 'ImageLocations'
-                                      Path(ImageResults).mkdir(exist_ok=True)
+                                   ImageResults = self.basedirResults + '/' + 'ImageLocations'
+                                   Path(ImageResults).mkdir(exist_ok=True)
 
-                                      csvimagename = ImageResults + "/" + event_name + 'LocationData'
-                                      name = str(self.start)
-                                      self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
+                                   csvimagename = ImageResults + "/" + event_name + 'LocationData'
+                                   name = str(self.start)
+                                   self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
   
                                       
                  
