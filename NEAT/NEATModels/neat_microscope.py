@@ -342,7 +342,7 @@ class NEATPredict(object):
                          doproject = True    
                    
                     if doproject:
-                                    
+                                     time.sleep(4)
                                      try:    
                                              start_time = time.time()
                                              print('Reading Z stack for projection')
