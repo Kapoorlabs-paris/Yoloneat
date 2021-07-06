@@ -79,7 +79,7 @@ class NEATDynamicSegFree(object):
     """
     
     
-    def __init__(self, config, model_dir, model_name, second_model_name = None, catconfig = None, cordconfig = None):
+    def __init__(self, config, model_dir, model_name, catconfig = None, cordconfig = None, second_model_name = None):
 
         
         self.config = config
@@ -728,7 +728,7 @@ class NEATDynamicSegFree(object):
        
        
        prediction_vector = self.model.predict(np.expand_dims(predict_im,-1), verbose = 0)
-       if self.second_model is not None:
+       if self.second_model_name is not None:
            prediction_vector_second = self.second_model.predict(np.expand_dims(predict_im,-1), verbose = 0)
        else:
           prediction_vector_second = prediction_vector
