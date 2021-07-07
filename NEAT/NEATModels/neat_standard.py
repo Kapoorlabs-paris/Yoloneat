@@ -354,76 +354,14 @@ class NEATDynamic(object):
         
         self.Colorimage = np.zeros_like(self.image)   
         #Do the prediction in the fully convolutional way if no marker image is input it is the only way we get the candidate points
-        if self.marker_tree is None: 
-                print('Detecting event locations')
-                for inputtime in tqdm(range(0, self.image.shape[0])):
-                    if inputtime < self.image.shape[0] - self.imaget:
-                                tree, indices = self.marker_tree[str(int(inputtime))]
-                                count = count + 1
-                                down_region = []
-                                up_region = []
-                                all_density_location = self.density_location[str(inputtime)]
-                                density = all_density_location[0]
-                                location = all_density_location[1]
-                                
-                                smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
-                                smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
-                                # Cut off the region for training movie creation
-                                for i in range(len(density)):
-                                        
-                                    
-                                        if density[i] <= self.density_veto:
-                                             down_region.append(location)
-                                             self.remove_marker_locations(inputtime, location)
-                                        if density[i] >= 5 * self.density_veto:
-                                             up_region.append(location)
-                                             self.remove_marker_locations(inputtime, location)
+       
+        count = 0 
+        print('Initial markers ', len(self.marker_tree))
+        self.first_pass_predict()
+         print('Filtered markers ', len(self.marker_tree))
+        print('Detecting event locations')
+        for inputtime in tqdm(range(0, self.image.shape[0])):
                                             
-                                self.downsample_regions[str(inputtime)] = down_region
-                                self.upsample_regions[str(inputtime)] = up_region
-                                #Break image into tiles if neccessary
-                                predictions, allx, ally = self.predict_main(smallimage)
-                                #Iterate over tiles
-                                for p in range(0,len(predictions)):   
-                        
-                                  sum_time_prediction = predictions[p]
-                                  
-                                  if sum_time_prediction is not None:
-                                     #For each tile the prediction vector has shape N H W Categories + Training Vector labels
-                                     for i in range(0, sum_time_prediction.shape[0]):
-                                          time_prediction =  sum_time_prediction[i]
-                                          boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic', self.marker_tree)
-                                          
-                                          if boxprediction is not None:
-                                                  eventboxes = eventboxes + boxprediction
-                                            
-                                for (event_name,event_label) in self.key_categories.items(): 
-                                                     
-                                                if event_label > 0:
-                                                     current_event_box = []
-                                                     for box in eventboxes:
-                                                
-                                                        event_prob = box[event_name]
-                                                        if event_prob >= self.event_threshold:
-                                                           
-                                                            current_event_box.append(box)
-                                                     classedboxes[event_name] = [current_event_box]
-                                                 
-                                self.classedboxes = classedboxes    
-                                self.eventboxes =  eventboxes
-                                #nms over time
-                                if count%(self.imaget)==0:
-                                        self.nms()
-                                        self.to_csv()
-                                        eventboxes = []
-                                        classedboxes = {}    
-                                        count = 0
-                                            
-                      
-        if self.marker_tree is not None:
-                   count = 0 
-                   print('Detecting event locations')
-                   for inputtime in tqdm(range(0, self.image.shape[0])):
                                             smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
                                             smallimage = normalizeFloatZeroOne(smallimage,1,99.8)         
                                             count = count + 1                        
@@ -476,7 +414,88 @@ class NEATDynamic(object):
                                                     classedboxes = {}    
                                                     count = 0
                                 
+                   
                             
+    def first_pass_predict(self):
+
+        print('Detecting normal event locations for removal of markers')
+        for inputtime in tqdm(range(0, self.image.shape[0])):
+                    if inputtime < self.image.shape[0] - self.imaget:
+                                count = count + 1
+                                
+                                tree, indices = self.marker_tree[str(int(inputtime))]
+                                count = count + 1
+                                down_region = []
+                                up_region = []
+                                all_density_location = self.density_location[str(inputtime)]
+                                density = all_density_location[0]
+                                location = all_density_location[1]
+                                
+                                smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
+                                smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
+                                # Cut off the region for training movie creation
+                                for i in range(len(density)):
+                                        
+                                    
+                                        if density[i] <= self.density_veto:
+                                             down_region.append(location)
+                                             self.remove_marker_locations(inputtime, location)
+                                        if density[i] >= 5 * self.density_veto:
+                                             up_region.append(location)
+                                             self.remove_marker_locations(inputtime, location)
+                                            
+                                self.downsample_regions[str(inputtime)] = down_region
+                                self.upsample_regions[str(inputtime)] = up_region
+                                # Cut off the region for training movie creation
+                                #Break image into tiles if neccessary
+                                predictions, allx, ally = self.predict_main(smallimage)
+                                #Iterate over tiles
+                                for p in range(0,len(predictions)):   
+                        
+                                  sum_time_prediction = predictions[p]
+                                  
+                                  if sum_time_prediction is not None:
+                                     #For each tile the prediction vector has shape N H W Categories + Training Vector labels
+                                     for i in range(0, sum_time_prediction.shape[0]):
+                                          time_prediction =  sum_time_prediction[i]
+                                          boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          
+                                          if boxprediction is not None:
+                                                  eventboxes = eventboxes + boxprediction
+                                            
+                                for (event_name,event_label) in self.key_categories.items(): 
+                                                     
+                                                if event_label == 0:
+                                                     current_event_box = []
+                                                     for box in eventboxes:
+                                                
+                                                        event_prob = box[event_name]
+                                                        if event_prob >= 0.3:
+                                                            ycentermean , xcentermean = get_nearest(self.marker_tree, box['ycenter' ], box['xcenter'] , box['real_time_event']) 
+                                                            location = (ycentermean, xcentermean)
+                                                            self.remove_marker_locations(box['real_time_event'], location) 
+                                                            
+                          
+                    
+            
+    def no_eventnms(self):
+        
+        
+        no_eventbest_iou_classedboxes = {}
+        self.no_eventiou_classedboxes = {}
+        for (event_name,event_label) in self.key_categories.items():
+            if event_label == 0:
+               #Get all events
+               
+               no_eventsorted_event_box = self.no_eventclassedboxes[event_name][0]
+               scores = [ no_eventsorted_event_box[i][event_name]  for i in range(len(no_eventsorted_event_box))]
+               no_best_sorted_event_box = averagenms(no_eventsorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
+               #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
+               #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
+               
+               best_iou_classedboxes[event_name] = [best_sorted_event_box]
+               
+        self.iou_classedboxes = best_iou_classedboxes                  
     def remove_marker_locations(self, tcenter, location):
 
                      tree, indices = self.marker_tree[str(int(tcenter))]
