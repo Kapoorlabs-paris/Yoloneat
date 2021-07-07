@@ -22,14 +22,14 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Microneatmodel/'
-savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/FourFramePrediction/'
-model_name = 'microseqnetbin2d47'
+imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTestBin1/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning1V1model/'
+savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/Frame9SegFreeBin1/'
+model_name = 'wtdivisionmodel'
 
-division_categories_json = model_dir + 'MicroscopeCategories.json'
+division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'MicroscopeCord.json'
+division_cord_json = model_dir + 'DivisionCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name, catconfig, cordconfig)
 
