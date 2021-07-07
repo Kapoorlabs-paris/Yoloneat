@@ -41,7 +41,7 @@ Total categories for cell classification part of vanilla ONEAT are:
 csv file containing time, ylocation, xlocation of that event/cell type
 """    
     
-def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = True, yolo_v1 = False, yolo_v2 = False):
+def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = False, yolo_v1 = True, yolo_v2 = False):
     
     
             raw_path = os.path.join(image_dir, '*tif')
@@ -145,7 +145,9 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offs
                         y = center[0]
                         if yolo_v0:
                             Label = np.zeros([total_categories + 5])
-                        else:    
+                        if yolo_v1:    
+                            Label = np.zeros([total_categories + 6])
+                        if yolo_v2:
                             Label = np.zeros([total_categories + 7])
                         Label[trainlabel] = 1
                         #T co ordinate
