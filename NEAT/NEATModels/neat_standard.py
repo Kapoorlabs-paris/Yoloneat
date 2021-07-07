@@ -358,7 +358,7 @@ class NEATDynamic(object):
         count = 0 
         print('Initial markers ', len(self.marker_tree))
         self.first_pass_predict()
-         print('Filtered markers ', len(self.marker_tree))
+        print('Filtered markers ', len(self.marker_tree))
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
                                             
@@ -421,10 +421,10 @@ class NEATDynamic(object):
         print('Detecting normal event locations for removal of markers')
         for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
-                                count = count + 1
+                                
                                 
                                 tree, indices = self.marker_tree[str(int(inputtime))]
-                                count = count + 1
+                                
                                 down_region = []
                                 up_region = []
                                 all_density_location = self.density_location[str(inputtime)]

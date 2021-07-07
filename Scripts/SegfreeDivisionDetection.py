@@ -22,10 +22,10 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTestBin1/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning1V1model/'
-savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/Frame9SegFreeBin1/'
-model_name = 'wtdivisionmodel'
+imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/'
+savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/NineFrameFastAccurate/'
+model_name = 'divisionm4d47'
 
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
@@ -36,7 +36,7 @@ model = NEATDynamicSegFree(None, model_dir , model_name, catconfig, cordconfig)
 
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
-event_threshold = 0.99999
+event_threshold = 0.999
 iou_threshold = 0.01
 yolo_v2 = False
 
