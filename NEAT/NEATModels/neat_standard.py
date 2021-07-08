@@ -812,11 +812,10 @@ class NEATDynamic(object):
    
     def make_batch_patches(self, sliceregion): 
    
-          try:
+      
                prediction_vector = self.model.predict(np.expand_dims(sliceregion,-1), verbose = 0)
                return prediction_vector
-          except:
-              pass
+         
             
           
                
