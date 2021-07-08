@@ -368,6 +368,8 @@ class NEATDynamic(object):
                                             count = count + 1                        
                                             tree, location = self.marker_tree[str(int(inputtime))]
                                             crop_image_list = []
+                                            crop_location_x_list = []
+                                            crop_location_y_list = []
                                             for i in range(len(location)):
                                                 
                                                 crop_xminus = location[i][1]  - int(self.imagex/2)
@@ -379,28 +381,30 @@ class NEATDynamic(object):
                                                 
                                                 crop_image = smallimage[region] 
                                                 if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex: 
-                                                     crop_image_list.append(crop_image)
-                                                
+                                                     #crop_image_list.append(crop_image)
+                                                     #crop_location_y_list.append(location[i][0])
+                                                     #crop_location_x_list.append(location[i][1])
+                                                     prediction_vector = self.make_patches(crop_image) 
                                                 
                                                                                                
                                                 #Now apply the prediction for counting real events
                                                 
-                                            prediction_vector = self.make_batch_patches(crop_image_list)
-                                            if prediction_vector is not None:
-                                                        for k in range(prediction_vector.shape[0]):
-                                                    
-                                                            ycenter = location[k][0]
-                                                            xcenter = location[k][1]
-                                                            boxprediction = nonfcn_yoloprediction(crop_image, ycenter, xcenter, prediction_vector[k], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
-                                                            if len(boxprediction) > 0:
-                                                                    boxprediction[0]['xcenter'] = xcenter
-                                                                    boxprediction[0]['ycenter'] = ycenter
-                                                                    boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
-                                                                    boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)
-                                                                    
-                                                            
-                                                            if boxprediction is not None:
-                                                                      eventboxes = eventboxes + boxprediction
+                                           
+                                                if prediction_vector is not None:
+                                                            for k in range(prediction_vector.shape[0]):
+                                                        
+                                                                ycenter = location[k][0]
+                                                                xcenter = location[k][1]
+                                                                boxprediction = nonfcn_yoloprediction(crop_image, ycenter, xcenter, prediction_vector[k], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
+                                                                if len(boxprediction) > 0:
+                                                                        boxprediction[0]['xcenter'] = xcenter
+                                                                        boxprediction[0]['ycenter'] = ycenter
+                                                                        boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
+                                                                        boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)
+                                                                        
+                                                                
+                                                                if boxprediction is not None:
+                                                                          eventboxes = eventboxes + boxprediction
                                                         for (event_name,event_label) in self.key_categories.items(): 
                                                                                    
                                                                                 if event_label > 0:
@@ -728,12 +732,12 @@ class NEATDynamic(object):
                           #Include the last patch   
                           rowstart = sliceregion.shape[1] -patchy
                           colstart = 0
-                          while colstart < sliceregion.shape[2] -patchx:
+                          while colstart < sliceregion.shape[2]:
                                         pairs.append([rowstart, colstart])
                                         colstart+=jumpx
                           rowstart = 0
                           colstart = sliceregion.shape[2] -patchx
-                          while rowstart < sliceregion.shape[1] -patchy:
+                          while rowstart < sliceregion.shape[1]:
                                         pairs.append([rowstart, colstart])
                                         rowstart+=jumpy              
                                         
