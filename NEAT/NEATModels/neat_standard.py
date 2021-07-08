@@ -362,7 +362,7 @@ class NEATDynamic(object):
         
         self.Colorimage = np.zeros_like(self.image)   
         for inputtime in tqdm(range(0, self.image.shape[0])):
-                                 if inputtime < self.image.shape[0] - self.imaget:            
+                                 if inputtime <= self.image.shape[0] - self.imaget:            
                                             smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
                                             smallimage = normalizeFloatZeroOne(smallimage,1,99.8)         
                                             count = count + 1                        
@@ -415,6 +415,7 @@ class NEATDynamic(object):
                                             self.classedboxes = classedboxes    
                                             self.eventboxes =  eventboxes
                                             #nms over time
+                                            print(count, self.imaget)
                                             if count%self.imaget == 0:
                                                     self.nms()
                                                     self.to_csv()
