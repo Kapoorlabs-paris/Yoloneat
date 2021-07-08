@@ -362,11 +362,14 @@ class NEATDynamic(object):
         
         self.Colorimage = np.zeros_like(self.image)   
         for inputtime in tqdm(range(0, self.image.shape[0])):
-                                            
+                                 if inputtime < self.image.shape[0] - self.imaget:            
                                             smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
                                             smallimage = normalizeFloatZeroOne(smallimage,1,99.8)         
                                             count = count + 1                        
                                             tree, location = self.marker_tree[str(int(inputtime))]
+                                            crop_image_list = []
+                                            crop_x_list = []
+                                            crop_y_list = []
                                             for i in range(len(location)):
                                                 
                                                 crop_xminus = location[i][1]  - int(self.imagex/2)
@@ -381,17 +384,21 @@ class NEATDynamic(object):
                                                             #Now apply the prediction for counting real events
                                                             ycenter = location[i][0]
                                                             xcenter = location[i][1]
-                                                            prediction_vector = self.make_patches(crop_image)
-                                                            boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector[0], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
-                                                            if len(boxprediction) > 0:
-                                                                    boxprediction[0]['xcenter'] = xcenter
-                                                                    boxprediction[0]['ycenter'] = ycenter
-                                                                    boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
-                                                                    boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)
-                                                                    
+                                                            crop_image_list.append(crop_image)
+                                                            crop_x_list.append(xcenter)
+                                                            crop_y_list.append(ycenter)
+                                                            prediction_vector = self.make_batch_patches(crop_image)
+                                            for k in range(prediction_vector.shape[0]):        
+                                                    boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector[k], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
+                                                    if len(boxprediction) > 0:
+                                                            boxprediction[0]['xcenter'] = crop_x_list[k]
+                                                            boxprediction[0]['ycenter'] = crop_y_list[k]
+                                                            boxprediction[0]['xstart'] = crop_x_list[k] - int(self.imagex/2)
+                                                            boxprediction[0]['ystart'] = crop_y_list[k] - int(self.imagey/2)
                                                             
-                                                            if boxprediction is not None:
-                                                                      eventboxes = eventboxes + boxprediction
+                                                    
+                                                    if boxprediction is not None:
+                                                              eventboxes = eventboxes + boxprediction
                                             for (event_name,event_label) in self.key_categories.items(): 
                                                                        
                                                                     if event_label > 0:
