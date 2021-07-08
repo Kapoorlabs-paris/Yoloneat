@@ -405,7 +405,7 @@ class NEATDynamic(object):
                                                                 
                                                                 if boxprediction is not None:
                                                                           eventboxes = eventboxes + boxprediction
-                                                        for (event_name,event_label) in self.key_categories.items(): 
+                                                            for (event_name,event_label) in self.key_categories.items(): 
                                                                                    
                                                                                 if event_label > 0:
                                                                                      current_event_box = []
@@ -417,16 +417,16 @@ class NEATDynamic(object):
                                                                                             print(box)                                                                                
                                                                                             current_event_box.append(box)
                                                                                      classedboxes[event_name] = [current_event_box]
-                                                                                 
-                                                        self.classedboxes = classedboxes    
-                                                        self.eventboxes =  eventboxes
-                                                        #nms over time
-                                                        if count%self.imaget == 0:
-                                                                self.nms()
-                                                                self.to_csv()
-                                                                eventboxes = []
-                                                                classedboxes = {}    
-                                                                count = 0
+                                                                                     
+                                                            self.classedboxes = classedboxes    
+                                                            self.eventboxes =  eventboxes
+                                                            #nms over time
+                                                            if count%self.imaget == 0:
+                                                                    self.nms()
+                                                                    self.to_csv()
+                                                                    eventboxes = []
+                                                                    classedboxes = {}    
+                                                                    count = 0
                     
             
     def first_pass_predict(self):
