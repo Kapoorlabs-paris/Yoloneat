@@ -387,10 +387,10 @@ class NEATDynamic(object):
                                                      prediction_vector = self.make_patches(crop_image) 
                                                 
                                                                                                
-                                                #Now apply the prediction for counting real events
+                                                     #Now apply the prediction for counting real events
                                                 
                                            
-                                                if prediction_vector is not None:
+                                                     if prediction_vector is not None:
                                                             for k in range(prediction_vector.shape[0]):
                                                         
                                                                 ycenter = location[k][0]
