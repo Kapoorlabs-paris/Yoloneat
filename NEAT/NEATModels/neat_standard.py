@@ -418,15 +418,15 @@ class NEATDynamic(object):
                                                                         current_event_box.append(box)
                                                                  classedboxes[event_name] = [current_event_box]
                                                                  
-                                        self.classedboxes = classedboxes    
-                                        self.eventboxes =  eventboxes
-                                        #nms over time
-                                        if count%self.imaget == 0:
-                                                self.nms()
-                                                self.to_csv()
-                                                eventboxes = []
-                                                classedboxes = {}    
-                                                count = 0
+                                            self.classedboxes = classedboxes    
+                                            self.eventboxes =  eventboxes
+                                            #nms over time
+                                            if count%self.imaget == 0:
+                                                    self.nms()
+                                                    self.to_csv()
+                                                    eventboxes = []
+                                                    classedboxes = {}    
+                                                    count = 0
                     
             
     def first_pass_predict(self):
