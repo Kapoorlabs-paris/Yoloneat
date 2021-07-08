@@ -415,8 +415,8 @@ class NEATDynamic(object):
                                             self.classedboxes = classedboxes    
                                             self.eventboxes =  eventboxes
                                             #nms over time
-                                            print(count, self.imaget)
-                                            if count%self.imaget == 0:
+                                           
+                                            if count%(1) == 0:
                                                     self.nms()
                                                     self.to_csv()
                                                     eventboxes = []
