@@ -409,7 +409,7 @@ class NEATDynamic(object):
                                                                             event_prob = box[event_name]
                                                                             event_confidence = box['confidence']
                                                                             if event_prob >= self.event_threshold and event_confidence >=self.event_threshold:
-                                                                               
+                                                                                print(box)                                                                                
                                                                                 current_event_box.append(box)
                                                                          classedboxes[event_name] = [current_event_box]
                                                                      
@@ -813,11 +813,13 @@ class NEATDynamic(object):
    
     def make_batch_patches(self, sliceregion): 
    
-        
-          prediction_vector = self.model.predict(np.expand_dims(sliceregion,-1), verbose = 0)
-         
+          try:
+               prediction_vector = self.model.predict(np.expand_dims(sliceregion,-1), verbose = 0)
+               return prediction_vector
+          except:
+              pass
             
-          return prediction_vector
+          
                
 
         
