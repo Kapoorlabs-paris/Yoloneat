@@ -386,7 +386,7 @@ class NEATDynamic(object):
                                                 #Now apply the prediction for counting real events
                                                 #ycenter = location[i][0]
                                                 #xcenter = location[i][1]
-                                            prediction_vector = self.make_batch_patches(crop_image)
+                                            prediction_vector = self.make_batch_patches(crop_image_list)
                                             for k in range(prediction_vector.shape[0]):
                                                 print(prediction_vector[k], location[k][0], location[k][1])
                                                 #boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector[0], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
