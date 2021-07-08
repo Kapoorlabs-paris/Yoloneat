@@ -367,9 +367,6 @@ class NEATDynamic(object):
                                             smallimage = normalizeFloatZeroOne(smallimage,1,99.8)         
                                             count = count + 1                        
                                             tree, location = self.marker_tree[str(int(inputtime))]
-                                            crop_image_list = []
-                                            crop_location_x_list = []
-                                            crop_location_y_list = []
                                             for i in range(len(location)):
                                                 
                                                 crop_xminus = location[i][1]  - int(self.imagex/2)
@@ -380,44 +377,34 @@ class NEATDynamic(object):
                                                       slice(int(crop_xminus), int(crop_xplus)))
                                                 
                                                 crop_image = smallimage[region] 
-                                                if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex: 
-                                                     #crop_image_list.append(crop_image)
-                                                     #crop_location_y_list.append(location[i][0])
-                                                     #crop_location_x_list.append(location[i][1])
-                                                     prediction_vector = self.make_patches(crop_image) 
-                                                
-                                                                                               
-                                                     #Now apply the prediction for counting real events
-                                                
-                                           
-                                                     if prediction_vector is not None:
-                                                            for k in range(prediction_vector.shape[0]):
-                                                        
-                                                                ycenter = location[k][0]
-                                                                xcenter = location[k][1]
-                                                                boxprediction = nonfcn_yoloprediction(crop_image, ycenter, xcenter, prediction_vector[k], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
-                                                                if len(boxprediction) > 0:
-                                                                        boxprediction[0]['xcenter'] = xcenter
-                                                                        boxprediction[0]['ycenter'] = ycenter
-                                                                        boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
-                                                                        boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)
-                                                                        
-                                                                
-                                                                if boxprediction is not None:
-                                                                          eventboxes = eventboxes + boxprediction
-                                            for (event_name,event_label) in self.key_categories.items(): 
-                                                               
-                                                            if event_label > 0:
-                                                                 current_event_box = []
-                                                                 for box in eventboxes:
+                                                if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex:                                                
+                                                            #Now apply the prediction for counting real events
+                                                            ycenter = location[i][0]
+                                                            xcenter = location[i][1]
+                                                            prediction_vector = self.make_patches(crop_image)
+                                                            boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector[0], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
+                                                            if len(boxprediction) > 0:
+                                                                    boxprediction[0]['xcenter'] = xcenter
+                                                                    boxprediction[0]['ycenter'] = ycenter
+                                                                    boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
+                                                                    boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)
+                                                                    
                                                             
-                                                                    event_prob = box[event_name]
-                                                                    event_confidence = box['confidence']
-                                                                    if event_prob >= self.event_threshold and event_confidence >=self.event_threshold:
-                                                                        print(box)                                                                                
-                                                                        current_event_box.append(box)
-                                                                 classedboxes[event_name] = [current_event_box]
-                                                                 
+                                                            if boxprediction is not None:
+                                                                      eventboxes = eventboxes + boxprediction
+                                            for (event_name,event_label) in self.key_categories.items(): 
+                                                                       
+                                                                    if event_label > 0:
+                                                                         current_event_box = []
+                                                                         for box in eventboxes:
+                                                                    
+                                                                            event_prob = box[event_name]
+                                                                            event_confidence = box['confidence']
+                                                                            if event_prob >= self.event_threshold and event_confidence >=self.event_threshold:
+                                                                               
+                                                                                current_event_box.append(box)
+                                                                         classedboxes[event_name] = [current_event_box]
+                                                                     
                                             self.classedboxes = classedboxes    
                                             self.eventboxes =  eventboxes
                                             #nms over time
