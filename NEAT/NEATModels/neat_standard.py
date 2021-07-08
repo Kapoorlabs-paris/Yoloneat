@@ -387,7 +387,7 @@ class NEATDynamic(object):
                                                             crop_image_list.append(crop_image)
                                                             crop_x_list.append(xcenter)
                                                             crop_y_list.append(ycenter)
-                                                            prediction_vector = self.make_batch_patches(crop_image)
+                                            prediction_vector = self.make_batch_patches(crop_image_list)
                                             for k in range(prediction_vector.shape[0]):        
                                                     boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector[k], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
                                                     if len(boxprediction) > 0:
