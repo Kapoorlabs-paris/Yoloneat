@@ -24,11 +24,11 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/'
+imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/NEATPreTest/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/'
 savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/NineFrameFastAccuratePrediction/'
-markerdir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/NEATTest/Markers/'
-model_name = 'divisionm4d65'
+markerdir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/NEATPreTest/Markers/'
+model_name = 'divisionm4d47'
 marker_model_name = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/bin2stardist/'
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
@@ -38,7 +38,7 @@ model = NEATDynamic(None, model_dir , model_name,catconfig, cordconfig)
 marker_model = StarDist2D(config = None, name = marker_model_name, basedir = model_dir)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
-event_threshold = 0.99
+event_threshold = 1
 iou_threshold = 0.01
 yolo_v2 = False
 

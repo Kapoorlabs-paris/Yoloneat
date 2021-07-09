@@ -1,0 +1,65 @@
+Using TensorFlow backend.
+WARNING:tensorflow:From /data/usr_app/VarunAnaconda/lib/python3.7/site-packages/tensorflow_core/python/ops/resource_variable_ops.py:1630: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+Instructions for updating:
+If using Keras pass *_constraint arguments to layers.
+2021-07-10 00:20:02.383525: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcuda.so.1
+2021-07-10 00:20:02.429677: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1618] Found device 0 with properties: 
+name: Tesla V100-PCIE-32GB major: 7 minor: 0 memoryClockRate(GHz): 1.38
+pciBusID: 0000:3b:00.0
+2021-07-10 00:20:02.429903: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudart.so.10.0
+2021-07-10 00:20:02.431258: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcublas.so.10.0
+2021-07-10 00:20:02.432623: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcufft.so.10.0
+2021-07-10 00:20:02.432883: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcurand.so.10.0
+2021-07-10 00:20:02.434501: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcusolver.so.10.0
+2021-07-10 00:20:02.435715: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcusparse.so.10.0
+2021-07-10 00:20:02.439462: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudnn.so.7
+2021-07-10 00:20:02.442339: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1746] Adding visible gpu devices: 0
+2021-07-10 00:20:02.442774: I tensorflow/core/platform/cpu_feature_guard.cc:142] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2021-07-10 00:20:02.450590: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2800000000 Hz
+2021-07-10 00:20:02.452087: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55555b6e5560 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2021-07-10 00:20:02.452105: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+2021-07-10 00:20:02.565654: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55555b7484e0 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+2021-07-10 00:20:02.565718: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Tesla V100-PCIE-32GB, Compute Capability 7.0
+2021-07-10 00:20:02.569898: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1618] Found device 0 with properties: 
+name: Tesla V100-PCIE-32GB major: 7 minor: 0 memoryClockRate(GHz): 1.38
+pciBusID: 0000:3b:00.0
+2021-07-10 00:20:02.570006: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudart.so.10.0
+2021-07-10 00:20:02.570042: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcublas.so.10.0
+2021-07-10 00:20:02.570074: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcufft.so.10.0
+2021-07-10 00:20:02.570104: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcurand.so.10.0
+2021-07-10 00:20:02.570133: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcusolver.so.10.0
+2021-07-10 00:20:02.570163: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcusparse.so.10.0
+2021-07-10 00:20:02.570194: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudnn.so.7
+2021-07-10 00:20:02.577104: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1746] Adding visible gpu devices: 0
+2021-07-10 00:20:02.577157: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudart.so.10.0
+2021-07-10 00:20:02.579903: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1159] Device interconnect StreamExecutor with strength 1 edge matrix:
+2021-07-10 00:20:02.579918: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1165]      0 
+2021-07-10 00:20:02.579925: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1178] 0:   N 
+2021-07-10 00:20:02.583472: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1304] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 30525 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-32GB, pci bus id: 0000:3b:00.0, compute capability: 7.0)
+dynamic_config(batch_size=4, box_vector=6, categories=2, depth=65, epochs=250, imagex=96, imagey=96, key_categories={'Normal': 0, 'Division': 1}, key_cord={'x': 0, 'y': 1, 't': 2, 'h': 3, 'w': 4, 'c': 5}, learning_rate=0.0001, lstm_hidden_unit=16, lstm_kernel=3, mid_kernel=3, model_name='wtdivisionmodel.h5', multievent=False, nboxes=1, npz_directory='/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning1V1data/', npz_name='divisiondetectionbin1m4.npz', npz_val_name='divisiondetectionbin1m4val.npz', residual=False, show=False, size_tminus=4, size_tplus=5, start_kernel=7, startfilter=48, stride=4, yolo_v0=False, yolo_v1=True, yolo_v2=False)
+number of  images:	 5986
+image size (3D):		 (10, 96, 96)
+axes:				 STXYC
+channels in / out:		 1
+number of  images:	 316
+image size (3D):		 (10, 96, 96)
+axes:				 STXYC
+channels in / out:		 1
+6
+(5986, 1, 1, 8) 1
+Traceback (most recent call last):
+  File "WildTypeTraining.py", line 88, in <module>
+    Train.TrainModel()
+  File "../NEAT/NEATModels/neat_standard.py", line 266, in TrainModel
+    self.Trainingmodel = self.model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, lstm_kernel = self.lstm_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
+  File "../NEAT/NEATModels/nets.py", line 191, in OSNET
+    branchAdd = layers.add([z, x])
+  File "/data/usr_app/VarunAnaconda/lib/python3.7/site-packages/keras/layers/merge.py", line 555, in add
+    return Add(**kwargs)(inputs)
+  File "/data/usr_app/VarunAnaconda/lib/python3.7/site-packages/keras/engine/base_layer.py", line 463, in __call__
+    self.build(unpack_singleton(input_shapes))
+  File "/data/usr_app/VarunAnaconda/lib/python3.7/site-packages/keras/layers/merge.py", line 91, in build
+    shape)
+  File "/data/usr_app/VarunAnaconda/lib/python3.7/site-packages/keras/layers/merge.py", line 61, in _compute_elemwise_op_output_shape
+    str(shape1) + ' ' + str(shape2))
+ValueError: Operands could not be broadcast together with shapes (10, None, None, 384) (10, None, None, 768)

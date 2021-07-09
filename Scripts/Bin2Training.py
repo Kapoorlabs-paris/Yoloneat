@@ -12,20 +12,20 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 # In[2]:
 
 
-npz_directory = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning1V1data/'
-npz_name = 'divisiondetectionbin1m4.npz'
-npz_val_name = 'divisiondetectionbin1m4val.npz'
+npz_directory = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning2V2data/'
+npz_name = 'divisiondetectionbin2m4.npz'
+npz_val_name = 'divisiondetectionbin2m4val.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning1V1model/'
-model_name = 'wtdivisionmodel.h5'
+model_dir =  '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning2V2model/'
+model_name = 'bin2divisionmodel.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'DivisionCategories.json'
@@ -42,11 +42,11 @@ start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 65
+depth = 47
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
-learning_rate = 1.0E-6
+learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients
-batch_size = 4
+batch_size = 8
 # use softmax for single event per box, sigmoid for multi event per box
 lstm_hidden_unit = 16
 #Training epochs, longer the better with proper chosen learning rate
@@ -57,8 +57,8 @@ show = False
 
 size_tminus = 4
 size_tplus = 5
-imagex = 96
-imagey = 96
+imagex = 64
+imagey = 64
 yolo_v0 = False
 yolo_v1 = True
 yolo_v2 = False

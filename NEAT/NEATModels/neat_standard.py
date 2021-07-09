@@ -408,7 +408,7 @@ class NEATDynamic(object):
                                                                             event_prob = box[event_name]
                                                                             event_confidence = box['confidence']
                                                                             if event_prob >= self.event_threshold and event_confidence >=self.event_threshold:
-                                                                                print(box)
+                                                                              
                                                                                 current_event_box.append(box)
                                                                          classedboxes[event_name] = [current_event_box]
                                                                      
@@ -416,7 +416,7 @@ class NEATDynamic(object):
                                             self.eventboxes =  eventboxes
                                             #nms over time
                                            
-                                            if count%(self.imaget) == 0:
+                                            if count%(1) == 0:
                                                     self.nms()
                                                     self.to_csv()
                                                     eventboxes = []
@@ -514,6 +514,7 @@ class NEATDynamic(object):
                #Get all events
                
                sorted_event_box = self.classedboxes[event_name][0]
+               
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
                #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
