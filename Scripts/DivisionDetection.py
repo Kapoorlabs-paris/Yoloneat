@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 from stardist.models import StarDist2D
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="3"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -25,10 +25,10 @@ from pathlib import Path
 
 
 imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning2V2model/'
 savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/NineFrameFastAccuratePrediction/'
-markerdir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/NEATTest/Markers/'
-model_name = 'divisionm4d65'
+markerdir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/NineFrameFastAccuratePrediction/Markers/'
+model_name = 'bin2divisionmodel'
 marker_model_name = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/bin2stardist/'
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
