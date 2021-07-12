@@ -390,12 +390,7 @@ class NEATDynamic(object):
                                             prediction_vector = self.make_batch_patches(crop_image_list)
                                             for k in range(prediction_vector.shape[0]):        
                                                     boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector[k], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
-                                                    if len(boxprediction) > 0:
-                                                            boxprediction[0]['xcenter'] = crop_x_list[k]
-                                                            boxprediction[0]['ycenter'] = crop_y_list[k]
-                                                            boxprediction[0]['xstart'] = crop_x_list[k] - int(self.imagex/2)
-                                                            boxprediction[0]['ystart'] = crop_y_list[k] - int(self.imagey/2)
-                                                            
+                                                                                                               
                                                     
                                                     if boxprediction is not None:
                                                               eventboxes = eventboxes + boxprediction
@@ -416,7 +411,7 @@ class NEATDynamic(object):
                                             self.eventboxes =  eventboxes
                                             #nms over time
                                            
-                                            if count%(1) == 0:
+                                            if count%(self.imaget) == 0:
                                                     self.nms()
                                                     self.to_csv()
                                                     eventboxes = []
@@ -478,7 +473,7 @@ class NEATDynamic(object):
                                                      for box in eventboxes:
                                                 
                                                         event_prob = box[event_name]
-                                                        if event_prob >= 0.3:
+                                                        if event_prob >= 0.5:
                                                             ycentermean , xcentermean = get_nearest(self.marker_tree, box['ycenter' ], box['xcenter'] , box['real_time_event']) 
                                                             location = (ycentermean, xcentermean)
                                                             self.remove_marker_locations(box['real_time_event'], location) 
