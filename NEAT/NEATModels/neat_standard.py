@@ -403,7 +403,7 @@ class NEATDynamic(object):
                                                                             event_prob = box[event_name]
                                                                             event_confidence = box['confidence']
                                                                             if event_prob >= self.event_threshold and event_confidence >=self.event_threshold:
-                                                                                print(box)                                                                         
+                                                                                #print(box)                                                                        
                                                                                 current_event_box.append(box)
                                                                          classedboxes[event_name] = [current_event_box]
                                                                      
@@ -411,7 +411,7 @@ class NEATDynamic(object):
                                             self.eventboxes =  eventboxes
                                             #nms over time
                                            
-                                            if count%(self.imaget) == 0:
+                                            if count%(self.imaget//2) == 0:
                                                     self.nms()
                                                     self.to_csv()
                                                     eventboxes = []
@@ -509,6 +509,8 @@ class NEATDynamic(object):
                #Get all events
                
                sorted_event_box = self.classedboxes[event_name][0]
+              
+               sorted_event_box = sorted(sorted_event_box, key = lambda x:x[event_name], reverse = True)
                
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
@@ -516,7 +518,7 @@ class NEATDynamic(object):
                #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
-               
+               #print("nms",best_iou_classedboxes[event_name])
         self.iou_classedboxes = best_iou_classedboxes                
     
 
@@ -548,19 +550,20 @@ class NEATDynamic(object):
                                                       score = iou_current_event_box[event_name]
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
-                                                      if confidence >= self.event_threshold:
-                                                              xlocations.append(xcenter)
-                                                              ylocations.append(ycenter)
-                                                              scores.append(score)
-                                                              confidences.append(confidence)
-                                                              tlocations.append(tcenter)
-                                                              radiuses.append(radius)
-                                                              angles.append(angle)
+                                                     
+                                                      xlocations.append(xcenter)
+                                                      ylocations.append(ycenter)
+                                                      scores.append(score)
+                                                      confidences.append(confidence)
+                                                      tlocations.append(tcenter)
+                                                      radiuses.append(radius)
+                                                      angles.append(angle)
                                                                
                                             
                                               event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
                                               event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                                               event_data = []
+                                              print(event_count)
                                               csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                               writer = csv.writer(open(csvname  +".csv", "a"))
                                               filesize = os.stat(csvname + ".csv").st_size
