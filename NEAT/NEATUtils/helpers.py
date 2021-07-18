@@ -551,7 +551,7 @@ def MakeTrees(segimage):
                 waterproperties = measure.regionprops(currentimage, currentimage)
                 for prop in waterproperties:
                     
-                    indices.append(tuple(tuple(map(int, tup)) for tup in prop.centroid))
+                    indices.append(prop.centroid)
                 if len(indices) > 0:
                     tree = spatial.cKDTree(indices)
                 
@@ -1040,7 +1040,7 @@ def get_nearest(marker_tree, ycenter, xcenter, tcenter):
         tree, indices = marker_tree[str(int(tcenter))]
         distance, nearest_location = tree.query(location)
         if distance <= 10:
-          nearest_location = int(indices[nearest_location][0]), int(indices[nearest_location][1]) 
+          nearest_location = (indices[nearest_location][0]), (indices[nearest_location][1]) 
         else:
             nearest_location = location      
         return nearest_location[0], nearest_location[1]
