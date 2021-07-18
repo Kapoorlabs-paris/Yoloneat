@@ -550,7 +550,8 @@ def MakeTrees(segimage):
                 currentimage = segimage[i, :].astype('uint16')
                 waterproperties = measure.regionprops(currentimage, currentimage)
                 for prop in waterproperties:
-                    indices.append(prop.centroid)
+                    
+                    indices.append(tuple(tuple(map(int, tup)) for tup in prop.centroid))
                 if len(indices) > 0:
                     tree = spatial.cKDTree(indices)
                 
