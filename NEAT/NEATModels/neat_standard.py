@@ -318,8 +318,8 @@ class NEATDynamic(object):
                 imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('float32'))
         self.marker_tree = MakeTrees(self.markers)
         
-        print('Computing density of each marker')
-        self.density_location = DensityCounter(self.markers, self.imagex, self.imagey)
+        #print('Computing density of each marker')
+        #self.density_location = DensityCounter(self.markers, self.imagex, self.imagey)
         
         return self.markers, self.marker_tree, self.density_location
         
@@ -432,20 +432,20 @@ class NEATDynamic(object):
                                 up_region = []
                                 all_density_location = self.density_location[str(inputtime)]
                                 density = all_density_location[0]
-                                location = all_density_location[1]
+                                #locations = all_density_location[1]
                                 
                                 smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 # Cut off the region for training movie creation
-                                for i in range(len(density)):
+                                #for i in range(len(density)):
                                         
                                     
-                                        if density[i] <= self.density_veto:
-                                             down_region.append(location)
-                                             self.remove_marker_locations(inputtime, location)
-                                        if density[i] >= 5 * self.density_veto:
-                                             up_region.append(location)
-                                             self.remove_marker_locations(inputtime, location)
+                                        #if density[i] <= self.density_veto:
+                                             #down_region.append(location)
+                                             #self.remove_marker_locations(inputtime, location)
+                                        #if density[i] >= 5 * self.density_veto:
+                                             #up_region.append(location)
+                                             #self.remove_marker_locations(inputtime, location)
                                             
                                 self.downsample_regions[str(inputtime)] = down_region
                                 self.upsample_regions[str(inputtime)] = up_region
