@@ -860,7 +860,7 @@ def WatershedwithMask(Image, Label,mask, grid):
 Prediction function for whole image/tile, output is Prediction vector for each image patch it passes over
 """    
 
-def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type, marker_tree = None):
+def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type, marker_tree = None):
     
                              LocationBoxes = []
                              j = 0
@@ -881,7 +881,7 @@ def yoloprediction(image,sy, sx, time_prediction, stride, inputtime, config, key
                                             LocationBoxes.append(Classybox)         
                              return LocationBoxes
                          
-def nonfcn_yoloprediction(image, sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type, marker_tree = None):
+def nonfcn_yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type, marker_tree = None):
     
                                 LocationBoxes = []
                                 j = 1
@@ -1038,7 +1038,7 @@ def get_nearest(marker_tree, ycenter, xcenter, tcenter):
         location = (ycenter, xcenter)
         tree, indices = marker_tree[str(int(tcenter))]
         distance, nearest_location = tree.query(location)
-        if distance <= 20:
+        if distance <= 10:
           nearest_location = int(indices[nearest_location][0]), int(indices[nearest_location][1]) 
         else:
             nearest_location = location      

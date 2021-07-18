@@ -417,7 +417,7 @@ class NEATPredict(object):
                                                                              for i in range(0, sum_time_prediction.shape[0]):
                                                                                   time_prediction =  sum_time_prediction[i]
                                                                                   
-                                                                                  boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'prediction', 'dynamic')
+                                                                                  boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'prediction', 'dynamic')
                                                                                   
                                                                                   if boxprediction is not None:
                                                                                           eventboxes = eventboxes + boxprediction

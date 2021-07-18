@@ -389,7 +389,7 @@ class NEATDynamic(object):
                                                             crop_y_list.append(ycenter)
                                             prediction_vector = self.make_batch_patches(crop_image_list)
                                             for k in range(prediction_vector.shape[0]):        
-                                                    boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector[k], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
+                                                    boxprediction = nonfcn_yoloprediction(crop_y_list[k], crop_x_list[k], prediction_vector[k], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
                                                                                                                
                                                     
                                                     if boxprediction is not None:
@@ -461,7 +461,7 @@ class NEATDynamic(object):
                                      #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                                      for i in range(0, sum_time_prediction.shape[0]):
                                           time_prediction =  sum_time_prediction[i]
-                                          boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
                                           
                                           if boxprediction is not None:
                                                   eventboxes = eventboxes + boxprediction
@@ -485,13 +485,12 @@ class NEATDynamic(object):
     def remove_marker_locations(self, tcenter, location):
 
                      tree, indices = self.marker_tree[str(int(tcenter))]
-                     print('all', indices)
-                     try:
-                        indices.remove(location)
-                        print(location)
+                     
+                     print('to remove',location)
+                     indices.remove(location)
+                     
                         
-                     except:
-                         pass
+                    
                      tree = spatial.cKDTree(indices)
                     
                      #Update the tree
