@@ -485,8 +485,11 @@ class NEATDynamic(object):
     def remove_marker_locations(self, tcenter, location):
 
                      tree, indices = self.marker_tree[str(int(tcenter))]
+                     print('all', indices)
                      try:
                         indices.remove(location)
+                        print(location)
+                        
                      except:
                          pass
                      tree = spatial.cKDTree(indices)
