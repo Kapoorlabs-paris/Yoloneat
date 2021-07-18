@@ -296,6 +296,7 @@ class NEATDynamic(object):
         self.starmodel = starmodel
         self.imagename = imagename
         self.image = imread(imagename)
+        self.density_location = []
         Name = os.path.basename(os.path.splitext(self.imagename)[0])
         self.savedir = savedir
         self.star = star
