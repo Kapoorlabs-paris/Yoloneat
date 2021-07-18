@@ -491,6 +491,7 @@ class NEATDynamic(object):
                      
                      #if location in indices:
                      if location in indices: 
+                       print('removed',location)  
                        indices.remove(location)
                      
                         
