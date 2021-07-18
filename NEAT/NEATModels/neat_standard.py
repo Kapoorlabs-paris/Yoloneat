@@ -490,7 +490,7 @@ class NEATDynamic(object):
                      #if location in indices:
                      if location in indices: 
                        indices.remove(location)
-                     removedindices = len(indicies)
+                     removedindices = len(indices)
                         
                      print('Normal events detected', orignalindices - removedindices)
                      tree = spatial.cKDTree(indices)
