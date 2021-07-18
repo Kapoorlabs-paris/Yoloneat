@@ -476,6 +476,7 @@ class NEATDynamic(object):
                                                         if event_prob >= 0.5:
                                                             ycentermean , xcentermean = get_nearest(self.marker_tree, box['ycenter' ], box['xcenter'] , box['real_time_event']) 
                                                             location = (int(ycentermean), int(xcentermean))
+                                                            print('to remove',location)
                                                             self.remove_marker_locations(box['real_time_event'], location) 
                                                             
                           
@@ -488,7 +489,7 @@ class NEATDynamic(object):
                      
                      
                      #if location in indices:
-                     print('to remove',location) 
+                      
                      indices.remove(location)
                      
                         
