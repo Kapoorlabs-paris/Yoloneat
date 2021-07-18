@@ -487,9 +487,9 @@ class NEATDynamic(object):
                      tree, indices = self.marker_tree[str(int(tcenter))]
                      
                      
-                     if location in indices:
-                        print('to remove',location) 
-                        indices.remove(location)
+                     #if location in indices:
+                     print('to remove',location) 
+                     indices.remove(location)
                      
                         
                     
