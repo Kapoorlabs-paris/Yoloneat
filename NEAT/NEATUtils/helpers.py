@@ -1037,9 +1037,9 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
 def get_nearest(marker_tree, ycenter, xcenter, tcenter):
         
         location = (ycenter, xcenter)
-        tree, indices = marker_tree[str(int(tcenter))]
+        tree, indices = marker_tree[str(int(round(tcenter)))]
         distance, nearest_location = tree.query(location)
-        if distance <= 10:
+        if distance <= 20:
           nearest_location = int(indices[nearest_location][0]), int(indices[nearest_location][1]) 
         else:
             nearest_location = location      

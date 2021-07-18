@@ -404,7 +404,6 @@ class NEATDynamic(object):
                                                                             event_prob = box[event_name]
                                                                             event_confidence = box['confidence']
                                                                             if event_prob >= self.event_threshold and event_confidence >=self.event_threshold:
-                                                                                #print(box)                                                                        
                                                                                 current_event_box.append(box)
                                                                          classedboxes[event_name] = [current_event_box]
                                                                      
@@ -477,7 +476,6 @@ class NEATDynamic(object):
                                                         if event_prob >= 0.2:
                                                             ycentermean , xcentermean = get_nearest(self.marker_tree, box['ycenter' ], box['xcenter'] , box['real_time_event']) 
                                                             location = (int(ycentermean), int(xcentermean))
-                                                            print('to remove',location)
                                                             self.remove_marker_locations(box['real_time_event'], location) 
                                                             
                           
@@ -488,14 +486,13 @@ class NEATDynamic(object):
 
                      tree, indices = self.marker_tree[str(int(round(tcenter)))]
                      
-                     
+                     orignalindices = len(indices)
                      #if location in indices:
                      if location in indices: 
-                       print('removed',location)  
                        indices.remove(location)
-                     
+                     removedindices = len(indicies)
                         
-                    
+                     print('Normal events detected', orignalindices - removedindices)
                      tree = spatial.cKDTree(indices)
                     
                      #Update the tree
@@ -570,7 +567,6 @@ class NEATDynamic(object):
                                               event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
                                               event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                                               event_data = []
-                                              print(event_count)
                                               csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                               writer = csv.writer(open(csvname  +".csv", "a"))
                                               filesize = os.stat(csvname + ".csv").st_size
