@@ -296,7 +296,7 @@ class NEATDynamic(object):
         self.starmodel = starmodel
         self.imagename = imagename
         self.image = imread(imagename)
-        self.density_location = []
+        self.density_location = {}
         Name = os.path.basename(os.path.splitext(self.imagename)[0])
         self.savedir = savedir
         self.star = star
@@ -431,8 +431,8 @@ class NEATDynamic(object):
                                 
                                 down_region = []
                                 up_region = []
-                                all_density_location = self.density_location[str(inputtime)]
-                                density = all_density_location[0]
+                                #all_density_location = self.density_location[str(inputtime)]
+                                #density = all_density_location[0]
                                 #locations = all_density_location[1]
                                 
                                 smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
