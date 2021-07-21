@@ -110,7 +110,7 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(4):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -152,7 +152,7 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(4):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -195,15 +195,15 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
     x = ConvLSTM2D(filters = unit, kernel_size = (lstm_kernel, lstm_kernel),  activation='relu', data_format = 'channels_last', return_sequences = False, padding = "same", name = "newlstmdeep")(branchAdd)
 
 
-    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
+    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     input_cat = Lambda(lambda x:x[:,:,:,0:categories])(x)
     input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
 
         
-    output_cat = (Conv2D(categories, (round(input_shape[1]/4),round(input_shape[2]/4)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'yolo'))(input_cat)
-    output_box = (Conv2D(nboxes * (box_vector), (round(input_shape[1]/4),round(input_shape[2]/4)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'secyolo'))(input_box)
+    output_cat = (Conv2D(categories, (round(input_shape[1]/8),round(input_shape[2]/8)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'yolo'))(input_cat)
+    output_box = (Conv2D(nboxes * (box_vector), (round(input_shape[1]/8),round(input_shape[2]/8)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'secyolo'))(input_box)
 
 
 
@@ -360,7 +360,7 @@ def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_
     x = ConvLSTM2D(filters = unit, kernel_size = (lstm_kernel, lstm_kernel),  activation='relu', data_format = 'channels_last', return_sequences = False, padding = "same", name = "newlstmdeep")(branchAdd)
 
 
-    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
+    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     input_cat = Lambda(lambda x:x[:,:,:,0:categories])(x)
@@ -528,7 +528,7 @@ def resnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38,  start
 
     # Add classifier on top.
     # v2 has BN-ReLU before Pooling
-    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
+    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     
@@ -628,7 +628,7 @@ def seqnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38, start_
 
     # Add classifier on top.
     # v2 has BN-ReLU before Pooling
-    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
+    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     

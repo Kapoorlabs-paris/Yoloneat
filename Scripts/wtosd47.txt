@@ -1,0 +1,578 @@
+Using TensorFlow backend.
+WARNING:tensorflow:From /data/usr_app/VarunAnaconda/lib/python3.7/site-packages/tensorflow_core/python/ops/resource_variable_ops.py:1630: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+Instructions for updating:
+If using Keras pass *_constraint arguments to layers.
+2021-07-21 19:48:04.468532: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcuda.so.1
+2021-07-21 19:48:04.513617: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1618] Found device 0 with properties: 
+name: Tesla V100-PCIE-32GB major: 7 minor: 0 memoryClockRate(GHz): 1.38
+pciBusID: 0000:3b:00.0
+2021-07-21 19:48:04.513854: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudart.so.10.0
+2021-07-21 19:48:04.515282: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcublas.so.10.0
+2021-07-21 19:48:04.516729: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcufft.so.10.0
+2021-07-21 19:48:04.517009: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcurand.so.10.0
+2021-07-21 19:48:04.518686: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcusolver.so.10.0
+2021-07-21 19:48:04.519961: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcusparse.so.10.0
+2021-07-21 19:48:04.523880: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudnn.so.7
+2021-07-21 19:48:04.526577: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1746] Adding visible gpu devices: 0
+2021-07-21 19:48:04.527024: I tensorflow/core/platform/cpu_feature_guard.cc:142] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2021-07-21 19:48:04.535289: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 2800000000 Hz
+2021-07-21 19:48:04.536967: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55555b264030 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2021-07-21 19:48:04.536987: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+2021-07-21 19:48:04.651981: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55555b2c6fa0 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+2021-07-21 19:48:04.652048: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Tesla V100-PCIE-32GB, Compute Capability 7.0
+2021-07-21 19:48:04.656251: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1618] Found device 0 with properties: 
+name: Tesla V100-PCIE-32GB major: 7 minor: 0 memoryClockRate(GHz): 1.38
+pciBusID: 0000:3b:00.0
+2021-07-21 19:48:04.656358: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudart.so.10.0
+2021-07-21 19:48:04.656393: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcublas.so.10.0
+2021-07-21 19:48:04.656424: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcufft.so.10.0
+2021-07-21 19:48:04.656453: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcurand.so.10.0
+2021-07-21 19:48:04.656482: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcusolver.so.10.0
+2021-07-21 19:48:04.656512: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcusparse.so.10.0
+2021-07-21 19:48:04.656544: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudnn.so.7
+2021-07-21 19:48:04.663684: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1746] Adding visible gpu devices: 0
+2021-07-21 19:48:04.663774: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudart.so.10.0
+2021-07-21 19:48:04.668644: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1159] Device interconnect StreamExecutor with strength 1 edge matrix:
+2021-07-21 19:48:04.668657: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1165]      0 
+2021-07-21 19:48:04.668665: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1178] 0:   N 
+2021-07-21 19:48:04.671692: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1304] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 30525 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-32GB, pci bus id: 0000:3b:00.0, compute capability: 7.0)
+WARNING:tensorflow:From /data/usr_app/VarunAnaconda/lib/python3.7/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+WARNING:tensorflow:From /data/usr_app/VarunAnaconda/lib/python3.7/site-packages/keras/backend/tensorflow_backend.py:422: The name tf.global_variables is deprecated. Please use tf.compat.v1.global_variables instead.
+
+2021-07-21 19:48:26.187149: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcudnn.so.7
+2021-07-21 19:48:27.825048: I tensorflow/stream_executor/platform/default/dso_loader.cc:44] Successfully opened dynamic library libcublas.so.10.0
+dynamic_config(batch_size=4, box_vector=6, categories=2, depth=47, epochs=250, imagex=96, imagey=96, key_categories={'Normal': 0, 'Division': 1}, key_cord={'x': 0, 'y': 1, 't': 2, 'h': 3, 'w': 4, 'c': 5}, learning_rate=0.0001, lstm_hidden_unit=16, lstm_kernel=3, mid_kernel=3, model_name='wtdivisionmodeld47.h5', multievent=False, nboxes=1, npz_directory='/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning1V1data/', npz_name='divisiondetectionbin1m4.npz', npz_val_name='divisiondetectionbin1m4val.npz', residual=False, show=False, size_tminus=4, size_tplus=5, start_kernel=7, startfilter=48, stride=4, yolo_v0=False, yolo_v1=True, yolo_v2=False)
+number of  images:	 5986
+image size (3D):		 (10, 96, 96)
+axes:				 STXYC
+channels in / out:		 1
+number of  images:	 316
+image size (3D):		 (10, 96, 96)
+axes:				 STXYC
+channels in / out:		 1
+6
+(5986, 1, 1, 8) 1
+Model: "model_1"
+__________________________________________________________________________________________________
+Layer (type)                    Output Shape         Param #     Connected to                     
+==================================================================================================
+input_1 (InputLayer)            (None, 10, None, Non 0                                            
+__________________________________________________________________________________________________
+time_distributed_1 (TimeDistrib (None, 10, None, Non 2400        input_1[0][0]                    
+__________________________________________________________________________________________________
+conv3d_1 (Conv3D)               (None, 10, None, Non 16512       input_1[0][0]                    
+__________________________________________________________________________________________________
+time_distributed_2 (TimeDistrib (None, 10, None, Non 192         time_distributed_1[0][0]         
+__________________________________________________________________________________________________
+batch_normalization_1 (BatchNor (None, 10, None, Non 192         conv3d_1[0][0]                   
+__________________________________________________________________________________________________
+time_distributed_3 (TimeDistrib (None, 10, None, Non 0           time_distributed_2[0][0]         
+__________________________________________________________________________________________________
+activation_1 (Activation)       (None, 10, None, Non 0           batch_normalization_1[0][0]      
+__________________________________________________________________________________________________
+time_distributed_4 (TimeDistrib (None, 10, None, Non 20784       time_distributed_3[0][0]         
+__________________________________________________________________________________________________
+conv3d_2 (Conv3D)               (None, 10, None, Non 62256       activation_1[0][0]               
+__________________________________________________________________________________________________
+time_distributed_6 (TimeDistrib (None, 10, None, Non 192         time_distributed_4[0][0]         
+__________________________________________________________________________________________________
+batch_normalization_2 (BatchNor (None, 10, None, Non 192         conv3d_2[0][0]                   
+__________________________________________________________________________________________________
+time_distributed_7 (TimeDistrib (None, 10, None, Non 0           time_distributed_6[0][0]         
+__________________________________________________________________________________________________
+activation_2 (Activation)       (None, 10, None, Non 0           batch_normalization_2[0][0]      
+__________________________________________________________________________________________________
+time_distributed_5 (TimeDistrib (None, 10, None, Non 20784       time_distributed_7[0][0]         
+__________________________________________________________________________________________________
+conv3d_3 (Conv3D)               (None, 10, None, Non 62256       activation_2[0][0]               
+__________________________________________________________________________________________________
+time_distributed_9 (TimeDistrib (None, 10, None, Non 192         time_distributed_5[0][0]         
+__________________________________________________________________________________________________
+batch_normalization_3 (BatchNor (None, 10, None, Non 192         conv3d_3[0][0]                   
+__________________________________________________________________________________________________
+time_distributed_10 (TimeDistri (None, 10, None, Non 0           time_distributed_9[0][0]         
+__________________________________________________________________________________________________
+activation_3 (Activation)       (None, 10, None, Non 0           batch_normalization_3[0][0]      
+__________________________________________________________________________________________________
+time_distributed_8 (TimeDistrib (None, 10, None, Non 20784       time_distributed_10[0][0]        
+__________________________________________________________________________________________________
+conv3d_4 (Conv3D)               (None, 10, None, Non 62256       activation_3[0][0]               
+__________________________________________________________________________________________________
+time_distributed_12 (TimeDistri (None, 10, None, Non 192         time_distributed_8[0][0]         
+__________________________________________________________________________________________________
+batch_normalization_4 (BatchNor (None, 10, None, Non 192         conv3d_4[0][0]                   
+__________________________________________________________________________________________________
+time_distributed_13 (TimeDistri (None, 10, None, Non 0           time_distributed_12[0][0]        
+__________________________________________________________________________________________________
+activation_4 (Activation)       (None, 10, None, Non 0           batch_normalization_4[0][0]      
+__________________________________________________________________________________________________
+time_distributed_11 (TimeDistri (None, 10, None, Non 20784       time_distributed_13[0][0]        
+__________________________________________________________________________________________________
+conv3d_5 (Conv3D)               (None, 10, None, Non 62256       activation_4[0][0]               
+__________________________________________________________________________________________________
+time_distributed_15 (TimeDistri (None, 10, None, Non 192         time_distributed_11[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_5 (BatchNor (None, 10, None, Non 192         conv3d_5[0][0]                   
+__________________________________________________________________________________________________
+time_distributed_16 (TimeDistri (None, 10, None, Non 0           time_distributed_15[0][0]        
+__________________________________________________________________________________________________
+activation_5 (Activation)       (None, 10, None, Non 0           batch_normalization_5[0][0]      
+__________________________________________________________________________________________________
+time_distributed_14 (TimeDistri (None, 10, None, Non 20784       time_distributed_16[0][0]        
+__________________________________________________________________________________________________
+conv3d_6 (Conv3D)               (None, 10, None, Non 62256       activation_5[0][0]               
+__________________________________________________________________________________________________
+time_distributed_18 (TimeDistri (None, 10, None, Non 192         time_distributed_14[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_6 (BatchNor (None, 10, None, Non 192         conv3d_6[0][0]                   
+__________________________________________________________________________________________________
+time_distributed_19 (TimeDistri (None, 10, None, Non 0           time_distributed_18[0][0]        
+__________________________________________________________________________________________________
+activation_6 (Activation)       (None, 10, None, Non 0           batch_normalization_6[0][0]      
+__________________________________________________________________________________________________
+time_distributed_17 (TimeDistri (None, 10, None, Non 83136       time_distributed_19[0][0]        
+__________________________________________________________________________________________________
+conv3d_7 (Conv3D)               (None, 10, None, Non 249024      activation_6[0][0]               
+__________________________________________________________________________________________________
+time_distributed_21 (TimeDistri (None, 10, None, Non 768         time_distributed_17[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_7 (BatchNor (None, 10, None, Non 768         conv3d_7[0][0]                   
+__________________________________________________________________________________________________
+time_distributed_22 (TimeDistri (None, 10, None, Non 0           time_distributed_21[0][0]        
+__________________________________________________________________________________________________
+activation_7 (Activation)       (None, 10, None, Non 0           batch_normalization_7[0][0]      
+__________________________________________________________________________________________________
+time_distributed_20 (TimeDistri (None, 10, None, Non 331968      time_distributed_22[0][0]        
+__________________________________________________________________________________________________
+conv3d_8 (Conv3D)               (None, 10, None, Non 995520      activation_7[0][0]               
+__________________________________________________________________________________________________
+time_distributed_24 (TimeDistri (None, 10, None, Non 768         time_distributed_20[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_8 (BatchNor (None, 10, None, Non 768         conv3d_8[0][0]                   
+__________________________________________________________________________________________________
+time_distributed_25 (TimeDistri (None, 10, None, Non 0           time_distributed_24[0][0]        
+__________________________________________________________________________________________________
+activation_8 (Activation)       (None, 10, None, Non 0           batch_normalization_8[0][0]      
+__________________________________________________________________________________________________
+time_distributed_23 (TimeDistri (None, 10, None, Non 331968      time_distributed_25[0][0]        
+__________________________________________________________________________________________________
+conv3d_9 (Conv3D)               (None, 10, None, Non 995520      activation_8[0][0]               
+__________________________________________________________________________________________________
+time_distributed_27 (TimeDistri (None, 10, None, Non 768         time_distributed_23[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_9 (BatchNor (None, 10, None, Non 768         conv3d_9[0][0]                   
+__________________________________________________________________________________________________
+time_distributed_28 (TimeDistri (None, 10, None, Non 0           time_distributed_27[0][0]        
+__________________________________________________________________________________________________
+activation_9 (Activation)       (None, 10, None, Non 0           batch_normalization_9[0][0]      
+__________________________________________________________________________________________________
+time_distributed_26 (TimeDistri (None, 10, None, Non 331968      time_distributed_28[0][0]        
+__________________________________________________________________________________________________
+conv3d_10 (Conv3D)              (None, 10, None, Non 995520      activation_9[0][0]               
+__________________________________________________________________________________________________
+time_distributed_30 (TimeDistri (None, 10, None, Non 768         time_distributed_26[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_10 (BatchNo (None, 10, None, Non 768         conv3d_10[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_31 (TimeDistri (None, 10, None, Non 0           time_distributed_30[0][0]        
+__________________________________________________________________________________________________
+activation_10 (Activation)      (None, 10, None, Non 0           batch_normalization_10[0][0]     
+__________________________________________________________________________________________________
+time_distributed_29 (TimeDistri (None, 10, None, Non 331968      time_distributed_31[0][0]        
+__________________________________________________________________________________________________
+conv3d_11 (Conv3D)              (None, 10, None, Non 995520      activation_10[0][0]              
+__________________________________________________________________________________________________
+time_distributed_33 (TimeDistri (None, 10, None, Non 768         time_distributed_29[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_11 (BatchNo (None, 10, None, Non 768         conv3d_11[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_34 (TimeDistri (None, 10, None, Non 0           time_distributed_33[0][0]        
+__________________________________________________________________________________________________
+activation_11 (Activation)      (None, 10, None, Non 0           batch_normalization_11[0][0]     
+__________________________________________________________________________________________________
+time_distributed_32 (TimeDistri (None, 10, None, Non 663936      time_distributed_34[0][0]        
+__________________________________________________________________________________________________
+conv3d_12 (Conv3D)              (None, 10, None, Non 1991040     activation_11[0][0]              
+__________________________________________________________________________________________________
+time_distributed_36 (TimeDistri (None, 10, None, Non 1536        time_distributed_32[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_12 (BatchNo (None, 10, None, Non 1536        conv3d_12[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_37 (TimeDistri (None, 10, None, Non 0           time_distributed_36[0][0]        
+__________________________________________________________________________________________________
+activation_12 (Activation)      (None, 10, None, Non 0           batch_normalization_12[0][0]     
+__________________________________________________________________________________________________
+time_distributed_35 (TimeDistri (None, 10, None, Non 1327488     time_distributed_37[0][0]        
+__________________________________________________________________________________________________
+conv3d_13 (Conv3D)              (None, 10, None, Non 3981696     activation_12[0][0]              
+__________________________________________________________________________________________________
+time_distributed_39 (TimeDistri (None, 10, None, Non 1536        time_distributed_35[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_13 (BatchNo (None, 10, None, Non 1536        conv3d_13[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_40 (TimeDistri (None, 10, None, Non 0           time_distributed_39[0][0]        
+__________________________________________________________________________________________________
+activation_13 (Activation)      (None, 10, None, Non 0           batch_normalization_13[0][0]     
+__________________________________________________________________________________________________
+time_distributed_38 (TimeDistri (None, 10, None, Non 1327488     time_distributed_40[0][0]        
+__________________________________________________________________________________________________
+conv3d_14 (Conv3D)              (None, 10, None, Non 3981696     activation_13[0][0]              
+__________________________________________________________________________________________________
+time_distributed_42 (TimeDistri (None, 10, None, Non 1536        time_distributed_38[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_14 (BatchNo (None, 10, None, Non 1536        conv3d_14[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_43 (TimeDistri (None, 10, None, Non 0           time_distributed_42[0][0]        
+__________________________________________________________________________________________________
+activation_14 (Activation)      (None, 10, None, Non 0           batch_normalization_14[0][0]     
+__________________________________________________________________________________________________
+time_distributed_41 (TimeDistri (None, 10, None, Non 1327488     time_distributed_43[0][0]        
+__________________________________________________________________________________________________
+conv3d_15 (Conv3D)              (None, 10, None, Non 3981696     activation_14[0][0]              
+__________________________________________________________________________________________________
+time_distributed_45 (TimeDistri (None, 10, None, Non 1536        time_distributed_41[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_15 (BatchNo (None, 10, None, Non 1536        conv3d_15[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_46 (TimeDistri (None, 10, None, Non 0           time_distributed_45[0][0]        
+__________________________________________________________________________________________________
+activation_15 (Activation)      (None, 10, None, Non 0           batch_normalization_15[0][0]     
+__________________________________________________________________________________________________
+time_distributed_44 (TimeDistri (None, 10, None, Non 1327488     time_distributed_46[0][0]        
+__________________________________________________________________________________________________
+conv3d_16 (Conv3D)              (None, 10, None, Non 3981696     activation_15[0][0]              
+__________________________________________________________________________________________________
+time_distributed_48 (TimeDistri (None, 10, None, Non 1536        time_distributed_44[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_16 (BatchNo (None, 10, None, Non 1536        conv3d_16[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_49 (TimeDistri (None, 10, None, Non 0           time_distributed_48[0][0]        
+__________________________________________________________________________________________________
+activation_16 (Activation)      (None, 10, None, Non 0           batch_normalization_16[0][0]     
+__________________________________________________________________________________________________
+time_distributed_47 (TimeDistri (None, 10, None, Non 2654976     time_distributed_49[0][0]        
+__________________________________________________________________________________________________
+conv3d_17 (Conv3D)              (None, 10, None, Non 7963392     activation_16[0][0]              
+__________________________________________________________________________________________________
+time_distributed_51 (TimeDistri (None, 10, None, Non 3072        time_distributed_47[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_17 (BatchNo (None, 10, None, Non 3072        conv3d_17[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_52 (TimeDistri (None, 10, None, Non 0           time_distributed_51[0][0]        
+__________________________________________________________________________________________________
+activation_17 (Activation)      (None, 10, None, Non 0           batch_normalization_17[0][0]     
+__________________________________________________________________________________________________
+time_distributed_50 (TimeDistri (None, 10, None, Non 5309184     time_distributed_52[0][0]        
+__________________________________________________________________________________________________
+conv3d_18 (Conv3D)              (None, 10, None, Non 15926016    activation_17[0][0]              
+__________________________________________________________________________________________________
+time_distributed_54 (TimeDistri (None, 10, None, Non 3072        time_distributed_50[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_18 (BatchNo (None, 10, None, Non 3072        conv3d_18[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_55 (TimeDistri (None, 10, None, Non 0           time_distributed_54[0][0]        
+__________________________________________________________________________________________________
+activation_18 (Activation)      (None, 10, None, Non 0           batch_normalization_18[0][0]     
+__________________________________________________________________________________________________
+time_distributed_53 (TimeDistri (None, 10, None, Non 5309184     time_distributed_55[0][0]        
+__________________________________________________________________________________________________
+conv3d_19 (Conv3D)              (None, 10, None, Non 15926016    activation_18[0][0]              
+__________________________________________________________________________________________________
+time_distributed_57 (TimeDistri (None, 10, None, Non 3072        time_distributed_53[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_19 (BatchNo (None, 10, None, Non 3072        conv3d_19[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_58 (TimeDistri (None, 10, None, Non 0           time_distributed_57[0][0]        
+__________________________________________________________________________________________________
+activation_19 (Activation)      (None, 10, None, Non 0           batch_normalization_19[0][0]     
+__________________________________________________________________________________________________
+time_distributed_56 (TimeDistri (None, 10, None, Non 5309184     time_distributed_58[0][0]        
+__________________________________________________________________________________________________
+conv3d_20 (Conv3D)              (None, 10, None, Non 15926016    activation_19[0][0]              
+__________________________________________________________________________________________________
+time_distributed_60 (TimeDistri (None, 10, None, Non 3072        time_distributed_56[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_20 (BatchNo (None, 10, None, Non 3072        conv3d_20[0][0]                  
+__________________________________________________________________________________________________
+time_distributed_61 (TimeDistri (None, 10, None, Non 0           time_distributed_60[0][0]        
+__________________________________________________________________________________________________
+activation_20 (Activation)      (None, 10, None, Non 0           batch_normalization_20[0][0]     
+__________________________________________________________________________________________________
+time_distributed_59 (TimeDistri (None, 10, None, Non 5309184     time_distributed_61[0][0]        
+__________________________________________________________________________________________________
+conv3d_21 (Conv3D)              (None, 10, None, Non 15926016    activation_20[0][0]              
+__________________________________________________________________________________________________
+batch_normalization_42 (BatchNo (None, 10, None, Non 3072        time_distributed_59[0][0]        
+__________________________________________________________________________________________________
+batch_normalization_21 (BatchNo (None, 10, None, Non 3072        conv3d_21[0][0]                  
+__________________________________________________________________________________________________
+activation_42 (Activation)      (None, 10, None, Non 0           batch_normalization_42[0][0]     
+__________________________________________________________________________________________________
+activation_21 (Activation)      (None, 10, None, Non 0           batch_normalization_21[0][0]     
+__________________________________________________________________________________________________
+add_1 (Add)                     (None, 10, None, Non 0           activation_42[0][0]              
+                                                                 activation_21[0][0]              
+__________________________________________________________________________________________________
+newlstmdeep (ConvLSTM2D)        (None, None, None, 1 451648      add_1[0][0]                      
+__________________________________________________________________________________________________
+conv2d_22 (Conv2D)              (None, None, None, 8 1160        newlstmdeep[0][0]                
+__________________________________________________________________________________________________
+batch_normalization_43 (BatchNo (None, None, None, 8 32          conv2d_22[0][0]                  
+__________________________________________________________________________________________________
+activation_43 (Activation)      (None, None, None, 8 0           batch_normalization_43[0][0]     
+__________________________________________________________________________________________________
+lambda_1 (Lambda)               (None, None, None, 2 0           activation_43[0][0]              
+__________________________________________________________________________________________________
+lambda_2 (Lambda)               (None, None, None, 6 0           activation_43[0][0]              
+__________________________________________________________________________________________________
+yolo (Conv2D)                   (None, None, None, 2 578         lambda_1[0][0]                   
+__________________________________________________________________________________________________
+secyolo (Conv2D)                (None, None, None, 6 5190        lambda_2[0][0]                   
+__________________________________________________________________________________________________
+Concat (Concat)                 [(None, None, None,  0           yolo[0][0]                       
+                                                                 secyolo[0][0]                    
+==================================================================================================
+Total params: 126,041,776
+Trainable params: 126,013,728
+Non-trainable params: 28,048
+__________________________________________________________________________________________________
+Train on 5986 samples, validate on 316 samples
+Epoch 1/250
+
+   4/5986 [..............................] - ETA: 6:18:55 - loss: 3.9320 - accuracy: 0.2500
+   8/5986 [..............................] - ETA: 3:22:40 - loss: 4.6572 - accuracy: 0.1250
+  12/5986 [..............................] - ETA: 2:23:52 - loss: 4.6734 - accuracy: 0.1667
+  16/5986 [..............................] - ETA: 1:54:26 - loss: 4.4622 - accuracy: 0.1250
+  20/5986 [..............................] - ETA: 1:36:46 - loss: 4.3564 - accuracy: 0.1000
+  24/5986 [..............................] - ETA: 1:24:59 - loss: 4.2798 - accuracy: 0.0833
+  28/5986 [..............................] - ETA: 1:16:35 - loss: 4.2425 - accuracy: 0.0714
+  32/5986 [..............................] - ETA: 1:10:14 - loss: 4.1882 - accuracy: 0.0938
+  36/5986 [..............................] - ETA: 1:05:19 - loss: 4.1460 - accuracy: 0.1111
+  40/5986 [..............................] - ETA: 1:01:22 - loss: 4.0880 - accuracy: 0.1250
+  44/5986 [..............................] - ETA: 58:08 - loss: 4.0586 - accuracy: 0.1136  
+  48/5986 [..............................] - ETA: 55:27 - loss: 4.0882 - accuracy: 0.1042
+  52/5986 [..............................] - ETA: 53:11 - loss: 4.0850 - accuracy: 0.0962
+  56/5986 [..............................] - ETA: 51:13 - loss: 4.0997 - accuracy: 0.0893
+  60/5986 [..............................] - ETA: 49:32 - loss: 4.1051 - accuracy: 0.0833
+  64/5986 [..............................] - ETA: 48:02 - loss: 4.1087 - accuracy: 0.0938
+  68/5986 [..............................] - ETA: 46:43 - loss: 4.0978 - accuracy: 0.0882
+  72/5986 [..............................] - ETA: 45:33 - loss: 4.0905 - accuracy: 0.0833
+  76/5986 [..............................] - ETA: 44:29 - loss: 4.1135 - accuracy: 0.0789
+  80/5986 [..............................] - ETA: 43:33 - loss: 4.1011 - accuracy: 0.0750
+  84/5986 [..............................] - ETA: 42:41 - loss: 4.1253 - accuracy: 0.0714
+  88/5986 [..............................] - ETA: 41:54 - loss: 4.1357 - accuracy: 0.0682
+  92/5986 [..............................] - ETA: 41:11 - loss: 4.1523 - accuracy: 0.0652
+  96/5986 [..............................] - ETA: 40:32 - loss: 4.1638 - accuracy: 0.0625
+ 100/5986 [..............................] - ETA: 39:56 - loss: 4.1577 - accuracy: 0.0600
+ 104/5986 [..............................] - ETA: 39:22 - loss: 4.1498 - accuracy: 0.0577
+ 108/5986 [..............................] - ETA: 38:51 - loss: 4.1680 - accuracy: 0.0556
+ 112/5986 [..............................] - ETA: 38:22 - loss: 4.1604 - accuracy: 0.0536
+ 116/5986 [..............................] - ETA: 37:55 - loss: 4.1712 - accuracy: 0.0517
+ 120/5986 [..............................] - ETA: 37:30 - loss: 4.1826 - accuracy: 0.0500
+ 124/5986 [..............................] - ETA: 37:06 - loss: 4.1820 - accuracy: 0.0484
+ 128/5986 [..............................] - ETA: 36:43 - loss: 4.1849 - accuracy: 0.0469
+ 132/5986 [..............................] - ETA: 36:22 - loss: 4.1807 - accuracy: 0.0455
+ 136/5986 [..............................] - ETA: 36:02 - loss: 4.1826 - accuracy: 0.0441
+ 140/5986 [..............................] - ETA: 35:43 - loss: 4.1763 - accuracy: 0.0429
+ 144/5986 [..............................] - ETA: 35:26 - loss: 4.1764 - accuracy: 0.0417
+ 148/5986 [..............................] - ETA: 35:09 - loss: 4.1816 - accuracy: 0.0405
+ 152/5986 [..............................] - ETA: 34:53 - loss: 4.1816 - accuracy: 0.0395
+ 156/5986 [..............................] - ETA: 34:37 - loss: 4.1890 - accuracy: 0.0385
+ 160/5986 [..............................] - ETA: 34:23 - loss: 4.1899 - accuracy: 0.0375
+ 164/5986 [..............................] - ETA: 34:09 - loss: 4.2095 - accuracy: 0.0366
+ 168/5986 [..............................] - ETA: 33:56 - loss: 4.2184 - accuracy: 0.0357
+ 172/5986 [..............................] - ETA: 33:43 - loss: 4.2207 - accuracy: 0.0349
+ 176/5986 [..............................] - ETA: 33:30 - loss: 4.2244 - accuracy: 0.0341
+ 180/5986 [..............................] - ETA: 33:19 - loss: 4.2259 - accuracy: 0.0333
+ 184/5986 [..............................] - ETA: 33:07 - loss: 4.2302 - accuracy: 0.0326
+ 188/5986 [..............................] - ETA: 32:56 - loss: 4.2378 - accuracy: 0.0319
+ 192/5986 [..............................] - ETA: 32:46 - loss: 4.2380 - accuracy: 0.0312
+ 196/5986 [..............................] - ETA: 32:36 - loss: 4.2420 - accuracy: 0.0306
+ 200/5986 [>.............................] - ETA: 32:26 - loss: 4.2477 - accuracy: 0.0300
+ 204/5986 [>.............................] - ETA: 32:17 - loss: 4.2578 - accuracy: 0.0294
+ 208/5986 [>.............................] - ETA: 32:08 - loss: 4.2628 - accuracy: 0.0288
+ 212/5986 [>.............................] - ETA: 32:00 - loss: 4.2996 - accuracy: 0.0283
+ 216/5986 [>.............................] - ETA: 31:51 - loss: 4.3071 - accuracy: 0.0278
+ 220/5986 [>.............................] - ETA: 31:43 - loss: 4.3145 - accuracy: 0.0364
+ 224/5986 [>.............................] - ETA: 31:35 - loss: 4.3223 - accuracy: 0.0446
+ 228/5986 [>.............................] - ETA: 31:28 - loss: 4.3249 - accuracy: 0.0439
+ 232/5986 [>.............................] - ETA: 31:20 - loss: 4.3293 - accuracy: 0.0431
+ 236/5986 [>.............................] - ETA: 31:13 - loss: 4.3345 - accuracy: 0.0424
+ 240/5986 [>.............................] - ETA: 31:06 - loss: 4.3427 - accuracy: 0.0417
+ 244/5986 [>.............................] - ETA: 30:59 - loss: 4.3475 - accuracy: 0.0410
+ 248/5986 [>.............................] - ETA: 30:53 - loss: 4.3533 - accuracy: 0.0403
+ 252/5986 [>.............................] - ETA: 30:46 - loss: 4.3569 - accuracy: 0.0397
+ 256/5986 [>.............................] - ETA: 30:40 - loss: 4.3631 - accuracy: 0.0391
+ 260/5986 [>.............................] - ETA: 30:34 - loss: 4.3738 - accuracy: 0.0385
+ 264/5986 [>.............................] - ETA: 30:28 - loss: 4.3864 - accuracy: 0.0379
+ 268/5986 [>.............................] - ETA: 30:22 - loss: 4.3930 - accuracy: 0.0448
+ 272/5986 [>.............................] - ETA: 30:16 - loss: 4.4083 - accuracy: 0.0441
+ 276/5986 [>.............................] - ETA: 30:10 - loss: 4.4181 - accuracy: 0.0507
+ 280/5986 [>.............................] - ETA: 30:05 - loss: 4.4376 - accuracy: 0.0500
+ 284/5986 [>.............................] - ETA: 30:00 - loss: 4.4426 - accuracy: 0.0599
+ 288/5986 [>.............................] - ETA: 29:54 - loss: 4.4478 - accuracy: 0.0694
+ 292/5986 [>.............................] - ETA: 29:49 - loss: 4.4645 - accuracy: 0.0685
+ 296/5986 [>.............................] - ETA: 29:44 - loss: 4.4711 - accuracy: 0.0777
+ 300/5986 [>.............................] - ETA: 29:40 - loss: 4.4965 - accuracy: 0.0800
+ 304/5986 [>.............................] - ETA: 29:35 - loss: 4.5100 - accuracy: 0.0855
+ 308/5986 [>.............................] - ETA: 29:30 - loss: 4.5241 - accuracy: 0.0877
+ 312/5986 [>.............................] - ETA: 29:26 - loss: 4.5292 - accuracy: 0.0962
+ 316/5986 [>.............................] - ETA: 29:21 - loss: 4.5353 - accuracy: 0.1044
+ 320/5986 [>.............................] - ETA: 29:17 - loss: 4.5412 - accuracy: 0.1125
+ 324/5986 [>.............................] - ETA: 29:12 - loss: 4.5482 - accuracy: 0.1204
+ 328/5986 [>.............................] - ETA: 29:08 - loss: 4.5683 - accuracy: 0.1220
+ 332/5986 [>.............................] - ETA: 29:04 - loss: 4.5747 - accuracy: 0.1295
+ 336/5986 [>.............................] - ETA: 29:00 - loss: 4.5804 - accuracy: 0.1369
+ 340/5986 [>.............................] - ETA: 28:56 - loss: 4.5912 - accuracy: 0.1412
+ 344/5986 [>.............................] - ETA: 28:52 - loss: 4.6024 - accuracy: 0.1453
+ 348/5986 [>.............................] - ETA: 28:48 - loss: 4.6149 - accuracy: 0.1494
+ 352/5986 [>.............................] - ETA: 28:44 - loss: 4.6203 - accuracy: 0.1562
+ 356/5986 [>.............................] - ETA: 28:40 - loss: 4.6357 - accuracy: 0.1601
+ 360/5986 [>.............................] - ETA: 28:36 - loss: 4.6414 - accuracy: 0.1667
+ 364/5986 [>.............................] - ETA: 28:33 - loss: 4.6675 - accuracy: 0.1676
+ 368/5986 [>.............................] - ETA: 28:29 - loss: 4.6760 - accuracy: 0.1739
+ 372/5986 [>.............................] - ETA: 28:26 - loss: 4.6941 - accuracy: 0.1774
+ 376/5986 [>.............................] - ETA: 28:22 - loss: 4.7008 - accuracy: 0.1835
+ 380/5986 [>.............................] - ETA: 28:19 - loss: 4.7179 - accuracy: 0.1842
+ 384/5986 [>.............................] - ETA: 28:15 - loss: 4.7257 - accuracy: 0.1901
+ 388/5986 [>.............................] - ETA: 28:12 - loss: 4.7376 - accuracy: 0.1933
+ 392/5986 [>.............................] - ETA: 28:09 - loss: 4.7480 - accuracy: 0.1990
+ 396/5986 [>.............................] - ETA: 28:06 - loss: 4.7603 - accuracy: 0.2045
+ 400/5986 [=>............................] - ETA: 28:02 - loss: 4.7672 - accuracy: 0.2100
+ 404/5986 [=>............................] - ETA: 27:59 - loss: 4.7742 - accuracy: 0.2153
+ 408/5986 [=>............................] - ETA: 27:56 - loss: 4.7892 - accuracy: 0.2157
+ 412/5986 [=>............................] - ETA: 27:53 - loss: 4.7987 - accuracy: 0.2209
+ 416/5986 [=>............................] - ETA: 27:50 - loss: 4.8060 - accuracy: 0.2260
+ 420/5986 [=>............................] - ETA: 27:47 - loss: 4.8178 - accuracy: 0.2286
+ 424/5986 [=>............................] - ETA: 27:44 - loss: 4.8252 - accuracy: 0.2311
+ 428/5986 [=>............................] - ETA: 27:41 - loss: 4.8326 - accuracy: 0.2360
+ 432/5986 [=>............................] - ETA: 27:39 - loss: 4.8398 - accuracy: 0.2407
+ 436/5986 [=>............................] - ETA: 27:36 - loss: 4.8545 - accuracy: 0.2408
+ 440/5986 [=>............................] - ETA: 27:33 - loss: 4.8673 - accuracy: 0.2432
+ 444/5986 [=>............................] - ETA: 27:30 - loss: 4.8809 - accuracy: 0.2455
+ 448/5986 [=>............................] - ETA: 27:27 - loss: 4.8949 - accuracy: 0.2500
+ 452/5986 [=>............................] - ETA: 27:25 - loss: 4.9071 - accuracy: 0.2522
+ 456/5986 [=>............................] - ETA: 27:22 - loss: 4.9174 - accuracy: 0.2544
+ 460/5986 [=>............................] - ETA: 27:19 - loss: 4.9263 - accuracy: 0.2587
+ 464/5986 [=>............................] - ETA: 27:17 - loss: 4.9355 - accuracy: 0.2608
+ 468/5986 [=>............................] - ETA: 27:14 - loss: 4.9494 - accuracy: 0.2628
+ 472/5986 [=>............................] - ETA: 27:12 - loss: 4.9703 - accuracy: 0.2627
+ 476/5986 [=>............................] - ETA: 27:09 - loss: 4.9821 - accuracy: 0.2647
+ 480/5986 [=>............................] - ETA: 27:06 - loss: 4.9916 - accuracy: 0.2688
+ 484/5986 [=>............................] - ETA: 27:04 - loss: 5.0027 - accuracy: 0.2727
+ 488/5986 [=>............................] - ETA: 27:01 - loss: 5.0166 - accuracy: 0.2746
+ 492/5986 [=>............................] - ETA: 26:59 - loss: 5.0256 - accuracy: 0.2785
+ 496/5986 [=>............................] - ETA: 26:56 - loss: 5.0400 - accuracy: 0.2802
+ 500/5986 [=>............................] - ETA: 26:54 - loss: 5.0495 - accuracy: 0.2820
+ 504/5986 [=>............................] - ETA: 26:52 - loss: 5.0658 - accuracy: 0.2837
+ 508/5986 [=>............................] - ETA: 26:49 - loss: 5.0750 - accuracy: 0.2874
+ 512/5986 [=>............................] - ETA: 26:47 - loss: 5.0904 - accuracy: 0.2891
+ 516/5986 [=>............................] - ETA: 26:44 - loss: 5.0988 - accuracy: 0.2926
+ 520/5986 [=>............................] - ETA: 26:42 - loss: 5.1196 - accuracy: 0.2923
+ 524/5986 [=>............................] - ETA: 26:40 - loss: 5.1335 - accuracy: 0.2939
+ 528/5986 [=>............................] - ETA: 26:38 - loss: 5.1424 - accuracy: 0.2973
+ 532/5986 [=>............................] - ETA: 26:35 - loss: 5.1522 - accuracy: 0.2989
+ 536/5986 [=>............................] - ETA: 26:33 - loss: 5.1614 - accuracy: 0.3022
+ 540/5986 [=>............................] - ETA: 26:31 - loss: 5.1705 - accuracy: 0.3056
+ 544/5986 [=>............................] - ETA: 26:28 - loss: 5.1792 - accuracy: 0.3088
+ 548/5986 [=>............................] - ETA: 26:26 - loss: 5.1880 - accuracy: 0.3120
+ 552/5986 [=>............................] - ETA: 26:24 - loss: 5.1961 - accuracy: 0.3152
+ 556/5986 [=>............................] - ETA: 26:22 - loss: 5.2061 - accuracy: 0.3183
+ 560/5986 [=>............................] - ETA: 26:20 - loss: 5.2154 - accuracy: 0.3214
+ 564/5986 [=>............................] - ETA: 26:18 - loss: 5.2294 - accuracy: 0.3227
+ 568/5986 [=>............................] - ETA: 26:16 - loss: 5.2441 - accuracy: 0.3239
+ 572/5986 [=>............................] - ETA: 26:14 - loss: 5.2556 - accuracy: 0.3252
+ 576/5986 [=>............................] - ETA: 26:12 - loss: 5.2690 - accuracy: 0.3264
+ 580/5986 [=>............................] - ETA: 26:10 - loss: 5.2786 - accuracy: 0.3276
+ 584/5986 [=>............................] - ETA: 26:08 - loss: 5.2881 - accuracy: 0.3305
+ 588/5986 [=>............................] - ETA: 26:06 - loss: 5.3036 - accuracy: 0.3316
+ 592/5986 [=>............................] - ETA: 26:04 - loss: 5.3142 - accuracy: 0.3345
+ 596/5986 [=>............................] - ETA: 26:01 - loss: 5.3323 - accuracy: 0.3339
+ 600/5986 [==>...........................] - ETA: 25:59 - loss: 5.3450 - accuracy: 0.3350
+ 604/5986 [==>...........................] - ETA: 25:57 - loss: 5.3577 - accuracy: 0.3361
+ 608/5986 [==>...........................] - ETA: 25:55 - loss: 5.3695 - accuracy: 0.3372
+ 612/5986 [==>...........................] - ETA: 25:54 - loss: 5.3782 - accuracy: 0.3399
+ 616/5986 [==>...........................] - ETA: 25:52 - loss: 5.3877 - accuracy: 0.3409
+ 620/5986 [==>...........................] - ETA: 25:50 - loss: 5.3964 - accuracy: 0.3435
+ 624/5986 [==>...........................] - ETA: 25:48 - loss: 5.4058 - accuracy: 0.3462
+ 628/5986 [==>...........................] - ETA: 25:46 - loss: 5.4145 - accuracy: 0.3487
+ 632/5986 [==>...........................] - ETA: 25:44 - loss: 5.4236 - accuracy: 0.3513
+ 636/5986 [==>...........................] - ETA: 25:42 - loss: 5.4429 - accuracy: 0.3538
+ 640/5986 [==>...........................] - ETA: 25:40 - loss: 5.4521 - accuracy: 0.3547
+ 644/5986 [==>...........................] - ETA: 25:38 - loss: 5.4674 - accuracy: 0.3540
+ 648/5986 [==>...........................] - ETA: 25:37 - loss: 5.4790 - accuracy: 0.3549
+ 652/5986 [==>...........................] - ETA: 25:35 - loss: 5.4874 - accuracy: 0.3574
+ 656/5986 [==>...........................] - ETA: 25:33 - loss: 5.5004 - accuracy: 0.3582
+ 660/5986 [==>...........................] - ETA: 25:31 - loss: 5.5120 - accuracy: 0.3591
+ 664/5986 [==>...........................] - ETA: 25:29 - loss: 5.5272 - accuracy: 0.3584
+ 668/5986 [==>...........................] - ETA: 25:27 - loss: 5.5365 - accuracy: 0.3608
+ 672/5986 [==>...........................] - ETA: 25:26 - loss: 5.5505 - accuracy: 0.3601
+ 676/5986 [==>...........................] - ETA: 25:24 - loss: 5.5588 - accuracy: 0.3624
+ 680/5986 [==>...........................] - ETA: 25:22 - loss: 5.5724 - accuracy: 0.3618
+ 684/5986 [==>...........................] - ETA: 25:20 - loss: 5.5853 - accuracy: 0.3626
+ 688/5986 [==>...........................] - ETA: 25:19 - loss: 5.6011 - accuracy: 0.3648
+ 692/5986 [==>...........................] - ETA: 25:17 - loss: 5.6111 - accuracy: 0.3671
+ 696/5986 [==>...........................] - ETA: 25:15 - loss: 5.6224 - accuracy: 0.3678
+ 700/5986 [==>...........................] - ETA: 25:13 - loss: 5.6323 - accuracy: 0.3686
+ 704/5986 [==>...........................] - ETA: 25:12 - loss: 5.6409 - accuracy: 0.3707
+ 708/5986 [==>...........................] - ETA: 25:10 - loss: 5.6495 - accuracy: 0.3729
+ 712/5986 [==>...........................] - ETA: 25:08 - loss: 5.6584 - accuracy: 0.3750
+ 716/5986 [==>...........................] - ETA: 25:07 - loss: 5.6683 - accuracy: 0.3771
+ 720/5986 [==>...........................] - ETA: 25:05 - loss: 5.6773 - accuracy: 0.3792
+ 724/5986 [==>...........................] - ETA: 25:03 - loss: 5.6857 - accuracy: 0.3812
+ 728/5986 [==>...........................] - ETA: 25:01 - loss: 5.6971 - accuracy: 0.3805
+ 732/5986 [==>...........................] - ETA: 25:00 - loss: 5.7064 - accuracy: 0.3825
+ 736/5986 [==>...........................] - ETA: 24:58 - loss: 5.7171 - accuracy: 0.3832
+ 740/5986 [==>...........................] - ETA: 24:56 - loss: 5.7281 - accuracy: 0.3838
+ 744/5986 [==>...........................] - ETA: 24:55 - loss: 5.7389 - accuracy: 0.3844
+ 748/5986 [==>...........................] - ETA: 24:53 - loss: 5.7526 - accuracy: 0.3837
+ 752/5986 [==>...........................] - ETA: 24:51 - loss: 5.7636 - accuracy: 0.3843
+ 756/5986 [==>...........................] - ETA: 24:50 - loss: 5.7740 - accuracy: 0.3849
+ 760/5986 [==>...........................] - ETA: 24:48 - loss: 5.7824 - accuracy: 0.3868
+ 764/5986 [==>...........................] - ETA: 24:46 - loss: 5.7928 - accuracy: 0.3874
+ 768/5986 [==>...........................] - ETA: 24:45 - loss: 5.8030 - accuracy: 0.3880
+ 772/5986 [==>...........................] - ETA: 24:43 - loss: 5.8119 - accuracy: 0.3886
+ 776/5986 [==>...........................] - ETA: 24:42 - loss: 5.8223 - accuracy: 0.3892
+ 780/5986 [==>...........................] - ETA: 24:40 - loss: 5.8309 - accuracy: 0.3910
+ 784/5986 [==>...........................] - ETA: 24:38 - loss: 5.8395 - accuracy: 0.3929
+ 788/5986 [==>...........................] - ETA: 24:37 - loss: 5.8478 - accuracy: 0.3947
+ 792/5986 [==>...........................] - ETA: 24:35 - loss: 5.8560 - accuracy: 0.3939
+ 796/5986 [==>...........................] - ETA: 24:33 - loss: 5.8666 - accuracy: 0.3945
+ 800/5986 [===>..........................] - ETA: 24:32 - loss: 5.8762 - accuracy: 0.3950
+ 804/5986 [===>..........................] - ETA: 24:30 - loss: 5.8892 - accuracy: 0.3943
+ 808/5986 [===>..........................] - ETA: 24:29 - loss: 5.8995 - accuracy: 0.3960
+ 812/5986 [===>..........................] - ETA: 24:27 - loss: 5.9084 - accuracy: 0.3941
+ 816/5986 [===>..........................] - ETA: 24:25 - loss: 5.9184 - accuracy: 0.3922
+ 820/5986 [===>..........................] - ETA: 24:24 - loss: 5.9269 - accuracy: 0.3902
+ 824/5986 [===>..........................] - ETA: 24:22 - loss: 5.9432 - accuracy: 0.3908
+ 828/5986 [===>..........................] - ETA: 24:21 - loss: 5.9549 - accuracy: 0.3889
+ 832/5986 [===>..........................] - ETA: 24:19 - loss: 5.9630 - accuracy: 0.3870
+ 836/5986 [===>..........................] - ETA: 24:18 - loss: 5.9712 - accuracy: 0.3852
+ 840/5986 [===>..........................] - ETA: 24:16 - loss: 5.9802 - accuracy: 0.3845
+ 844/5986 [===>..........................] - ETA: 24:15 - loss: 5.9880 - accuracy: 0.3851
+ 848/5986 [===>..........................] - ETA: 24:13 - loss: 5.9974 - accuracy: 0.3868
+ 852/5986 [===>..........................] - ETA: 24:12 - loss: 6.0073 - accuracy: 0.3885
+ 856/5986 [===>..........................] - ETA: 24:10 - loss: 6.0170 - accuracy: 0.3867
+ 860/5986 [===>..........................] - ETA: 24:09 - loss: 6.0260 - accuracy: 0.3849
+ 864/5986 [===>..........................] - ETA: 24:07 - loss: 6.0415 - accuracy: 0.3831
+ 868/5986 [===>..........................] - ETA: 24:06 - loss: 6.0497 - accuracy: 0.3813
+ 872/5986 [===>..........................] - ETA: 24:04 - loss: 6.0596 - accuracy: 0.3796
+ 876/5986 [===>..........................] - ETA: 24:03 - loss: 6.0691 - accuracy: 0.3801
+ 880/5986 [===>..........................] - ETA: 24:01 - loss: 6.0794 - accuracy: 0.3784
+ 884/5986 [===>..........................] - ETA: 24:00 - loss: 6.0885 - accuracy: 0.3801
+ 888/5986 [===>..........................] - ETA: 23:58 - loss: 6.0980 - accuracy: 0.3806
+ 892/5986 [===>..........................] - ETA: 23:57 - loss: 6.1072 - accuracy: 0.3789
+ 896/5986 [===>..........................] - ETA: 23:55 - loss: 6.1148 - accuracy: 0.3806
+ 900/5986 [===>..........................] - ETA: 23:54 - loss: 6.1227 - accuracy: 0.3822
+ 904/5986 [===>..........................] - ETA: 23:52 - loss: 6.1395 - accuracy: 0.3827
+ 908/5986 [===>..........................] - ETA: 23:51 - loss: 6.1471 - accuracy: 0.3811
+ 912/5986 [===>..........................] - ETA: 23:49 - loss: 6.1570 - accuracy: 0.3794
+ 916/5986 [===>..........................] - ETA: 23:48 - loss: 6.1675 - accuracy: 0.3799
+ 920/5986 [===>..........................] - ETA: 23:47 - loss: 6.1760 - accuracy: 0.3783
+ 924/5986 [===>..........................] - ETA: 23:45 - loss: 6.1881 - accuracy: 0.3766
+ 928/5986 [===>..........................] - ETA: 23:44 - loss: 6.1970 - accuracy: 0.3750
+ 932/5986 [===>..........................] - ETA: 23:42 - loss: 6.2058 - accuracy: 0.3734
+ 936/5986 [===>..........................] - ETA: 23:41 - loss: 6.2140 - accuracy: 0.3750
+ 940/5986 [===>..........................] - ETA: 23:39 - loss: 6.2222 - accuracy: 0.3766
