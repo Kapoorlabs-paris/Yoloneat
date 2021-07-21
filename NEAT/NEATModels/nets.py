@@ -195,7 +195,9 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
     x = ConvLSTM2D(filters = unit, kernel_size = (lstm_kernel, lstm_kernel),  activation='relu', data_format = 'channels_last', return_sequences = False, padding = "same", name = "newlstmdeep")(branchAdd)
 
 
-
+    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
     input_cat = Lambda(lambda x:x[:,:,:,0:categories])(x)
     input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
 
@@ -355,10 +357,12 @@ def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_
     
 
     
-    x = ConvLSTM2D(filters = unit, kernel_size = (start_kernel, start_kernel),  activation='relu', data_format = 'channels_last', return_sequences = False, padding = "same", name = "newlstmdeep")(branchAdd)
+    x = ConvLSTM2D(filters = unit, kernel_size = (lstm_kernel, lstm_kernel),  activation='relu', data_format = 'channels_last', return_sequences = False, padding = "same", name = "newlstmdeep")(branchAdd)
 
 
-
+    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
     input_cat = Lambda(lambda x:x[:,:,:,0:categories])(x)
     input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
 
@@ -524,6 +528,7 @@ def resnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38,  start
 
     # Add classifier on top.
     # v2 has BN-ReLU before Pooling
+    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     
@@ -623,6 +628,7 @@ def seqnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38, start_
 
     # Add classifier on top.
     # v2 has BN-ReLU before Pooling
+    x = (Conv2D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     
