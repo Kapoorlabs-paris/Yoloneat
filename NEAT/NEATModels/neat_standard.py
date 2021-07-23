@@ -385,16 +385,14 @@ class NEATDynamic(object):
                                                             #Now apply the prediction for counting real events
                                                             ycenter = location[i][0]
                                                             xcenter = location[i][1]
-                                                            crop_image_list.append(crop_image)
-                                                            crop_x_list.append(xcenter)
-                                                            crop_y_list.append(ycenter)
-                                            prediction_vector = self.make_batch_patches(crop_image_list)
-                                            for k in range(prediction_vector.shape[0]):        
-                                                    boxprediction = nonfcn_yoloprediction(crop_y_list[k], crop_x_list[k], prediction_vector[k], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
+                                                            
+                                                            prediction_vector = self.make_batch_patches(crop_image)
+                                                    
+                                                            boxprediction = nonfcn_yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
                                                                                                                
                                                     
-                                                    if boxprediction is not None:
-                                                              eventboxes = eventboxes + boxprediction
+                                                            if boxprediction is not None:
+                                                                 eventboxes = eventboxes + boxprediction
                                             for (event_name,event_label) in self.key_categories.items(): 
                                                                        
                                                                     if event_label > 0:

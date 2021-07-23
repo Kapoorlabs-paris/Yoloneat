@@ -12,7 +12,7 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -25,7 +25,7 @@ npz_val_name = 'divisiondetectionbin1m4val.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
-model_name = 'wtdivisionmodeld47res.h5'
+model_name = 'wtdivisionmodeld56res.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'DivisionCategories.json'
@@ -42,11 +42,11 @@ start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 47
+depth = 56
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-6
 #For stochastic gradient decent, the batch size used for computing the gradients
-batch_size = 4
+batch_size = 1
 # use softmax for single event per box, sigmoid for multi event per box
 lstm_hidden_unit = 16
 #Training epochs, longer the better with proper chosen learning rate

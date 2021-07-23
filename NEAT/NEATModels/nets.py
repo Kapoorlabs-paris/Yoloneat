@@ -245,7 +245,7 @@ def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(4):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -302,7 +302,7 @@ def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(4):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -367,8 +367,8 @@ def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_
     input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
 
         
-    output_cat = (Conv2D(categories, (round(input_shape[1]/4),round(input_shape[2]/4)),activation= last_activation,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'yolo'))(input_cat)
-    output_box = (Conv2D(nboxes*(box_vector), (round(input_shape[1]/4),round(input_shape[2]/4)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'secyolo'))(input_box)
+    output_cat = (Conv2D(categories, (round(input_shape[1]/8),round(input_shape[2]/8)),activation= last_activation,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'yolo'))(input_cat)
+    output_box = (Conv2D(nboxes*(box_vector), (round(input_shape[1]/8),round(input_shape[2]/8)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'secyolo'))(input_box)
 
 
 
