@@ -386,7 +386,7 @@ class NEATDynamic(object):
                                                             ycenter = location[i][0]
                                                             xcenter = location[i][1]
                                                             
-                                                            prediction_vector = self.make_batch_patches(crop_image)
+                                                            prediction_vector = self.make_patches(crop_image)
                                                     
                                                             boxprediction = nonfcn_yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
                                                                                                                
