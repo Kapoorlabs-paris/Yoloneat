@@ -471,7 +471,7 @@ class NEATDynamic(object):
                                                      for box in eventboxes:
                                                 
                                                         event_prob = box[event_name]
-                                                        if event_prob >= 0.2:
+                                                        if event_prob >= 0.8:
                                                             ycentermean , xcentermean = get_nearest(self.marker_tree, box['ycenter' ], box['xcenter'] , box['real_time_event']) 
                                                             location = (int(ycentermean), int(xcentermean))
                                                             self.remove_marker_locations(box['real_time_event'], location) 
