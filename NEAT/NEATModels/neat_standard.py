@@ -35,7 +35,7 @@ import imageio
 Boxname = 'ImageIDBox'
 EventBoxname = 'EventIDBox'
 
-class NEATDynamic(object):
+class NEATDynamicSeg(object):
     
 
     """
