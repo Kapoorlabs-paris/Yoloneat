@@ -9,14 +9,14 @@ import sys
 import os
 import glob
 sys.path.append("../NEAT")
-from NEATModels import NEATDynamic, nets
+from NEATModels import NEATDynamicSeg, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
 from stardist.models import StarDist2D
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -25,19 +25,19 @@ from pathlib import Path
 
 
 imagedir = '/home/sancere/Kepler/FinalONEATTraining/NEATTest/'
-model_dir = '/home/sancere/Kepler/FinalONEATTraining/Binning2V2model/'
-savedir= '/home/sancere/Kepler/FinalONEATTraining/NEATTest/NineFrameFastAccuratePredictiond38/'
-markerdir = '/home/sancere/Kepler/FinalONEATTraining/NEATTest/MarkerNineFramePrediction/Markers/'
-model_name = 'bin2divisionmodeld38'
+model_dir = '/home/sancere/Kepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
+savedir= '/home/sancere/Kepler/FinalONEATTraining/NEATTest/NineFramestandardd47/'
+markerdir = '/home/sancere/Kepler/FinalONEATTraining/NEATTest/NineFrameFastAccurated47/Markers/'
+model_name = 'bin2divisionmodeld47res'
 marker_model_name = '/home/sancere/Kepler/FinalONEATTraining/EverydayneatmodelV1/bin2stardist/'
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'DivisionCord.json'
 cordconfig = load_json(division_cord_json)
-model = NEATDynamic(None, model_dir , model_name,catconfig, cordconfig)
+model = NEATDynamicSeg(None, model_dir , model_name,catconfig, cordconfig)
 marker_model = StarDist2D(config = None, name = marker_model_name, basedir = model_dir)
 Path(savedir).mkdir(exist_ok=True)
-n_tiles = (1,1)
+n_tiles = (2,2)
 event_threshold = 0.99
 iou_threshold = 0.01
 yolo_v2 = False

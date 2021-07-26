@@ -329,6 +329,7 @@ class NEATDynamicSeg(object):
         
         self.imagename = imagename
         self.image = imread(imagename)
+        self.Colorimage = np.zeros_like(self.image)
         self.markers = markers
         self.marker_tree = marker_tree
         self.density_location = density_location
@@ -359,6 +360,9 @@ class NEATDynamicSeg(object):
             
     def first_pass_predict(self):
 
+        eventboxes = []
+        classedboxes = {}    
+        count = 0 
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
@@ -399,7 +403,7 @@ class NEATDynamicSeg(object):
                                      #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                                      for i in range(0, sum_time_prediction.shape[0]):
                                           time_prediction =  sum_time_prediction[i]
-                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic',marker_tree = self.marker_tree )
                                           
                                           if boxprediction is not None:
                                                   eventboxes = eventboxes + boxprediction

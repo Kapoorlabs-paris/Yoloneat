@@ -329,6 +329,7 @@ class NEATDynamic(object):
         
         self.imagename = imagename
         self.image = imread(imagename)
+        self.Colorimage = np.zeros_like(self.image)
         self.markers = markers
         self.marker_tree = marker_tree
         self.density_location = density_location
