@@ -612,9 +612,10 @@ class NEATPredict(object):
                                 column = []
                                 for pair in pairs: 
                                    smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, pair)
-                                   patch.append(smallpatch)
-                                   rowout.append(smallrowout)
-                                   column.append(smallcolumn) 
+                                   if smallpatch.shape[1] >= self.imagey and smallpatch.shape[2] >= self.imagex:
+                                           patch.append(smallpatch)
+                                           rowout.append(smallrowout)
+                                           column.append(smallcolumn) 
                         
                      else:
                          

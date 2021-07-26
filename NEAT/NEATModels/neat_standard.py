@@ -690,15 +690,16 @@ class NEATDynamicSeg(object):
                                         rowstart+=jumpy              
                                         
                           if sliceregion.shape[1] >= self.imagey and sliceregion.shape[2]>= self.imagex :          
-                              
+                                
                                 patch = []
                                 rowout = []
                                 column = []
                                 for pair in pairs: 
                                    smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, pair)
-                                   patch.append(smallpatch)
-                                   rowout.append(smallrowout)
-                                   column.append(smallcolumn) 
+                                   if smallpatch.shape[1] >= self.imagey and smallpatch.shape[2] >= self.imagex: 
+                                           patch.append(smallpatch)
+                                           rowout.append(smallrowout)
+                                           column.append(smallcolumn) 
                         
                      else:
                          
@@ -725,7 +726,7 @@ class NEATDynamicSeg(object):
                 ally = []
                 if len(self.patch) > 0:
                     for i in range(0,len(self.patch)):   
-                       
+                               
                                sum_time_prediction = self.make_patches(self.patch[i])
                                predictions.append(sum_time_prediction)
                                allx.append(self.sx[i])
