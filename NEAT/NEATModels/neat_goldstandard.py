@@ -245,7 +245,7 @@ class NEATDynamic(object):
            
             self.model_weights = None
         
-        print(self.box_vector)
+    
         dummyY = np.zeros([self.Y.shape[0],self.Y.shape[1],self.Y.shape[2],self.categories + self.nboxes* self.box_vector])
         dummyY[:,:,:,:self.Y.shape[3]] = self.Y
        
@@ -270,7 +270,7 @@ class NEATDynamic(object):
         self.Trainingmodel.compile(optimizer=sgd, loss = self.yololoss, metrics=['accuracy'])
         
         self.Trainingmodel.summary()
-        
+        print(self.startfilter)
         #Keras callbacks
         lrate = callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4, verbose=1)
         hrate = callbacks.History()
