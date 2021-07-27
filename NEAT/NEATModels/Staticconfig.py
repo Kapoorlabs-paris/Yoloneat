@@ -17,7 +17,7 @@ import argparse
 import numpy as np
 class static_config(argparse.Namespace):
     
-    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True, stride = 4, gridx = 1, gridy = 1, nboxes = 1, 
+    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None, residual = True,stage_number = 3, last_conv_factor = 4,  stride = 4, gridx = 1, gridy = 1, nboxes = 1, 
                  depth = 29, start_kernel = 3, mid_kernel = 3,startfilter = 32, show = True, imagex = 64, imagey = 64,
                  epochs =100,  learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, multievent = True,  **kwargs):
         
@@ -40,7 +40,9 @@ class static_config(argparse.Namespace):
            self.imagex = imagex
            self.imagey = imagey
            self.epochs = epochs
-           self.stride = stride,
+           self.stride = stride
+           self.stage_number = stage_number
+           self.last_conv_factor = last_conv_factor
            self.yolo_v0 = yolo_v0
            self.categories = len(self.key_categories)
            self.box_vector = len(self.key_cord)
@@ -77,7 +79,9 @@ class static_config(argparse.Namespace):
                  'model_name' : self.model_name,
                  'multievent' : self.multievent,
                  'yolo_v0': self.yolo_v0,
-                 'show' : self.show
+                 'show' : self.show,
+                 'stage_number' : self.stage_number,
+                 'last_conv_factor' : self.last_conv_factor
                  
                  }
          for (k,v) in self.key_categories.items():
@@ -118,6 +122,8 @@ class static_config(argparse.Namespace):
             ok['start_kernel']       = _is_int(self.start_kernel,1)
             ok['mid_kernel']         = _is_int(self.mid_kernel,1)
             ok['startfilter']        = _is_int(self.startfilter, 1)
+            ok['stage_number']        = _is_int(self.stage_number, 1)
+            ok['last_conv_factor']        = _is_int(self.last_conv_factor, 1)
             ok['epochs']        = _is_int(self.epochs, 1)
             ok['nboxes']       = _is_int(self.nboxes, 1)
             ok['gridx'] = _is_int(self.gridx, 1)

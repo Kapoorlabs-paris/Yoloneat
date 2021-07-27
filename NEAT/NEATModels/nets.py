@@ -91,7 +91,7 @@ def TDresnet_layer(inputs,
 
 
 
-def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 48,  input_weights = None,last_activation = 'softmax'):
+def OSNET(input_shape, categories,unit, box_vector, nboxes = 1, stage_number = 3, last_conv_factor = 4, depth = 38, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 48,  input_weights = None,last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     depth of 29 == max pooling of 28 for image patch of 55
     depth of 56 == max pooling of 14 for image patch of 55
@@ -110,7 +110,7 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(stage_number):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -152,7 +152,7 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(stage_number):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -202,8 +202,8 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
     input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
 
         
-    output_cat = (Conv2D(categories, (round(input_shape[1]/4),round(input_shape[2]/4)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'yolo'))(input_cat)
-    output_box = (Conv2D(nboxes * (box_vector), (round(input_shape[1]/4),round(input_shape[2]/4)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'secyolo'))(input_box)
+    output_cat = (Conv2D(categories, (round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'yolo'))(input_cat)
+    output_box = (Conv2D(nboxes * (box_vector), (round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'secyolo'))(input_box)
 
 
 
@@ -226,7 +226,7 @@ def OSNET(input_shape, categories,unit, box_vector, nboxes = 1,depth = 38, start
     return model
 
 
-def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 32,  input_weights = None, last_activation = 'softmax'):
+def ORNET(input_shape, categories,unit, box_vector,nboxes = 1, stage_number = 3, last_conv_factor = 4, depth = 38, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 32,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     depth of 29 == max pooling of 28 for image patch of 55
     depth of 56 == max pooling of 14 for image patch of 55
@@ -245,7 +245,7 @@ def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(stage_number):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -302,7 +302,7 @@ def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(stage_number):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -367,8 +367,8 @@ def ORNET(input_shape, categories,unit, box_vector,nboxes = 1,depth = 38, start_
     input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
 
         
-    output_cat = (Conv2D(categories, (round(input_shape[1]/4),round(input_shape[2]/4)),activation= last_activation,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'yolo'))(input_cat)
-    output_box = (Conv2D(nboxes*(box_vector), (round(input_shape[1]/4),round(input_shape[2]/4)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'secyolo'))(input_box)
+    output_cat = (Conv2D(categories, (round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor)),activation= last_activation,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'yolo'))(input_cat)
+    output_box = (Conv2D(nboxes*(box_vector), (round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid', name = 'secyolo'))(input_box)
 
 
 
@@ -445,7 +445,7 @@ def ThreeDresnet_layer(inputs,
 
 
 
-def resnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38,  start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
+def resnet_v2(input_shape, categories, box_vector,nboxes = 1, stage_number = 3, last_conv_factor = 4,  depth = 38,  start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
@@ -481,7 +481,7 @@ def resnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38,  start
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(stage_number):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -540,8 +540,8 @@ def resnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38,  start
       
     
 
-    output_cat = (Conv2D(categories, (round(input_shape[0]/4),round(input_shape[1]/4)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
-    output_box = (Conv2D(nboxes * (box_vector), (round(input_shape[0]/4),round(input_shape[1]/4)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
+    output_cat = (Conv2D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_box = (Conv2D(nboxes * (box_vector), (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
     
 
     block = Concat(-1)
@@ -560,7 +560,7 @@ def resnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38,  start
         
     return model
   
-def seqnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38, start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
+def seqnet_v2(input_shape, categories, box_vector,nboxes = 1,stage_number = 3, last_conv_factor = 4, depth = 38, start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
@@ -596,7 +596,7 @@ def seqnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38, start_
                      conv_first=True)
 
     # Instantiate the stack of residual units
-    for stage in range(3):
+    for stage in range(stage_number):
         for res_block in range(num_res_blocks):
             activation = 'relu'
             batch_normalization = True
@@ -640,8 +640,8 @@ def seqnet_v2(input_shape, categories, box_vector,nboxes = 1, depth = 38, start_
       
     
 
-    output_cat = (Conv2D(categories, (round(input_shape[0]/4),round(input_shape[1]/4)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
-    output_box = (Conv2D(nboxes*(box_vector), (round(input_shape[0]/4),round(input_shape[1]/4)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
+    output_cat = (Conv2D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_box = (Conv2D(nboxes*(box_vector), (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
     
 
     block = Concat(-1)

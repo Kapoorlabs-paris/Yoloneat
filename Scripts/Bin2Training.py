@@ -54,7 +54,8 @@ epochs = 250
 nboxes = 1
 #The inbuilt model stride which is equal to the nulber of times image was downsampled by the network
 show = False
-
+stage_number = 3
+last_conv_factor = 4
 size_tminus = 4
 size_tplus = 5
 imagex = 64
@@ -70,7 +71,7 @@ yolo_v2 = False
 config = dynamic_config(npz_directory =npz_directory, npz_name = npz_name, npz_val_name = npz_val_name, 
                          key_categories = key_categories, key_cord = key_cord, nboxes = nboxes, imagex = imagex,
                          imagey = imagey, size_tminus = size_tminus, size_tplus =size_tplus, epochs = epochs, yolo_v0 = yolo_v0, yolo_v1 = yolo_v1, yolo_v2 = yolo_v2,
-                         residual = residual, depth = depth, start_kernel = start_kernel, mid_kernel = mid_kernel,
+                         residual = residual, depth = depth, start_kernel = start_kernel, mid_kernel = mid_kernel, stage_number = stage_number, last_conv_factor = last_conv_factor,
                          lstm_kernel = lstm_kernel, lstm_hidden_unit = lstm_hidden_unit, show = show,
                          startfilter = startfilter, batch_size = batch_size, model_name = model_name)
 

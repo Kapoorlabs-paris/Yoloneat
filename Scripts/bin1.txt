@@ -1,5 +1,0 @@
-Using TensorFlow backend.
-Traceback (most recent call last):
-  File "ActionModelTraining.py", line 31, in <module>
-    division_categories_json = model_dir + 'MicroscopeCategories.json'
-NameError: name 'model_dir' is not defined

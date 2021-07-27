@@ -10,7 +10,7 @@ import numpy as np
 
 class dynamic_config(argparse.Namespace):
     
-    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None,  residual = True, imagex = 128, imagey = 128, size_tminus = 3, size_tplus = 0, stride = 4,  nboxes = 1, depth = 29, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 48, lstm_hidden_unit = 16, epochs =100, learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, yolo_v1 = False, yolo_v2 = False, multievent = False, show = True, **kwargs):
+    def __init__(self, npz_directory = None, npz_name = None, npz_val_name = None, key_categories = None, key_cord = None,  residual = True,stage_number = 3, last_conv_factor = 4, imagex = 128, imagey = 128, size_tminus = 3, size_tplus = 0, stride = 4,  nboxes = 1, depth = 29, start_kernel = 3, mid_kernel = 3, lstm_kernel = 3, startfilter = 48, lstm_hidden_unit = 16, epochs =100, learning_rate = 1.0E-4, batch_size = 10, model_name = 'NEATModel', yolo_v0 = True, yolo_v1 = False, yolo_v2 = False, multievent = False, show = True, **kwargs):
         
         
            self.npz_directory = npz_directory
@@ -40,6 +40,8 @@ class dynamic_config(argparse.Namespace):
            self.show = show
            self.imagex = imagex
            self.imagey = imagey
+           self.stage_number = stage_number
+           self.last_conv_factor = last_conv_factor
            self.size_tminus = size_tminus
            self.size_tplus = size_tplus
            self.is_valid()
@@ -74,7 +76,9 @@ class dynamic_config(argparse.Namespace):
                  'epochs' : self.epochs,
                  'learning_rate' : self.learning_rate,
                  'batch_size' : self.batch_size,
-                 'show' : self.show
+                 'show' : self.show,
+                 'stage_number' : self.stage_number,
+                 'last_conv_factor' : self.last_conv_factor
                  }
          
          for (k,v) in self.key_categories.items():
@@ -118,6 +122,8 @@ class dynamic_config(argparse.Namespace):
             ok['mid_kernel']         = _is_int(self.mid_kernel,1)
             ok['lstm_kernel']         = _is_int(self.lstm_kernel,1)
             ok['startfilter']        = _is_int(self.startfilter, 1)
+            ok['stage_number']        = _is_int(self.stage_number, 1)
+            ok['last_conv_factor']        = _is_int(self.last_conv_factor, 1)
             ok['lstm_hidden_unit']         = _is_int(self.lstm_hidden_unit,1)
             ok['epochs']        = _is_int(self.epochs, 1)
             ok['nboxes']       = _is_int(self.nboxes, 1)
