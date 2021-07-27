@@ -353,7 +353,7 @@ class NEATDynamicSegFree(object):
                                      #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                                      for i in range(0, sum_time_prediction.shape[0]):
                                           time_prediction =  sum_time_prediction[i]
-                                          boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
                                           
                                           if boxprediction is not None:
                                                   eventboxes = eventboxes + boxprediction
@@ -701,12 +701,7 @@ class NEATDynamicSegFree(object):
        
        
        prediction_vector = self.model.predict(np.expand_dims(predict_im,-1), verbose = 0)
-       if self.second_model_name is not None:
-           prediction_vector_second = self.second_model.predict(np.expand_dims(predict_im,-1), verbose = 0)
-       else:
-          prediction_vector_second = prediction_vector
-       for i, bi in enumerate(prediction_vector_second): prediction_vector[i] += bi
-       for i, bi in enumerate(prediction_vector_second): prediction_vector[i] /= 2   
+        
             
        return prediction_vector
    

@@ -26,9 +26,9 @@ from pathlib import Path
 
 imagedir = '/home/sancere/Kepler/FinalONEATTraining/NEATTest/SmallTest/'
 model_dir = '/home/sancere/Kepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
-savedir= '/home/sancere/Kepler/FinalONEATTraining/NEATTest/SmallTest/Standardf32d38res/'
+savedir= '/home/sancere/Kepler/FinalONEATTraining/NEATTest/SmallTest/FastStandardf32d65res/'
 
-model_name = 'bin2divisionmodeld38resf32'
+model_name = 'bin2divisionmodeld65res'
 marker_model_name = '/home/sancere/Kepler/FinalONEATTraining/EverydayneatmodelV1/bin2stardist/'
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
@@ -38,7 +38,7 @@ model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 marker_model = StarDist2D(config = None, name = marker_model_name, basedir = model_dir)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 1.0-1.0E-6
+event_threshold = 1.0-1.0E-4
 iou_threshold = 0.01
 yolo_v2 = False
 
