@@ -96,6 +96,8 @@ class NEATStatic(object):
                 self.show = staticconfig.show
                 self.key_cord = staticconfig.key_cord
                 self.categories = len(staticconfig.key_categories)
+                self.stage_number = staticconfig.stage_number 
+                self.last_conv_factor = staticconfig.last_conv_factor
                 self.depth = staticconfig.depth
                 self.start_kernel = staticconfig.start_kernel
                 self.mid_kernel = staticconfig.mid_kernel
@@ -112,6 +114,7 @@ class NEATStatic(object):
                 self.gridy = staticconfig.gridy
                 self.yolo_v0 = staticconfig.yolo_v0
                 self.stride = staticconfig.stride
+                
                 
         if self.staticconfig == None:
                
@@ -143,7 +146,8 @@ class NEATStatic(object):
                 self.gridy = self.staticconfig['gridy']
                 self.yolo_v0 = self.staticconfig['yolo_v0']
                 self.stride = self.staticconfig['stride']    
-        
+                self.stage_number = self.staticconfig['stage_number'] 
+                self.last_conv_factor = self.staticconfig['last_conv_factor']  
        
         self.X = None
         self.Y = None
@@ -235,7 +239,7 @@ class NEATStatic(object):
         
         print(self.Y.shape, self.nboxes)
         
-        self.Trainingmodel = self.model_keras(input_shape, self.categories, box_vector = self.box_vector ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights)
+        self.Trainingmodel = self.model_keras(input_shape, self.categories, box_vector = self.box_vector ,nboxes = self.nboxes,stage_number = self.stage_number, last_conv_factor = self.last_conv_factor, depth = self.depth,  start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, startfilter = self.startfilter,last_activation = self.last_activation,  input_weights  =  self.model_weights)
         
         
         

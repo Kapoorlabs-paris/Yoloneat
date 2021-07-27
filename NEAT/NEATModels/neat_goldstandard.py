@@ -84,7 +84,8 @@ class NEATDynamic(object):
                 self.npz_name = config.npz_name
                 self.npz_val_name = config.npz_val_name
                 self.key_categories = config.key_categories
-                
+                self.stage_number = config.stage_number 
+                self.last_conv_factor = config.last_conv_factor
                 self.show = config.show
                 self.key_cord = config.key_cord
                 self.box_vector = len(config.key_cord)
@@ -145,6 +146,8 @@ class NEATDynamic(object):
                 self.size_tminus = self.config['size_tminus']
                 self.size_tplus = self.config['size_tplus']
                 self.nboxes = self.config['nboxes']
+                self.stage_number = self.config['stage_number'] 
+                self.last_conv_factor = self.config['last_conv_factor']
                 self.gridx = 1
                 self.gridy = 1
                 self.gridt = 1
@@ -263,7 +266,7 @@ class NEATDynamic(object):
         print(self.Y.shape, self.nboxes)
         
         
-        self.Trainingmodel = self.model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] ,nboxes = self.nboxes, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, lstm_kernel = self.lstm_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
+        self.Trainingmodel = self.model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , box_vector = Y_rest.shape[-1] ,nboxes = self.nboxes, stage_number = self.stage_number, last_conv_factor = self.last_conv_factor, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, lstm_kernel = self.lstm_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
         
             
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
