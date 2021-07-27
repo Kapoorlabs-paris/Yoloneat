@@ -300,39 +300,7 @@ class NEATDynamicSegFree(object):
         
         self.Trainingmodel.save(self.model_dir + self.model_name )
         
-        
-    def get_markers(self, imagename, starmodel, savedir,  n_tiles, markerdir = None):
-        
-        
-        self.starmodel = starmodel
-        self.imagename = imagename
-        self.image = imread(imagename)
-        Name = os.path.basename(os.path.splitext(self.imagename)[0])
-        self.savedir = savedir
-        Path(self.savedir).mkdir(exist_ok=True)
-        
-        self.n_tiles = n_tiles
-        print('Obtaining Markers')
-        if markerdir is None:
-           self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
-           markerdir = self.savedir + '/' + 'Markers'
-           Path(markerdir).mkdir(exist_ok=True)
-           imwrite(markerdir + '/' + Name + '.tif', self.markers)     
-        else:
-            try:
-               self.markers = imread(markerdir + '/' + Name + '.tif')
-            except:
-                self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
-                markerdir = self.savedir + '/' + 'Markers'
-                Path(markerdir).mkdir(exist_ok=True)
-                imwrite(markerdir + '/' + Name + '.tif', self.markers)
-        self.marker_tree = MakeTrees(self.markers)
-        
-        print('Computing density of each marker')
-        self.density_location = DensityCounter(self.markers, self.imagex, self.imagey)
-        
-        return self.markers, self.marker_tree, self.density_location
-        
+
         
     def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
         
