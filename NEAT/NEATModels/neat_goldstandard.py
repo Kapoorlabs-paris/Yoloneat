@@ -350,11 +350,11 @@ class NEATDynamic(object):
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
          
         self.first_pass_predict()
-                                
+        self.second_pass_predict()                        
                    
           
                    
-    def first_pass_predict(self):
+    def second_pass_predict(self):
         
         print('Detecting event locations')
         count = 0
@@ -386,11 +386,11 @@ class NEATDynamic(object):
                                                             prediction_vector = self.make_patches(crop_image)
                                                     
                                                             boxprediction = nonfcn_yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
-                                                            if len(boxprediction) > 0:
-                                                                    boxprediction[0]['xcenter'] = xcenter
-                                                                    boxprediction[0]['ycenter'] = ycenter
-                                                                    boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
-                                                                    boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)                                                   
+                                                            #if len(boxprediction) > 0:
+                                                                    #boxprediction[0]['xcenter'] = xcenter
+                                                                    #boxprediction[0]['ycenter'] = ycenter
+                                                                    #boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
+                                                                    #boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)                                                   
                                                     
                                                             if boxprediction is not None:
                                                                  eventboxes = eventboxes + boxprediction
@@ -421,7 +421,63 @@ class NEATDynamic(object):
     
                           
                     
-            
+    def first_pass_predict(self):
+
+        print('Detecting normal event locations for removal of markers')
+        for inputtime in tqdm(range(0, self.image.shape[0])):
+                    if inputtime < self.image.shape[0] - self.imaget:
+                                
+                                eventboxes = []
+                                tree, indices = self.marker_tree[str(int(inputtime))]
+                                
+                                down_region = []
+                                up_region = []
+                                #all_density_location = self.density_location[str(inputtime)]
+                                #density = all_density_location[0]
+                                #locations = all_density_location[1]
+                                
+                                smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
+                                smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
+                                # Cut off the region for training movie creation
+                                #for i in range(len(density)):
+                                        
+                                    
+                                        #if density[i] <= self.density_veto:
+                                             #down_region.append(location)
+                                             #self.remove_marker_locations(inputtime, location)
+                                        #if density[i] >= 5 * self.density_veto:
+                                             #up_region.append(location)
+                                             #self.remove_marker_locations(inputtime, location)
+                                            
+                                self.downsample_regions[str(inputtime)] = down_region
+                                self.upsample_regions[str(inputtime)] = up_region
+                                # Cut off the region for training movie creation
+                                #Break image into tiles if neccessary
+                                predictions, allx, ally = self.predict_main(smallimage)
+                                #Iterate over tiles
+                                for p in range(0,len(predictions)):   
+                        
+                                  sum_time_prediction = predictions[p]
+                                  
+                                  if sum_time_prediction is not None:
+                                     #For each tile the prediction vector has shape N H W Categories + Training Vector labels
+                                     for i in range(0, sum_time_prediction.shape[0]):
+                                          time_prediction =  sum_time_prediction[i]
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          
+                                          if boxprediction is not None:
+                                                  eventboxes = eventboxes + boxprediction
+                                            
+                                for (event_name,event_label) in self.key_categories.items(): 
+                                                     
+                                                if event_label == 0:
+                                                     for box in eventboxes:
+                                                
+                                                        event_prob = box[event_name]
+                                                        if event_prob >= 0.8:
+                                                            ycentermean , xcentermean = get_nearest(self.marker_tree, box['ycenter' ], box['xcenter'] , box['real_time_event']) 
+                                                            location = (int(ycentermean), int(xcentermean))
+                                                            self.remove_marker_locations(box['real_time_event'], location)        
                  
     def remove_marker_locations(self, tcenter, location):
 
