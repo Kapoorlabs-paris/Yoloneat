@@ -505,7 +505,7 @@ class NEATPredict(object):
                                    if len(xlocations) == 0:
                                        self.start = self.star + 1
                                    else:
-                                       self.start = self.start + self.size_tminus + 1
+                                       self.start = self.start + self.size_tminus + 2
                                        
                                    event_count = np.column_stack([xlocations,ylocations]) 
                                    total_event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences])
