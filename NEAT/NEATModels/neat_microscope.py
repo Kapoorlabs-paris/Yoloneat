@@ -269,6 +269,7 @@ class NEATPredict(object):
         self.movie_name_list = movie_name_list
         self.movie_input = movie_input
         self.Z_movie_name_list = Z_movie_name_list
+        
         self.Z_movie_input = Z_movie_input
         self.Z_imagedir = Z_imagedir
         self.start = start
@@ -308,7 +309,6 @@ class NEATPredict(object):
                                                
                                      self.Z_movie_name_list.append(Z_Name)
                                      self.Z_movie_input.append(Z_movie_name)
-                                     total_Z_movies = len(self.Z_movie_input)
                                   
               
               for movie_name in filesRaw:  
@@ -443,7 +443,7 @@ class NEATPredict(object):
                                                                   print("____ NMS took %s seconds ____ ", (time.time() - start_time  ) )
                                                                   print('Generating ini file')
                                                                   self.to_csv()
-                                                                  self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, self.start + 1, Z_start, fileextension = self.fileextension, downsample = self.downsample, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
+                                                                  self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, self.start, Z_start, fileextension = self.fileextension, downsample = self.downsample, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
                                
                                  
                                                 
@@ -480,29 +480,35 @@ class NEATPredict(object):
                                    scores = []
                                    tlocations = []   
                                    radiuses = []
-                                   predcount = 0
-                                   iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                   #iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)                    
+                                   confidences = []
                                    
-                                   iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:abs(x['xcenter'] - self.image.shape[2]//2) + abs(x['ycenter'] - self.image.shape[1]//2), reverse = False) 
+                                   iou_current_event_boxes = self.iou_classedboxes[event_name][0]
+                                   
+                                   iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:np.sqrt( (x['xcenter'] - self.image.shape[2]//2) * (x['xcenter'] - self.image.shape[2]//2) ) + np.sqrt((x['ycenter'] - self.image.shape[1]//2) * (x['ycenter'] - self.image.shape[1]//2) ) , reverse = False) 
                                                                            
                                    for iou_current_event_box in iou_current_event_boxes:
-                                              if predcount > self.nb_prediction:
-                                                   break
+                                              
                                              
                                               xcenter = iou_current_event_box['xcenter']
                                               ycenter = iou_current_event_box['ycenter']
                                               tcenter = iou_current_event_box['real_time_event']
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                              confidence = iou_current_event_box['confidence']
                                               print(round(xcenter), round(ycenter), score)
                                               xlocations.append(round(xcenter))
                                               ylocations.append(round(ycenter))
                                               scores.append(score)
                                               tlocations.append(tcenter)
                                               radiuses.append(radius)
-                                              predcount = predcount + 1
+                                              confidences.append(confidence)
+                                   if len(xlocations) == 0:
+                                       self.start = self.star + 1
+                                   else:
+                                       self.start = self.start + self.size_tminus + 1
+                                       
                                    event_count = np.column_stack([xlocations,ylocations]) 
+                                   total_event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences])
                                    csvname = self.basedirResults + "/" + event_name
                                       
 
@@ -513,7 +519,9 @@ class NEATPredict(object):
                                    count = 1
                                       
                                    for line in event_count:
-                                                                                            
+                                              if len(live_event_data) > self.nb_prediction:
+                                                   
+                                                   break                                               
                                               live_event_data.append(line)
                                               writer.writerow(["["+str(count)+"]"])
                                               writer.writerow(["x="+str(live_event_data[0][0])])
@@ -528,7 +536,18 @@ class NEATPredict(object):
                                    csvimagename = ImageResults + "/" + event_name + 'LocationData'
                                    name = str(self.start)
                                    self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
-  
+                                   
+                                   event_data = []
+                                   csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                   writer = csv.writer(open(csvname  +".csv", "a"))
+                                   filesize = os.stat(csvname + ".csv").st_size
+                                   if filesize < 1:
+                                       writer.writerow(['T','Y','X','Score','Size','Confidence'])
+                                   for line in total_event_count:
+                                       if line not in event_data:  
+                                          event_data.append(line)
+                                       writer.writerows(event_data)
+                                       event_data = []
                                       
                  
                                    

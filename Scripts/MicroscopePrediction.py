@@ -8,10 +8,11 @@ import sys
 import os
 from glob import glob
 sys.path.append("../NEAT")
-from NEATModels import NEATDynamic, nets
+from NEATModels import NEATPredict, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json
+from NEATUtils.helpers import load_json
+from csbdeep.models import ProjectionCARE
 os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
@@ -19,85 +20,35 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 # In[2]:
 
 
-npz_directory = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/MicroscopeDivisionData/'
-npz_name = 'microbin2V1.npz'
-npz_val_name = 'microbin2V1val.npz'
-
-#Read and Write the h5 file, directory location and name
-model_dir =  '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Microneatmodel/'
-model_name = 'microseqnetbin2d47.h5'
-
-#Neural network parameters
+Z_imagedir = '/home/sancere/Kepler/FinalONEATTraining/Z_ONEAT_fly_test/'
+imagedir = '/home/sancere/Kepler/FinalONEATTraining/ONEAT_fly_test/'
+model_dir =  '/home/sancere/Kepler/FinalONEATTraining/PreMicroneatmodel/'
+model_name = 'premicroseqnetbin2d38lstm8'
+projection_model_name = 'projectionmodelbin2'
 division_categories_json = model_dir + 'MicroscopeCategories.json'
-key_categories = load_json(division_categories_json)
+catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'MicroscopeCord.json'
-key_cord = load_json(division_cord_json)
+cordconfig = load_json(division_cord_json)
+fileextension = '*TIF'
 
-#For ORNET use residual = True and for OSNET use residual = False
-residual = False
-#NUmber of starting convolutional filters, is doubled down with increasing depth
-startfilter = 48
-#CNN network start layer, mid layers and lstm layer kernel size
-start_kernel = 7
-lstm_kernel = 3
-mid_kernel = 3
-#Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 47
-#Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
-learning_rate = 1.0E-6
-#For stochastic gradient decent, the batch size used for computing the gradients
-batch_size = 8
-# use softmax for single event per box, sigmoid for multi event per box
-lstm_hidden_unit = 16
-#Training epochs, longer the better with proper chosen learning rate
-epochs = 250
-nboxes = 1
-#The inbuilt model stride which is equal to the nulber of times image was downsampled by the network
-show = False
+model = NEATPredict(None, model_dir , model_name,catconfig, cordconfig)
+projection_model = ProjectionCARE(config = None, name = projection_model_name, basedir = model_dir)
 
-size_tminus = 3
-size_tplus = 0
-imagex = 64
-imagey = 64
-yolo_v0 = False
-yolo_v1 = True
-yolo_v2 = False
+
+# In[3]:
+
+
+n_tiles = (1,1)
+Z_n_tiles = (1,2,2)
+event_threshold = 0.999
+iou_threshold = 0.6
+nb_predictions = 30
 
 
 # In[4]:
 
 
-config = dynamic_config(npz_directory =npz_directory, npz_name = npz_name, npz_val_name = npz_val_name, 
-                         key_categories = key_categories, key_cord = key_cord, nboxes = nboxes, imagex = imagex,
-                         imagey = imagey, size_tminus = size_tminus, size_tplus =size_tplus, epochs = epochs, yolo_v0 = yolo_v0, yolo_v1 = yolo_v1, yolo_v2 = yolo_v2,
-                         residual = residual, depth = depth, start_kernel = start_kernel, mid_kernel = mid_kernel,
-                         lstm_kernel = lstm_kernel, lstm_hidden_unit = lstm_hidden_unit, show = show,
-                         startfiler = startfilter, batch_size = batch_size, model_name = model_name)
-
-config_json = config.to_json()
-
-print(config)
-save_json(config_json, model_dir + os.path.splitext(model_name)[0] + '_Parameter.json')
-# In[ ]:
-
-
-Train = NEATDynamic(config, model_dir, model_name)
-
-Train.loadData()
-
-Train.TrainModel()
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
+model.predict(imagedir, [], [], Z_imagedir, [], [],  0, 0, fileextension = fileextension, nb_prediction = nb_predictions, n_tiles = n_tiles, Z_n_tiles = Z_n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, projection_model = projection_model)
 
 
 # In[ ]:

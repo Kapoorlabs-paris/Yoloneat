@@ -12,20 +12,20 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 # In[2]:
 
 
-npz_directory = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/MicroscopeDivisionData/'
+npz_directory = '/home/sancere/Kepler/FinalONEATTraining/MicroscopeDivisionData/'
 npz_name = 'microbin2V1.npz'
 npz_val_name = 'microbin2V1val.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Microneatmodel/'
-model_name = 'micronetbin2d47.h5'
+model_dir =  '/home/sancere/Kepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
+model_name = 'micronetbin2d47res.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'MicroscopeCategories.json'
@@ -34,7 +34,7 @@ division_cord_json = model_dir + 'MicroscopeCord.json'
 key_cord = load_json(division_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
-residual = False
+residual = True
 #NUmber of starting convolutional filters, is doubled down with increasing depth
 startfilter = 48
 #CNN network start layer, mid layers and lstm layer kernel size
@@ -54,7 +54,8 @@ epochs = 250
 nboxes = 1
 #The inbuilt model stride which is equal to the nulber of times image was downsampled by the network
 show = False
-
+stage_number = 3
+last_conv_factor = 4
 size_tminus = 3
 size_tplus = 0
 imagex = 64
@@ -70,7 +71,7 @@ yolo_v2 = False
 config = dynamic_config(npz_directory =npz_directory, npz_name = npz_name, npz_val_name = npz_val_name, 
                          key_categories = key_categories, key_cord = key_cord, nboxes = nboxes, imagex = imagex,
                          imagey = imagey, size_tminus = size_tminus, size_tplus =size_tplus, epochs = epochs, yolo_v0 = yolo_v0, yolo_v1 = yolo_v1, yolo_v2 = yolo_v2,
-                         residual = residual, depth = depth, start_kernel = start_kernel, mid_kernel = mid_kernel,
+                         residual = residual, depth = depth, start_kernel = start_kernel, mid_kernel = mid_kernel,stage_number = stage_number, last_conv_factor = last_conv_factor,
                          lstm_kernel = lstm_kernel, lstm_hidden_unit = lstm_hidden_unit, show = show,
                          startfiler = startfilter, batch_size = batch_size, model_name = model_name)
 
