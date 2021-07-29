@@ -881,7 +881,28 @@ def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categ
                                         if Classybox['confidence'] > 0.5:
                                             LocationBoxes.append(Classybox)         
                              return LocationBoxes
-                         
+def focyoloprediction(sy, sx, z_prediction, stride, inputz, config, key_categories,key_cord, nboxes, mode, event_type):
+    
+                             LocationBoxes = []
+                             j = 0
+                             k = 1
+                             while True:
+                                      j = j + 1
+                                      if j >z_prediction.shape[1]:
+                                           j = 1
+                                           k = k + 1
+
+                                      if k > z_prediction.shape[0]:
+                                          break;
+                      
+                                      Classybox = focpredictionloop(j, k, sx, sy, nboxes, stride, z_prediction, config, key_categories,key_cord, inputz)
+                                      #Append the box and the maximum likelehood detected class
+                                      if Classybox is not None:
+                                        if Classybox['confidence'] > 0.5:
+                                            LocationBoxes.append(Classybox)         
+                             return LocationBoxes
+                            
+ 
 def nonfcn_yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categories,key_cord, nboxes, mode, event_type, marker_tree = None):
     
                                 LocationBoxes = []
@@ -1033,7 +1054,66 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                   return classybox
                                       
                                          
+def focpredictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputz):
 
+                                                  total_classes = len(key_categories) 
+                                                  total_coords = len(key_cord)
+                                                  y = (k - 1) * stride
+                                                  x = (j - 1) * stride
+                                                  prediction_vector = time_prediction[k-1,j-1,:]
+                                                  
+                                                  xstart = x + sx
+                                                  ystart = y + sy
+                                                  Class = {}
+                                                  #Compute the probability of each class
+                                                  for (event_name,event_label) in key_categories.items():
+                                                      
+                                                      Class[event_name] = prediction_vector[event_label]
+                                                      
+                                                      
+                                                  
+                                                  trainshapex = config['imagex']
+                                                  trainshapey = config['imagey']
+                                          
+                                          
+                                                  xcentermean = xstart + prediction_vector[total_classes + config['x']  ] * trainshapex
+                                                  ycentermean = ystart + prediction_vector[total_classes + config['y']  ] * trainshapey
+                                                  
+                                                  heightmean = trainshapey
+                                                  widthmean = trainshapex
+                                                  z_frames = config['size_zminus'] + config['size_zplus'] + 1
+                                                  zcentermean = int(inputz + prediction_vector[total_classes + config['z'] ] * z_frames)
+                                                  boxzcentermean = int(prediction_vector[total_classes + config['z'] ] )
+                                                  confidencemean = prediction_vector[total_classes + config['c']]   
+                                                                                      
+                                          
+                                                  max_prob_label = np.argmax(prediction_vector[:total_classes])
+                                                  max_prob_class = prediction_vector[max_prob_label]
+                                                  
+                                                  
+                                                  if max_prob_label > 0:
+                                              
+                                                  
+                                                  
+                                                                  
+                                                                  real_z_event = zcentermean
+                                                                  box_z_event = boxzcentermean   
+       
+                                                                  #Compute the box vectors 
+                                                                  box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_z_event, 'box_time_event' : box_z_event,
+                                                                    'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean}
+                                                  
+                                                  
+                                                  #Make a single dict object containing the class and the box vectors return also the max prob label
+                                                  classybox = {}
+                                                  for d in [Class,box]:
+                                                      classybox.update(d) 
+                                                  
+                                                 
+                                                    
+                                                  return classybox
+                                      
+                                         
 def get_nearest(marker_tree, ycenter, xcenter, tcenter):
         
         location = (ycenter, xcenter)

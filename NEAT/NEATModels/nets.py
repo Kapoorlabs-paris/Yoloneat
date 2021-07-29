@@ -662,7 +662,7 @@ def seqnet_v2(input_shape, categories, box_vector,nboxes = 1,stage_number = 3, l
     return model
       
 
-def resnet_3D_v2(input_shape, categories, box_vector,nboxes = 1, stage_number = 3, last_conv_factor = 4,  depth = 38,  start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
+def resnet_3D_v2(input_shape, categories, stage_number = 3, last_conv_factor = 4,  depth = 38,  start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
@@ -745,7 +745,7 @@ def resnet_3D_v2(input_shape, categories, box_vector,nboxes = 1, stage_number = 
 
     # Add classifier on top.
     # v2 has BN-ReLU before Pooling
-    x = (Conv3D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
+    x = (Conv3D(categories, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     
@@ -766,7 +766,7 @@ def resnet_3D_v2(input_shape, categories, box_vector,nboxes = 1, stage_number = 
         
     return model
   
-def seqnet_3D_v2(input_shape, categories, box_vector,nboxes = 1,stage_number = 3, last_conv_factor = 4, depth = 38, start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
+def seqnet_3D_v2(input_shape, categories,stage_number = 3, last_conv_factor = 4, depth = 38, start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
@@ -834,7 +834,7 @@ def seqnet_3D_v2(input_shape, categories, box_vector,nboxes = 1,stage_number = 3
 
     # Add classifier on top.
     # v2 has BN-ReLU before Pooling
-    x = (Conv3D(categories + nboxes * box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
+    x = (Conv3D(categories, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     
