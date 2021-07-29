@@ -371,6 +371,7 @@ class NEATFocus(object):
                #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
                
+               
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                #print("nms",best_iou_classedboxes[event_name])
         self.iou_classedboxes = best_iou_classedboxes                
@@ -384,14 +385,12 @@ class NEATFocus(object):
         for (event_name,event_label) in self.key_categories.items():
                    
                    if event_label > 0:
-                                              zlocations = []
-                                              scores = []
-                                              confidences = []
-                                    
-                                              iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
-                                              for iou_current_event_box in iou_current_event_boxes:
-                                                      zcenter = iou_current_event_box['z']
+                                                      zlocations = []
+                                                      scores = []
+                                                      confidences = []
+                                            
+                                                      iou_current_event_box = self.iou_classedboxes[event_name][0]
+                                                      zcenter = iou_current_event_box['real_z_event']
                                                       confidence = iou_current_event_box['confidence']
                                                       score = iou_current_event_box[event_name]
                                                      
@@ -399,19 +398,19 @@ class NEATFocus(object):
                                                       scores.append(score)
                                                       confidences.append(confidence)
                                             
-                                              event_count = np.column_stack([zlocations,scores,confidences]) 
-                                              event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
-                                              event_data = []
-                                              csvname = self.savedir+ "/" + event_name + "FocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
-                                              writer = csv.writer(open(csvname  +".csv", "a"))
-                                              filesize = os.stat(csvname + ".csv").st_size
-                                              if filesize < 1:
-                                                 writer.writerow(['Z','Score','Confidence'])
-                                              for line in event_count:
-                                                 if line not in event_data:  
-                                                    event_data.append(line)
-                                                 writer.writerows(event_data)
-                                                 event_data = []           
+                                                      event_count = np.column_stack([zlocations,scores,confidences]) 
+                                                      event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
+                                                      event_data = []
+                                                      csvname = self.savedir+ "/" + event_name + "FocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                                      writer = csv.writer(open(csvname  +".csv", "a"))
+                                                      filesize = os.stat(csvname + ".csv").st_size
+                                                      if filesize < 1:
+                                                         writer.writerow(['Z','Score','Confidence'])
+                                                      for line in event_count:
+                                                         if line not in event_data:  
+                                                            event_data.append(line)
+                                                         writer.writerows(event_data)
+                                                         event_data = []           
                               
                                               
                                               

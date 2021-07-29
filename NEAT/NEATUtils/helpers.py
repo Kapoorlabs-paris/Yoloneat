@@ -876,7 +876,12 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
         # delete all indexes from the index list that are in the suppression list
         idxs = np.delete(idxs, suppress)
     # return only the indicies of the bounding boxes that were picked
-    return Averageboxes
+    
+    meanscore = sum(d[event_name] for d in Averageboxes) / len(Averageboxes)
+    box = {  'real_z_event':meanboxrealz, 'confidence':meanboxconfidence,  event_name:meanscore}
+        
+    
+    return box
 
 
 
