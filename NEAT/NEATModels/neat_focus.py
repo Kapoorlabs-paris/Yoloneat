@@ -1,7 +1,7 @@
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, focyoloprediction, fastnms, averagenms
+from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, focyoloprediction, fastnms, simpleaveragenms
 from keras import callbacks
 import os
 import math
@@ -60,7 +60,6 @@ class NEATFocus(object):
     
     model_weights : If re-training model_weights = model_dir + model_name else None as default
     
-    lstm_hidden_units : Number of hidden uniots for LSTM layer, 64 by default
     
     epochs :  Number of training epochs, 55 by default
     
@@ -131,7 +130,6 @@ class NEATFocus(object):
                 self.depth = self.config['depth']
                 self.start_kernel = self.config['start_kernel']
                 self.mid_kernel = self.config['mid_kernel']
-                self.lstm_hidden_unit = self.config['lstm_hidden_unit']
                 self.learning_rate = self.config['learning_rate']
                 self.epochs = self.config['epochs']
                 self.residual = self.config['residual']
@@ -153,7 +151,6 @@ class NEATFocus(object):
                 self.yolo_v1 = False
                 self.yolo_v2 = False
                 self.stride = self.config['last_conv_factor']   
-                self.lstm_hidden_unit = self.config['lstm_hidden_unit']
                 
                 
  
@@ -306,7 +303,6 @@ class NEATFocus(object):
 
         eventboxes = []
         classedboxes = {}    
-        count = 0 
         print('Detecting focus planes')
         for inputz in tqdm(range(0, self.image.shape[0])):
                     if inputz < self.image.shape[0] - self.imagez:
@@ -348,13 +344,11 @@ class NEATFocus(object):
                                                  
                                 self.classedboxes = classedboxes    
                                 self.eventboxes =  eventboxes
-                                #nms over time
-                                if count%(self.imagez)==0:
-                                        self.nms()
-                                        self.to_csv()
-                                        eventboxes = []
-                                        classedboxes = {}    
-                                        count = 0
+                                
+                                self.nms()
+                                self.to_csv()
+                                eventboxes = []
+                                classedboxes = {}    
                                                             
                                                             
                           
@@ -373,7 +367,7 @@ class NEATFocus(object):
                sorted_event_box = sorted(sorted_event_box, key = lambda x:x[event_name], reverse = True)
                
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
+               best_sorted_event_box = simpleaveragenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
                

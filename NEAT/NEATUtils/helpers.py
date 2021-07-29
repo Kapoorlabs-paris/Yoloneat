@@ -781,6 +781,105 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
     # return only the indicies of the bounding boxes that were picked
     return Averageboxes
 
+def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name ):
+
+
+    
+
+    if len(boxes) == 0:
+        return []
+
+    assert len(scores) == len(boxes)
+    assert scores is not None
+    if scores is not None:
+        assert len(scores) == len(boxes)
+
+    boxes = np.array(boxes)
+
+    
+        # if the bounding boxes integers, convert them to floats --
+        # this is important since we'll be doing a bunch of divisions
+    if boxes.dtype.kind == "i":
+        boxes = boxes.astype("float")
+
+    # initialize the list of picked indexes
+    pick = []
+    Averageboxes = []
+    newbox = None
+    # sort the bounding boxes by the associated scores
+    scores = get_max_score_index(scores, score_threshold, 0, False)
+    idxs = np.array(scores, np.int32)[:, 1]
+
+    while len(idxs) > 0:
+        # grab the last index in the indexes list, add the index
+        # value to the list of picked indexes, then initialize
+        # the suppression list (i.e. indexes that will be deleted)
+        # using the last index
+        last = len(idxs) - 1
+        i = idxs[last]
+        pick.append(i)
+        suppress = [last]
+
+        # loop over all indexes in the indexes list
+        for pos in range(0, last):
+            # grab the current index
+            j = idxs[pos]
+
+            # compute the ratio of overlap between the two boxes and the area of the second box
+            overlap = compare_function(boxes[i], boxes[j],event_name)
+            
+            # if there is sufficient overlap, suppress the current bounding box
+            if overlap > nms_threshold:
+                
+                
+                       
+                
+                
+                    
+                        boxAscore = boxes[i][event_name]
+                        boxAXstart = boxAscore * boxes[i]['xstart']
+                        boxAYstart = boxAscore * boxes[i]['ystart']
+                        boxAXcenter = boxAscore * boxes[i]['xcenter']
+                        boxAYcenter = boxAscore * boxes[i]['ycenter']
+                        boxArealz = boxAscore * boxes[i]['real_z_event']
+                        boxAheight = boxAscore * boxes[i]['height']
+                        boxAwidth = boxAscore * boxes[i]['width']
+                        boxAconfidence = boxAscore * boxes[i]['confidence']
+                        
+                        boxBscore = boxes[j][event_name]
+                        boxBXstart = boxBscore * boxes[j]['xstart']
+                        boxBYstart = boxBscore * boxes[j]['ystart']
+                        boxBXcenter = boxBscore * boxes[j]['xcenter']
+                        boxBYcenter = boxBscore * boxes[j]['ycenter']
+                        boxBrealz = boxBscore * boxes[j]['real_z_event']
+                        boxBheight = boxBscore * boxes[j]['height']
+                        boxBwidth = boxBscore * boxes[j]['width']
+                        boxBconfidence = boxBscore * boxes[j]['confidence']
+                
+                        meanboxscore = (boxAscore + boxBscore)/2
+                        meanboxXstart = (boxAXstart + boxBXstart)/2
+                        meanboxYstart = (boxAYstart + boxBYstart)/2
+                        meanboxXcenter = (boxAXcenter + boxBXcenter)/2
+                        meanboxYcenter = (boxAYcenter + boxBYcenter)/2
+                        meanboxrealz = (boxArealz + boxBrealz)/2
+                        meanboxheight = (boxAheight + boxBheight)/2
+                        meanboxwidth = (boxAwidth + boxBwidth)/2
+                        meanboxconfidence = (boxAconfidence + boxBconfidence)/2
+                        newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_z_event':meanboxrealz, 
+                                  'height':meanboxheight, 'width':meanboxwidth , 'confidence':meanboxconfidence,  event_name:meanboxscore}
+                
+        
+                        suppress.append(pos)
+                
+        if newbox is not None and newbox not in Averageboxes:        
+             Averageboxes.append(newbox)                                    
+        # delete all indexes from the index list that are in the suppression list
+        idxs = np.delete(idxs, suppress)
+    # return only the indicies of the bounding boxes that were picked
+    return Averageboxes
+
+
+
 def area_function(boxes):
     
     
@@ -1076,31 +1175,23 @@ def focpredictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key
                                                   trainshapey = config['imagey']
                                           
                                           
-                                                  xcentermean = xstart + prediction_vector[total_classes + config['x']  ] * trainshapex
-                                                  ycentermean = ystart + prediction_vector[total_classes + config['y']  ] * trainshapey
+                                                  xcentermean = xstart + 0.5 * trainshapex
+                                                  ycentermean = ystart + 0.5 * trainshapey
                                                   
                                                   heightmean = trainshapey
                                                   widthmean = trainshapex
-                                                  z_frames = config['size_zminus'] + config['size_zplus'] + 1
-                                                  zcentermean = int(inputz + prediction_vector[total_classes + config['z'] ] * z_frames)
-                                                  boxzcentermean = int(prediction_vector[total_classes + config['z'] ] )
+                                                  zcentermean = int(inputz)
                                                   confidencemean = prediction_vector[total_classes + config['c']]   
                                                                                       
                                           
                                                   max_prob_label = np.argmax(prediction_vector[:total_classes])
-                                                  max_prob_class = prediction_vector[max_prob_label]
-                                                  
                                                   
                                                   if max_prob_label > 0:
                                               
-                                                  
-                                                  
-                                                                  
                                                                   real_z_event = zcentermean
-                                                                  box_z_event = boxzcentermean   
        
                                                                   #Compute the box vectors 
-                                                                  box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_z_event, 'box_time_event' : box_z_event,
+                                                                  box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_z_event' : real_z_event,
                                                                     'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean}
                                                   
                                                   
