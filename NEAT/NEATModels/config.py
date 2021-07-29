@@ -33,7 +33,7 @@ class dynamic_config(argparse.Namespace):
            self.startfilter = startfilter
            self.lstm_hidden_unit = lstm_hidden_unit
            self.epochs = epochs
-           self.stride = stride
+           self.stride = last_conv_factor
            self.learning_rate = learning_rate
            self.batch_size = batch_size
            self.model_name = model_name
