@@ -87,6 +87,7 @@ class NEATFocus(object):
                 self.last_conv_factor = config.last_conv_factor
                 self.show = config.show
                 self.key_cord = config.key_cord
+                self.box_vector = len(config.key_cord)
                 self.categories = len(config.key_categories)
                 self.depth = config.depth
                 self.start_kernel = config.start_kernel
@@ -121,6 +122,7 @@ class NEATFocus(object):
                 self.npz_name = self.config['npz_name']
                 self.npz_val_name = self.config['npz_val_name']
                 self.key_categories = self.catconfig
+                self.box_vector = self.config['box_vector']
                 self.show = self.config['show']
                 self.key_cord = self.cordconfig
                 self.categories = len(self.catconfig)
@@ -173,7 +175,7 @@ class NEATFocus(object):
         if self.multievent == False:
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
-        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, 1, 0, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
+        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridz, 1, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
         
         
     def loadData(self):
@@ -210,7 +212,7 @@ class NEATFocus(object):
         
 
         Y_main = self.Y[:,:,:,0:self.categories-1]
- 
+        Y_rest = self.Y[:,:,:,self.categories:]
         y_integers = np.argmax(Y_main, axis = -1)
         y_integers = y_integers[:,0,0]
 
@@ -230,10 +232,10 @@ class NEATFocus(object):
            
             self.model_weights = None
         
-        dummyY = np.zeros([self.Y.shape[0],self.Y.shape[1],self.Y.shape[2],self.categories])
+        dummyY = np.zeros([self.Y.shape[0],self.Y.shape[1],self.Y.shape[2],self.categories + self.box_vector])
         dummyY[:,:,:,:self.Y.shape[3]] = self.Y
        
-        dummyY_val = np.zeros([self.Y_val.shape[0],self.Y_val.shape[1],self.Y_val.shape[2],self.categories])
+        dummyY_val = np.zeros([self.Y_val.shape[0],self.Y_val.shape[1],self.Y_val.shape[2],self.categories + self.box_vector])
         dummyY_val[:,:,:,:self.Y_val.shape[3]] = self.Y_val
         
         
@@ -242,8 +244,7 @@ class NEATFocus(object):
         
         
         
-        
-        self.Trainingmodel = self.model_keras(input_shape, self.categories,  unit = self.lstm_hidden_unit , stage_number = self.stage_number, last_conv_factor = self.last_conv_factor, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel, lstm_kernel = self.lstm_kernel, startfilter = self.startfilter,  input_weights  =  self.model_weights)
+        self.Trainingmodel = self.model_keras(input_shape, self.categories,  box_vector = Y_rest.shape[-1], stage_number = self.stage_number, last_conv_factor = self.last_conv_factor, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel,  startfilter = self.startfilter,  input_weights  =  self.model_weights)
         
             
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)

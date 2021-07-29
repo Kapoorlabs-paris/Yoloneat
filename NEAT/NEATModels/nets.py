@@ -662,7 +662,7 @@ def seqnet_v2(input_shape, categories, box_vector,nboxes = 1,stage_number = 3, l
     return model
       
 
-def resnet_3D_v2(input_shape, categories, stage_number = 3, last_conv_factor = 4,  depth = 38,  start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
+def resnet_3D_v2(input_shape, categories,box_vector, stage_number = 3, last_conv_factor = 4,  depth = 38,  start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
@@ -749,8 +749,19 @@ def resnet_3D_v2(input_shape, categories, stage_number = 3, last_conv_factor = 4
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     
-    outputs = (Conv3D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
+    input_cat = Lambda(lambda x:x[:,:,:,0:categories])(x)
+    input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
     
+      
+    
+
+    output_cat = (Conv3D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_box = (Conv3D((box_vector), (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
+    
+
+    block = Concat(-1)
+    outputs = block([output_cat,output_box])
+
 
     
     inputs = img_input
@@ -766,7 +777,7 @@ def resnet_3D_v2(input_shape, categories, stage_number = 3, last_conv_factor = 4
         
     return model
   
-def seqnet_3D_v2(input_shape, categories,stage_number = 3, last_conv_factor = 4, depth = 38, start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
+def seqnet_3D_v2(input_shape, categories, box_vector, stage_number = 3, last_conv_factor = 4, depth = 38, start_kernel = 3, mid_kernel = 3, startfilter = 48,  input_weights = None, last_activation = 'softmax'):
     """ResNet Version 2 Model builder [b]
     Stacks of (1 x 1)-(3 x 3)-(1 x 1) BN-ReLU-Conv2D or also known as
     bottleneck layer
@@ -841,8 +852,18 @@ def seqnet_3D_v2(input_shape, categories,stage_number = 3, last_conv_factor = 4,
 
     
 
-    outputs = (Conv3D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(x)
+    input_cat = Lambda(lambda x:x[:,:,:,0:categories])(x)
+    input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
     
+      
+    
+
+    output_cat = (Conv3D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_box = (Conv3D((box_vector), (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
+    
+
+    block = Concat(-1)
+    outputs = block([output_cat,output_box])
 
     
     inputs = img_input
