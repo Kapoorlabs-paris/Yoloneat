@@ -831,10 +831,6 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
                 
-                
-                       
-                
-                
                     
                         boxAscore = boxes[i][event_name]
                         boxAXstart = boxAscore * boxes[i]['xstart']
@@ -878,7 +874,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
     # return only the indicies of the bounding boxes that were picked
     
     meanscore = sum(d[event_name] for d in Averageboxes) / len(Averageboxes)
-    box = {  'real_z_event':meanboxrealz, 'confidence':meanboxconfidence,  event_name:meanscore}
+    box = {'real_z_event':meanboxrealz, 'confidence':meanboxconfidence,  event_name:meanscore}
         
     
     return box

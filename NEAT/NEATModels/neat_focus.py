@@ -87,7 +87,6 @@ class NEATFocus(object):
                 self.last_conv_factor = config.last_conv_factor
                 self.show = config.show
                 self.key_cord = config.key_cord
-                self.box_vector = len(config.key_cord)
                 self.categories = len(config.key_categories)
                 self.depth = config.depth
                 self.start_kernel = config.start_kernel
@@ -100,9 +99,9 @@ class NEATFocus(object):
                 self.multievent = config.multievent
                 self.imagex = config.imagex
                 self.imagey = config.imagey
-                self.imagez = config.size_zminus + config.size_zplus + 1
-                self.size_zminus = config.size_zminus
-                self.size_zplus = config.size_zplus
+                self.imagez = config.size_tminus + config.size_tplus + 1
+                self.size_zminus = config.size_tminus
+                self.size_zplus = config.size_tplus
                 self.nboxes = 1
                 self.gridx = 1
                 self.gridy = 1
@@ -111,7 +110,6 @@ class NEATFocus(object):
                 self.yolo_v1 = False
                 self.yolo_v2 = False
                 self.stride = config.last_conv_factor
-                self.lstm_hidden_unit = config.lstm_hidden_unit
         if self.config == None:
                
                 try:
@@ -123,7 +121,6 @@ class NEATFocus(object):
                 self.npz_name = self.config['npz_name']
                 self.npz_val_name = self.config['npz_val_name']
                 self.key_categories = self.catconfig
-                self.box_vector = self.config['box_vector']
                 self.show = self.config['show']
                 self.key_cord = self.cordconfig
                 self.categories = len(self.catconfig)
@@ -138,9 +135,9 @@ class NEATFocus(object):
                 self.multievent = self.config['multievent']
                 self.imagex = self.config['imagex']
                 self.imagey = self.config['imagey']
-                self.imagez = self.config['size_zminus'] + self.config['size_zplus'] + 1
-                self.size_zminus = self.config['size_zminus']
-                self.size_zplus = self.config['size_zplus']
+                self.imagez = self.config['size_tminus'] + self.config['size_tplus'] + 1
+                self.size_zminus = self.config['size_tminus']
+                self.size_zplus = self.config['size_tplus']
                 self.nboxes = 1
                 self.stage_number = self.config['stage_number'] 
                 self.last_conv_factor = self.config['last_conv_factor']
