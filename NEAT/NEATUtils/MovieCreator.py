@@ -372,8 +372,8 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, to
 
                   AllShifts = [shiftNone]
 
-       
-               if time < segimage.shape[0] - 1:
+               time = time - 1 
+               if time < segimage.shape[0] - 1 and time > 0:
                  currentsegimage = segimage[int(time),:].astype('uint16')
                 
                  height, width, center, SegLabel  = getHW(x, y,trainlabel, currentsegimage)
