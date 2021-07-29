@@ -314,7 +314,7 @@ class NEATFocus(object):
                                 eventboxes = []
                                 
                                 
-                                smallimage = CreateVolume(self.image, self.imagez, inputtime,self.imagex, self.imagey)
+                                smallimage = CreateVolume(self.image, self.imagez, inputz,self.imagex, self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 
                                 # Cut off the region for training movie creation
@@ -323,13 +323,13 @@ class NEATFocus(object):
                                 #Iterate over tiles
                                 for p in range(0,len(predictions)):   
                         
-                                  sum_time_prediction = predictions[p]
+                                  sum_z_prediction = predictions[p]
                                   
-                                  if sum_time_prediction is not None:
+                                  if sum_z_prediction is not None:
                                      #For each tile the prediction vector has shape N H W Categories + Training Vector labels
-                                     for i in range(0, sum_time_prediction.shape[0]):
-                                          time_prediction =  sum_time_prediction[i]
-                                          boxprediction = focyoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, 1, 'detection', 'dynamic' )
+                                     for i in range(0, sum_z_prediction.shape[0]):
+                                          z_prediction =  sum_z_prediction[i]
+                                          boxprediction = focyoloprediction(ally[p], allx[p], z_prediction, self.stride, inputz, self.config, self.key_categories, self.key_cord, 1, 'detection', 'dynamic' )
                                           
                                           if boxprediction is not None:
                                                   eventboxes = eventboxes + boxprediction
