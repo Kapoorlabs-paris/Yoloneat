@@ -5,6 +5,7 @@ from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction,
 from keras import callbacks
 import os
 import math
+import pandas as pd
 import tensorflow as tf
 from tqdm import tqdm
 from NEATModels import nets
@@ -274,13 +275,14 @@ class NEATFocus(object):
     
         
         
-    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
+    def predict(self,imagename, savedir, interest_event, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
         
         self.imagename = imagename
         self.image = imread(imagename)
         self.Colorimage = np.zeros_like(self.image)
         self.savedir = savedir
         self.n_tiles = n_tiles
+        self.interest_event = interest_event
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
@@ -348,7 +350,7 @@ class NEATFocus(object):
                                 eventboxes = []
                                 classedboxes = {}    
                                                             
-                                                            
+        self.print_planes()                                                    
                           
         
     def nms(self):
@@ -380,38 +382,88 @@ class NEATFocus(object):
     
     def to_csv(self):
         
+        
+        
+        if len(self.interest_event) > 1:
+                zlocations = []
+                scores = []
+                event = self.interest_event[0]
+                iou_current_event_box = self.iou_classedboxes[event][0]
+                zcenter = iou_current_event_box['real_z_event']
+                score = iou_current_event_box[event]
+                for sec_event in self.interest_event:
+                    
+                     sec_iou_current_event_box = self.iou_classedboxes[sec_event][0]
+                     sec_zcenter = sec_iou_current_event_box['real_z_event']
+                     if event is not sec_event and zcenter == sec_zcenter:
+                         
+                              sec_score = sec_iou_current_event_box[sec_event]
+                              score = score + sec_score
+                              
+                zlocations.append(zcenter)
+                scores.append(score/len(self.interest_event))
+                
+                event_count = np.column_stack([zlocations,scores]) 
+                event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
+                event_data = []
+                csvname = self.savedir+ "/" + self.interest_event + "ComboFocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                writer = csv.writer(open(csvname  +".csv", "a"))
+                filesize = os.stat(csvname + ".csv").st_size
+                if filesize < 1:
+                   writer.writerow(['Z','Score'])
+                for line in event_count:
+                   if line not in event_data:  
+                      event_data.append(line)
+                   writer.writerows(event_data)
+                   event_data = []
+        
         for (event_name,event_label) in self.key_categories.items():
                    
+            
+                   
                    if event_label > 0:
-                                                      zlocations = []
-                                                      scores = []
-                                            
-                                                      iou_current_event_box = self.iou_classedboxes[event_name][0]
-                                                      zcenter = iou_current_event_box['real_z_event']
-                                                      score = iou_current_event_box[event_name]
-                                                     
-                                                      zlocations.append(zcenter)
-                                                      scores.append(score)
-                                            
-                                                      event_count = np.column_stack([zlocations,scores]) 
-                                                      event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
-                                                      event_data = []
-                                                      csvname = self.savedir+ "/" + event_name + "FocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
-                                                      writer = csv.writer(open(csvname  +".csv", "a"))
-                                                      filesize = os.stat(csvname + ".csv").st_size
-                                                      if filesize < 1:
-                                                         writer.writerow(['Z','Score'])
-                                                      for line in event_count:
-                                                         if line not in event_data:  
-                                                            event_data.append(line)
-                                                         writer.writerows(event_data)
-                                                         event_data = []           
+                                            zlocations = []
+                                            scores = []
+                                  
+                                            iou_current_event_box = self.iou_classedboxes[event_name][0]
+                                            zcenter = iou_current_event_box['real_z_event']
+                                            score = iou_current_event_box[event_name]
+                                           
+                                            zlocations.append(zcenter)
+                                            scores.append(score)
+                                  
+                                            event_count = np.column_stack([zlocations,scores]) 
+                                            event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
+                                            event_data = []
+                                            csvname = self.savedir+ "/" + event_name + "FocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                            writer = csv.writer(open(csvname  +".csv", "a"))
+                                            filesize = os.stat(csvname + ".csv").st_size
+                                            if filesize < 1:
+                                               writer.writerow(['Z','Score'])
+                                            for line in event_count:
+                                               if line not in event_data:  
+                                                  event_data.append(line)
+                                               writer.writerows(event_data)
+                                               event_data = []           
                               
                                               
                                               
                                               
     
-          
+    def print_planes(self):
+        
+        Csv_path = os.path.join(self.savedir, '*csv')
+        filesCsv = glob.glob(Csv_path)
+        for csvfname in filesCsv:
+                                 Csvname =  os.path.basename(os.path.splitext(csvfname)[0])
+                                 dataset = pd.read_csv(csvfname, skiprows = 1)
+                                 z = dataset[dataset.keys()[0]][1:]
+                                 score = dataset[dataset.keys()[1]][1:]
+                                 maxscore = np.max(score)
+                                 maxz = z[np.argmax(score)]
+                                 print('For file' ,  Csvname, 'max score of', maxscore, 'was found at Z = ', maxz)
+                                 
+                                 
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
          
          
