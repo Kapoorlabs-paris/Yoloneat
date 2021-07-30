@@ -385,25 +385,22 @@ class NEATFocus(object):
                    if event_label > 0:
                                                       zlocations = []
                                                       scores = []
-                                                      confidences = []
                                             
                                                       iou_current_event_box = self.iou_classedboxes[event_name][0]
                                                       zcenter = iou_current_event_box['real_z_event']
-                                                      confidence = iou_current_event_box['confidence']
                                                       score = iou_current_event_box[event_name]
                                                      
                                                       zlocations.append(zcenter)
                                                       scores.append(score)
-                                                      confidences.append(confidence)
                                             
-                                                      event_count = np.column_stack([zlocations,scores,confidences]) 
+                                                      event_count = np.column_stack([zlocations,scores]) 
                                                       event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                                                       event_data = []
                                                       csvname = self.savedir+ "/" + event_name + "FocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                                       writer = csv.writer(open(csvname  +".csv", "a"))
                                                       filesize = os.stat(csvname + ".csv").st_size
                                                       if filesize < 1:
-                                                         writer.writerow(['Z','Score','Confidence'])
+                                                         writer.writerow(['Z','Score'])
                                                       for line in event_count:
                                                          if line not in event_data:  
                                                             event_data.append(line)
