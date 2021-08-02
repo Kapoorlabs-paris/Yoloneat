@@ -12,7 +12,7 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -20,17 +20,17 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
-npz_name = 'microbin1V1.npz'
-npz_val_name = 'microbin1V1val.npz'
+npz_name = 'divisiondetectionbin1m4.npz'
+npz_val_name = 'divisiondetectionbin1m4val.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-model_name = 'micronetbin1d29res.h5'
+model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
+model_name = 'wtdivd29resf32.h5'
 
 #Neural network parameters
-division_categories_json = model_dir + 'MicroscopeCategories.json'
+division_categories_json = model_dir + 'DivisionCategories.json'
 key_categories = load_json(division_categories_json)
-division_cord_json = model_dir + 'MicroscopeCord.json'
+division_cord_json = model_dir + 'DivisionCord.json'
 key_cord = load_json(division_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
@@ -46,7 +46,7 @@ depth = 29
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients
-batch_size = 8
+batch_size = 10
 # use softmax for single event per box, sigmoid for multi event per box
 lstm_hidden_unit = 16
 #Training epochs, longer the better with proper chosen learning rate
@@ -56,8 +56,8 @@ nboxes = 1
 show = False
 stage_number = 4
 last_conv_factor = 8
-size_tminus = 3
-size_tplus = 0
+size_tminus = 4
+size_tplus = 5
 imagex = 96
 imagey = 96
 yolo_v0 = False

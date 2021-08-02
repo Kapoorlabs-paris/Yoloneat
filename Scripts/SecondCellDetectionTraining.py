@@ -26,7 +26,7 @@ npz_val_name = 'Staticbin2V1Val.npz'
 
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
 #Model name based on wether it is residual or sequntial ONEAT network
-model_name = 'CellNetbin2d47s3seqf32.h5'
+model_name = 'CellNetbin2d47s4seqf32.h5'
 
 
 # In[14]:
@@ -59,8 +59,8 @@ show = False
 epochs = 250
 nboxes = 1
 #The inbuilt model stride which is equal to the nulber of times image was downsampled by the network
-stage_number = 3
-last_conv_factor = 4
+stage_number = 4
+last_conv_factor = 8
 
 
 # In[15]:

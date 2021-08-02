@@ -26,7 +26,7 @@ npz_val_name = 'Staticbin2V1Val.npz'
 
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
 #Model name based on wether it is residual or sequntial ONEAT network
-model_name = 'CellNetbin2d47s3seqf32.h5'
+model_name = 'CellNetbin2d47s3resf32.h5'
 
 
 # In[14]:
@@ -38,7 +38,7 @@ static_cord_json = model_dir + 'StaticCord.json'
 key_cord = load_json(static_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
-residual = False
+residual = True
 #NUmber of starting convolutional filters, is doubled down with increasing depth
 startfilter = 32
 #CNN network start layer, mid layers and lstm layer kernel size

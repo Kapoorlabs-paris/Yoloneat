@@ -19,13 +19,13 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 # In[2]:
 
 
-npz_directory = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Binning1V1data/'
+npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
 npz_name = 'divisiondetectionbin1m4.npz'
 npz_val_name = 'divisiondetectionbin1m4val.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
-model_name = 'wtdivisionmodeld56res.h5'
+model_name = 'wtdivd29seqf32.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'DivisionCategories.json'
@@ -34,19 +34,19 @@ division_cord_json = model_dir + 'DivisionCord.json'
 key_cord = load_json(division_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
-residual = True
+residual = False
 #NUmber of starting convolutional filters, is doubled down with increasing depth
-startfilter = 48
+startfilter = 32
 #CNN network start layer, mid layers and lstm layer kernel size
 start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 56
+depth = 29
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
-learning_rate = 1.0E-6
+learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients
-batch_size = 1
+batch_size = 10
 # use softmax for single event per box, sigmoid for multi event per box
 lstm_hidden_unit = 16
 #Training epochs, longer the better with proper chosen learning rate
@@ -73,7 +73,7 @@ config = dynamic_config(npz_directory =npz_directory, npz_name = npz_name, npz_v
                          imagey = imagey, size_tminus = size_tminus, size_tplus =size_tplus, epochs = epochs, yolo_v0 = yolo_v0, yolo_v1 = yolo_v1, yolo_v2 = yolo_v2,
                          residual = residual, depth = depth, start_kernel = start_kernel, mid_kernel = mid_kernel, stage_number = stage_number, last_conv_factor = last_conv_factor,
                          lstm_kernel = lstm_kernel, lstm_hidden_unit = lstm_hidden_unit, show = show,
-                         startfiler = startfilter, batch_size = batch_size, model_name = model_name)
+                         startfilter = startfilter, batch_size = batch_size, model_name = model_name)
 
 config_json = config.to_json()
 

@@ -12,7 +12,7 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -25,7 +25,7 @@ npz_val_name = 'microbin1V1val.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-model_name = 'micronetbin1d29res.h5'
+model_name = 'micronetbin1d29seq.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'MicroscopeCategories.json'
@@ -34,7 +34,7 @@ division_cord_json = model_dir + 'MicroscopeCord.json'
 key_cord = load_json(division_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
-residual = True
+residual = False
 #NUmber of starting convolutional filters, is doubled down with increasing depth
 startfilter = 32
 #CNN network start layer, mid layers and lstm layer kernel size
@@ -56,6 +56,7 @@ nboxes = 1
 show = False
 stage_number = 4
 last_conv_factor = 8
+
 size_tminus = 3
 size_tplus = 0
 imagex = 96
