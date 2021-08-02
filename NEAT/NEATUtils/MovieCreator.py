@@ -40,6 +40,101 @@ Total categories for cell classification part of vanilla ONEAT are:
     5: MatureP1 cells
 csv file containing time, ylocation, xlocation of that event/cell type
 """    
+   
+def SegFreeMovieLabelDataSet(image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size):
+    
+    
+            raw_path = os.path.join(image_dir, '*tif')
+            Csv_path = os.path.join(csv_dir, '*csv')
+            files_raw = glob.glob(raw_path)
+            files_raw.sort
+            filesCsv = glob.glob(Csv_path)
+            filesCsv.sort
+            Path(save_dir).mkdir(exist_ok=True)
+            total_categories = len(static_name)
+                
+            
+            
+            for fname in files_raw:
+                          
+                         name = os.path.basename(os.path.splitext(fname)[0])  
+                         image = imread(fname)
+                         image = normalizeFloatZeroOne(image,1,99.8) 
+                        
+                         for csvfname in filesCsv:
+                                 count = 0  
+                                 Csvname =  os.path.basename(os.path.splitext(csvfname)[0])
+                                 for i in  range(0, len(static_name)):
+                                     event_name = static_name[i]
+                                     trainlabel = static_label[i]
+                                     classfound = (Csvname == csv_name_diff + name + event_name)   
+                                     if classfound:
+                                                    print(Csvname)
+                                                    dataset = pd.read_csv(csvfname)
+                                                    z = dataset[dataset.keys()[0]][1:]
+                                                    y = dataset[dataset.keys()[1]][1:]
+                                                    x = dataset[dataset.keys()[2]][1:]
+                                                                                
+                                                                             
+                                                    #Categories + XYHW + Confidence 
+                                                    for (key, t) in z.items():
+                                                       try: 
+                                                          SimpleMovieMaker(t, y[key], x[key], image, crop_size, total_categories, trainlabel, name+ event_name + str(count), save_dir) 
+                                                          count = count + 1
+                                                        
+                                                       except:
+                                                        
+                                                           pass
+                                                        
+
+def SimpleMovieMaker(z, y, x, image, crop_size, total_categories, trainlabel, name, save_dir):
+    
+       sizex, sizey, size_tminus, size_tplus = crop_size
+       
+       imagesizex = sizex 
+       imagesizey = sizey 
+       
+       shiftNone = [0,0]
+       AllShifts = [shiftNone]
+
+
+       z = z - 1
+       if z > 0:
+               for shift in AllShifts:
+
+                        newname = name + 'shift' + str(shift)
+                        Event_data = []
+                        
+                        Label = np.zeros([total_categories + 1])
+                        
+                        Label[trainlabel] = 1
+                        
+                        if x + shift[0]> sizex/2 and y + shift[1] > sizey/2 and x + shift[0] + int(imagesizex/2) < image.shape[2] and y + shift[1]+ int(imagesizey/2) < image.shape[1] and z > size_tminus and z + size_tplus + 1 < image.shape[0]:
+                                crop_xminus = x  - int(imagesizex/2)
+                                crop_xplus = x  + int(imagesizex/2)
+                                crop_yminus = y  - int(imagesizey/2)
+                                crop_yplus = y   + int(imagesizey/2)
+                                # Cut off the region for training movie creation
+                                region =(slice(int(z - size_tminus),int(z + size_tplus  + 1)),slice(int(crop_yminus)+ shift[1], int(crop_yplus)+ shift[1]),
+                                      slice(int(crop_xminus) + shift[0], int(crop_xplus) + shift[0]))
+                                #Define the movie region volume that was cut
+                                crop_image = image[region]   
+
+                                Label[total_categories] = 1 
+                                          
+
+       
+
+                                #Write the image as 32 bit tif file 
+                                if(crop_image.shape[0] == size_tplus + size_tminus + 1 and crop_image.shape[1]== imagesizey and crop_image.shape[2]== imagesizex):
+
+                                           imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))    
+                                           Event_data.append([Label[i] for i in range(0,len(Label))])
+                                           if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
+                                                        os.remove(save_dir + '/' + (newname) + ".csv")
+                                           writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
+                                           writer.writerows(Event_data)
+                                                                    
     
 def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = False, yolo_v1 = True, yolo_v2 = False):
     
@@ -372,8 +467,8 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, to
 
                   AllShifts = [shiftNone]
 
-       
-               if time < segimage.shape[0] - 1:
+               time = time - 1 
+               if time < segimage.shape[0] - 1 and time > 0:
                  currentsegimage = segimage[int(time),:].astype('uint16')
                 
                  height, width, center, SegLabel  = getHW(x, y,trainlabel, currentsegimage)
