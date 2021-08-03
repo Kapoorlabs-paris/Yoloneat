@@ -471,14 +471,14 @@ class NEATStatic(object):
                                               ImageResults = self.savedir + '/'+ event_name + 'ImageLocations' + (os.path.splitext(os.path.basename(self.imagename))[0])
                                               
                                               
-                                              self.saveimage(xlocations, ylocations, tlocations, angles, radiuses, ImageResults)
+                                              self.saveimage(xlocations, ylocations, tlocations, radiuses, ImageResults)
 
 
                       
 
      
 
-    def saveimage(self, xlocations, ylocations, tlocations, anglelocations, radius, csvimagename):
+    def saveimage(self, xlocations, ylocations, tlocations, radius, csvimagename):
 
                         
 
@@ -491,15 +491,9 @@ class NEATStatic(object):
                                          startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
                                          endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
                                          tlocation = int(round(tlocations[j]))
-                                         anglelocation = anglelocations[j]
+                                         
                                          cv2.rectangle(self.Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
-                                         if self.yolo_v2:
-                                              
-                                              x1 =  copyxlocations[j]
-                                              y1 =  copyylocations[j] 
-                                              x2 = x1 + radius[j] * math.cos(anglelocation)
-                                              y2 = y1 + radius[j] * math.sin(anglelocation)
-                                              cv2.line(self.Colorimage[tlocation,:], (int(x1),int(y1)), (int(x2),int(y2)), (255,255,255), 1) 
+                                       
                                       imwrite((csvimagename + '.tif' ), self.Colorimage.astype('uint8'))          
                               
          
