@@ -275,6 +275,7 @@ class NEATStatic(object):
         
         self.imagename = imagename
         self.image = imread(imagename)
+        self.Colorimage = np.zeros_like(self.image)
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.fcn = fcn
