@@ -319,9 +319,9 @@ class NEATStatic(object):
                          for i in range(0, sum_time_prediction.shape[0]):
                               time_prediction =  sum_time_prediction[i]
                               if self.fcn:
-                                 boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
+                                 boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
                               else:
-                                 boxprediction = nonfcn_yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
+                                 boxprediction = nonfcn_yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
 
                               if boxprediction is not None:
                                       eventboxes = eventboxes + boxprediction
@@ -373,9 +373,9 @@ class NEATStatic(object):
                               time_prediction =  sum_time_prediction[i]
                               
                               if self.fcn:
-                                 boxprediction = yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, 0, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
+                                 boxprediction = yoloprediction( ally[p], allx[p], time_prediction, self.stride, 0, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
                               else:
-                                 boxprediction = nonfcn_yoloprediction(smallimage, ally[p], allx[p], time_prediction, self.stride, 0, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
+                                 boxprediction = nonfcn_yoloprediction(ally[p], allx[p], time_prediction, self.stride, 0, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
 
                               if boxprediction is not None:
                                       eventboxes = eventboxes + boxprediction
