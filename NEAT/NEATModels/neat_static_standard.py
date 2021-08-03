@@ -421,57 +421,86 @@ class NEATStatic(object):
                
         self.iou_classedboxes = best_iou_classedboxes                              
         
+    
     def to_csv(self):
         
         for (event_name,event_label) in self.key_categories.items():
+                   
                    if event_label > 0:
-                              xlocations = []
-                              ylocations = []
-                              scores = []
-                              confidences = []
-                              tlocations = []   
-                              radiuses = []
+                                              xlocations = []
+                                              ylocations = []
+                                              scores = []
+                                              confidences = []
+                                              tlocations = []   
+                                              radiuses = []
                               
-                              try:
-                                      iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                      iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
-                                      for iou_current_event_box in iou_current_event_boxes:
-                                              xcenter = iou_current_event_box['xcenter']
-                                              ycenter = iou_current_event_box['ycenter']
-                                              tcenter = iou_current_event_box['real_time_event']
-                                              confidence = iou_current_event_box['confidence']
-                                              score = iou_current_event_box[event_name]
-                                              
-                                              if self.height is None and self.width is None:
-                                                 radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                              else:
-                                                 radius = np.sqrt( self.height * self.height + self.width* self.width  )// 4
-                                            
-                                                  
-                                                 xlocations.append(xcenter)
-                                                 ylocations.append(ycenter)
-                                                 scores.append(score)
-                                                 confidences.append(confidence)
-                                                 tlocations.append(tcenter)
-                                                 radiuses.append(radius)
-                                                  
-                                                      
                                     
-                                      event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences]) 
-                                      event_data = []
-                                      csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
-                                      writer = csv.writer(open(csvname  +".csv", "a"))
-                                      filesize = os.stat(csvname + ".csv").st_size
-                                      if filesize < 1:
-                                         writer.writerow(['T','Y','X','Score','Size','Confidence'])
-                                      for line in event_count:
-                                         if line not in event_data:  
-                                            event_data.append(line)
-                                         writer.writerows(event_data)
-                                         event_data = []           
+                                              iou_current_event_boxes = self.iou_classedboxes[event_name][0]
+                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
+                                              for iou_current_event_box in iou_current_event_boxes:
+                                                      xcenter = iou_current_event_box['xcenter']
+                                                      ycenter = iou_current_event_box['ycenter']
+                                                      tcenter = iou_current_event_box['real_time_event']
+                                                      confidence = iou_current_event_box['confidence']
+                                                      score = iou_current_event_box[event_name]
+                                                      radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                                      #Replace the detection with the nearest marker location
+                                                     
+                                                      xlocations.append(xcenter)
+                                                      ylocations.append(ycenter)
+                                                      scores.append(score)
+                                                      confidences.append(confidence)
+                                                      tlocations.append(tcenter)
+                                                      radiuses.append(radius)
+                                                               
+                                            
+                                              event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences]) 
+                                              event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
+                                              event_data = []
+                                              csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                              writer = csv.writer(open(csvname  +".csv", "a"))
+                                              filesize = os.stat(csvname + ".csv").st_size
+                                              if filesize < 1:
+                                                 writer.writerow(['T','Y','X','Score','Size','Confidence'])
+                                              for line in event_count:
+                                                 if line not in event_data:  
+                                                    event_data.append(line)
+                                                 writer.writerows(event_data)
+                                                 event_data = []           
                               
-                              except: 
-                                  pass           
+                                              ImageResults = self.savedir + '/'+ event_name + 'ImageLocations' + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                              
+                                              
+                                              self.saveimage(xlocations, ylocations, tlocations, angles, radiuses, ImageResults)
+
+
+                      
+
+     
+
+    def saveimage(self, xlocations, ylocations, tlocations, anglelocations, radius, csvimagename):
+
+                        
+
+                                      
+                                      
+
+                                      copyxlocations = xlocations.copy()
+                                      copyylocations = ylocations.copy()
+                                      for j in range(len(copyxlocations)):
+                                         startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
+                                         endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
+                                         tlocation = int(round(tlocations[j]))
+                                         anglelocation = anglelocations[j]
+                                         cv2.rectangle(self.Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
+                                         if self.yolo_v2:
+                                              
+                                              x1 =  copyxlocations[j]
+                                              y1 =  copyylocations[j] 
+                                              x2 = x1 + radius[j] * math.cos(anglelocation)
+                                              y2 = y1 + radius[j] * math.sin(anglelocation)
+                                              cv2.line(self.Colorimage[tlocation,:], (int(x1),int(y1)), (int(x2),int(y2)), (255,255,255), 1) 
+                                      imwrite((csvimagename + '.tif' ), self.Colorimage.astype('uint8'))          
                               
          
     def showNapari(self, imagedir, savedir):
