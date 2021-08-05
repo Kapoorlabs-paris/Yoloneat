@@ -335,7 +335,7 @@ class NEATStatic(object):
                              for box in eventboxes:
 
                                 event_prob = box[event_name]
-                                if event_prob > self.event_threshold:
+                                if event_prob >= self.event_threshold:
 
                                     current_event_box.append(box)
                              classedboxes[event_name] = [current_event_box]
@@ -389,7 +389,7 @@ class NEATStatic(object):
                              for box in eventboxes:
 
                                 event_prob = box[event_name]
-                                if event_prob > self.event_threshold:
+                                if event_prob >= self.event_threshold:
 
                                     current_event_box.append(box)
                              classedboxes[event_name] = [current_event_box]
