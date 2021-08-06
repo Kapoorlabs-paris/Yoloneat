@@ -415,8 +415,10 @@ class NEATStatic(object):
                #Get all events
                
                sorted_event_box = self.classedboxes[event_name][0]
+               sorted_event_box = sorted(sorted_event_box, key = lambda x:x[event_name], reverse = True)
+               
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
+               #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'static' )
                best_iou_classedboxes[event_name] = [best_sorted_event_box] 
