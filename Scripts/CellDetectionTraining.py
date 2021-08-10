@@ -12,7 +12,7 @@ from NEATModels import NEATStatic, nets
 from NEATModels.Staticconfig  import static_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -20,13 +20,13 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
-npz_name = 'Staticbin2V1.npz'
-npz_val_name = 'Staticbin2V1Val.npz'
+npz_name = 'Staticbin1V1.npz'
+npz_val_name = 'Staticbin1V1Val.npz'
 
 
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning1Models/'
 #Model name based on wether it is residual or sequntial ONEAT network
-model_name = 'CellNetbin2d47s3seqf32.h5'
+model_name = 'CellNetbin1d20resf32.h5'
 
 
 # In[14]:
@@ -38,14 +38,14 @@ static_cord_json = model_dir + 'StaticCord.json'
 key_cord = load_json(static_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
-residual = False
+residual = True
 #NUmber of starting convolutional filters, is doubled down with increasing depth
 startfilter = 32
 #CNN network start layer, mid layers and lstm layer kernel size
 start_kernel = 7
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 47
+depth = 20
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients
@@ -59,8 +59,8 @@ show = False
 epochs = 250
 nboxes = 1
 #The inbuilt model stride which is equal to the nulber of times image was downsampled by the network
-stage_number = 3
-last_conv_factor = 4
+stage_number = 4
+last_conv_factor = 8
 
 
 # In[15]:

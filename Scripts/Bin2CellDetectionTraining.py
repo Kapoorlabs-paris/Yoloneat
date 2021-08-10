@@ -20,13 +20,13 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
-npz_name = 'Staticbin1V1.npz'
-npz_val_name = 'Staticbin1V1Val.npz'
+npz_name = 'Staticbin2V1.npz'
+npz_val_name = 'Staticbin2V1Val.npz'
 
 
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning1Models/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
 #Model name based on wether it is residual or sequntial ONEAT network
-model_name = 'CellNetbin1d11resf32.h5'
+model_name = 'CellNetbin2d11s3seqf16.h5'
 
 
 # In[14]:
@@ -38,9 +38,9 @@ static_cord_json = model_dir + 'StaticCord.json'
 key_cord = load_json(static_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
-residual = True
+residual = False
 #NUmber of starting convolutional filters, is doubled down with increasing depth
-startfilter = 32
+startfilter = 16
 #CNN network start layer, mid layers and lstm layer kernel size
 start_kernel = 7
 mid_kernel = 3
@@ -59,8 +59,8 @@ show = False
 epochs = 250
 nboxes = 1
 #The inbuilt model stride which is equal to the nulber of times image was downsampled by the network
-stage_number = 4
-last_conv_factor = 8
+stage_number = 3
+last_conv_factor = 4
 
 
 # In[15]:

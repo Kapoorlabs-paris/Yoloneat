@@ -13,7 +13,7 @@ from NEATModels import NEATStatic, nets
 from NEATModels.Staticconfig import static_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -23,8 +23,8 @@ from pathlib import Path
 
 imagedir = '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/Saved20resf16/'
-model_name = 'CellNetbin1d20resf16'
+savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/Saved29resf16/'
+model_name = 'CellNetbin1d29resf16'
 division_categories_json = model_dir + 'StaticCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'StaticCord.json'
@@ -46,10 +46,6 @@ for imagename in X:
 
 
 # In[3]:
-
-
-
-model.showNapari(imagedir, savedir)
 
 
 # In[ ]:
