@@ -745,7 +745,7 @@ def resnet_3D_v2(input_shape, categories,box_vector, stage_number = 3, last_conv
 
     # Add classifier on top.
     # v2 has BN-ReLU before Pooling
-    x = (Conv3D(categories, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
+    x = (Conv3D(categories+  box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     
@@ -845,7 +845,7 @@ def seqnet_3D_v2(input_shape, categories, box_vector, stage_number = 3, last_con
 
     # Add classifier on top.
     # v2 has BN-ReLU before Pooling
-    x = (Conv3D(categories, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
+    x = (Conv3D(categories+ box_vector, kernel_size= mid_kernel,kernel_regularizer=regularizers.l2(reg_weight), padding = 'same'))(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     
