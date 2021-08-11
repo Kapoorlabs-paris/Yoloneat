@@ -147,8 +147,8 @@ class NEATFocus(object):
                 self.gridx = 1
                 self.gridy = 1
                 self.gridz = 1
-                self.yolo_v0 = True
-                self.yolo_v1 = False
+                self.yolo_v0 = False
+                self.yolo_v1 = True
                 self.yolo_v2 = False
                 self.stride = self.config['last_conv_factor']   
                 
