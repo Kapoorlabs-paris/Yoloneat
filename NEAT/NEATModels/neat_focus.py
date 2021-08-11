@@ -198,8 +198,8 @@ class NEATFocus(object):
         self.Y_val = Y_val[:,:,0]
         
         self.axes = axes
-        self.Y = self.Y.reshape( (self.Y.shape[0],1,1,self.Y.shape[1]))
-        self.Y_val = self.Y_val.reshape( (self.Y_val.shape[0],1,1,self.Y_val.shape[1]))
+        self.Y = self.Y.reshape( (self.Y.shape[0],1,1,1,self.Y.shape[1]))
+        self.Y_val = self.Y_val.reshape( (self.Y_val.shape[0],1,1,1,self.Y_val.shape[1]))
           
 
               
