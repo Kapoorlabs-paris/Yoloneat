@@ -684,7 +684,7 @@ def resnet_3D_v2(input_shape, categories,box_vector, stage_number = 3, last_conv
     # Returns
         model (Model): Keras model instance
     """
-    img_input = layers.Input(shape = (None, None, None, input_shape[3]))
+    img_input = layers.Input(shape = (input_shape[0], None, None, input_shape[3]))
     if (depth - 2) % 9 != 0:
         raise ValueError('depth should be 9n+2 (eg 56 or 110 in [b])')
     # Start model definition.
@@ -755,8 +755,8 @@ def resnet_3D_v2(input_shape, categories,box_vector, stage_number = 3, last_conv
       
     
 
-    output_cat = (Conv3D(categories, (round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor), round(input_shape[3]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
-    output_box = (Conv3D((box_vector), (round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor), round(input_shape[3]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
+    output_cat = (Conv3D(categories, (round(input_shape[0]),round(input_shape[1]/last_conv_factor), round(input_shape[2]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_box = (Conv3D((box_vector), (round(input_shape[0]),round(input_shape[1]/last_conv_factor), round(input_shape[2]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
     
 
     block = Concat(-1)
@@ -799,7 +799,7 @@ def seqnet_3D_v2(input_shape, categories, box_vector, stage_number = 3, last_con
     # Returns
         model (Model): Keras model instance
     """
-    img_input = layers.Input(shape = (None, None, None, None))
+    img_input = layers.Input(shape = (input_shape[0], None, None, input_shape[3]))
     if (depth - 2) % 9 != 0:
         raise ValueError('depth should be 9n+2 (eg 56 or 110 in [b])')
     # Start model definition.
@@ -858,8 +858,8 @@ def seqnet_3D_v2(input_shape, categories, box_vector, stage_number = 3, last_con
       
     
 
-    output_cat = (Conv3D(categories, (round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor), round(input_shape[3]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
-    output_box = (Conv3D((box_vector), (round(input_shape[1]/last_conv_factor),round(input_shape[2]/last_conv_factor), round(input_shape[3]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
+    output_cat = (Conv3D(categories, (round(input_shape[0]),round(input_shape[1]/last_conv_factor), round(input_shape[2]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_box = (Conv3D((box_vector), (round(input_shape[0]),round(input_shape[1]/last_conv_factor), round(input_shape[2]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
     
 
     block = Concat(-1)
@@ -947,7 +947,7 @@ def resnet_3D_layer(inputs,
     """
     conv = Conv3D(num_filters,
                   kernel_size=kernel_size,
-                  strides=strides,
+                  strides=(1,strides,strides),
                   padding='same',
                   kernel_initializer='he_normal',
                   kernel_regularizer=regularizers.l2(1e-4))
