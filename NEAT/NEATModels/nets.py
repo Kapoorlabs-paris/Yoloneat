@@ -755,8 +755,8 @@ def resnet_3D_v2(input_shape, categories,box_vector, stage_number = 3, last_conv
       
     
 
-    output_cat = (Conv3D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
-    output_box = (Conv3D((box_vector), (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
+    output_cat = (Conv3D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor), round(input_shape[2]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_box = (Conv3D((box_vector), (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor), round(input_shape[2]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
     
 
     block = Concat(-1)
@@ -858,8 +858,8 @@ def seqnet_3D_v2(input_shape, categories, box_vector, stage_number = 3, last_con
       
     
 
-    output_cat = (Conv3D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
-    output_box = (Conv3D((box_vector), (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
+    output_cat = (Conv3D(categories, (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor), round(input_shape[2]/last_conv_factor)),activation= last_activation ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_cat)
+    output_box = (Conv3D((box_vector), (round(input_shape[0]/last_conv_factor),round(input_shape[1]/last_conv_factor), round(input_shape[2]/last_conv_factor)),activation= 'sigmoid' ,kernel_regularizer=regularizers.l2(reg_weight), padding = 'valid'))(input_box)
     
 
     block = Concat(-1)

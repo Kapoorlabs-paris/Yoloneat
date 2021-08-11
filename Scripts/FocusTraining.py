@@ -25,7 +25,7 @@ npz_val_name = 'FoconeatVal.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Focusoneatmodels/'
-model_name = 'cadhistoned29s4.h5'
+model_name = 'cadhistoned29s4f16.h5'
 
 
 # In[ ]:
@@ -40,17 +40,17 @@ key_cord = load_json(focus_cord_json)
 #For ORNET use residual = True and for OSNET use residual = False
 residual = True
 #NUmber of starting convolutional filters, is doubled down with increasing depth
-startfilter = 48
+startfilter = 16
 #CNN network start layer, mid layers and lstm layer kernel size
 start_kernel = 7
 
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 56
+depth = 29
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-6
 #For stochastic gradient decent, the batch size used for computing the gradients
-batch_size = 1
+batch_size = 10
 
 #Training epochs, longer the better with proper chosen learning rate
 epochs = 250
@@ -73,7 +73,7 @@ config = dynamic_config(npz_directory =npz_directory, npz_name = npz_name, npz_v
                          key_categories = key_categories, key_cord = key_cord,  imagex = imagex,
                          imagey = imagey, size_tminus = size_tminus, size_tplus =size_tplus, epochs = epochs,
                          residual = residual, depth = depth, start_kernel = start_kernel, mid_kernel = mid_kernel, stage_number = stage_number, last_conv_factor = last_conv_factor,
-                         show = show, startfiler = startfilter, batch_size = batch_size, model_name = model_name)
+                         show = show, startfilter = startfilter, batch_size = batch_size, model_name = model_name)
 
 config_json = config.to_json()
 
