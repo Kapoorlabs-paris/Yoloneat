@@ -25,7 +25,7 @@ npz_val_name = 'FoconeatVal.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Focusoneatmodels/'
-model_name = 'cadhistoned29s4f16seq.h5'
+model_name = 'cadhistoned38s4f16seq.h5'
 
 
 # In[ ]:
@@ -46,7 +46,7 @@ start_kernel = 7
 
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 29
+depth = 38
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients

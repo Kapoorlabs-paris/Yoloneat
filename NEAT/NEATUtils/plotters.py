@@ -80,6 +80,7 @@ def Printpredict(idx, model, data, Truelabel, key_categories,key_cord, gridx, gr
             if plot:
               ax[j].imshow(img, cm.Spectral)
     for i in range(0, prediction.shape[0]):
+
         try:
               maxevent = np.argmax(prediction[i,:,:,:len(key_categories)], axis = -1)
               trueevent = np.argmax(Truelabel[0,0,:len(key_categories)], axis = -1)
@@ -96,7 +97,8 @@ def Printpredict(idx, model, data, Truelabel, key_categories,key_cord, gridx, gr
            print( "Predicted cell:", maxlabel , "Probability:", prediction[i,0,0,maxevent])
            print('True Cell type:', truelabel)
         except:
-           pass
+           print(prediction[i,0,0,:])
+           print('True Cell type:', truelabel)             
            #print( "Predicted cell:", maxlabel , "Probability:", prediction[i,0,0,0,maxevent])
            #print('True Cell type:', truelabel)
 
