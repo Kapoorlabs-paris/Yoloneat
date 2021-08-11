@@ -233,11 +233,11 @@ class NEATFocus(object):
            
             self.model_weights = None
         
-        dummyY = np.zeros([self.Y.shape[0],self.Y.shape[1],self.Y.shape[2],self.categories + self.box_vector])
-        dummyY[:,:,:,:self.Y.shape[3]] = self.Y
+        dummyY = np.zeros([self.Y.shape[0],1 ,self.Y.shape[1],self.Y.shape[2],self.categories + self.box_vector])
+        dummyY[:,:,:,:,:self.Y.shape[3]] = self.Y
        
-        dummyY_val = np.zeros([self.Y_val.shape[0],self.Y_val.shape[1],self.Y_val.shape[2],self.categories + self.box_vector])
-        dummyY_val[:,:,:,:self.Y_val.shape[3]] = self.Y_val
+        dummyY_val = np.zeros([self.Y_val.shape[0],1,self.Y_val.shape[1],self.Y_val.shape[2],self.categories + self.box_vector])
+        dummyY_val[:,:,:,:,:self.Y_val.shape[3]] = self.Y_val
         
         
         self.Y = dummyY
