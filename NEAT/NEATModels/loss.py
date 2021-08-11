@@ -132,6 +132,23 @@ def extract_ground_cell_pred_segfree(y_pred, categories, grid_h, grid_w, cell_gr
         
         return pred_box_class, pred_box_xy
 
+def extract_ground_cell_truth_foc(y_truth, categories, nboxes, box_vector):
+
+        true_box_class = y_truth[...,0:categories]
+        
+      
+    
+        
+        return true_box_class
+
+def extract_ground_cell_pred_foc(y_pred, categories, nboxes, box_vector):
+
+        pred_box_class = y_pred[...,0:categories]
+       
+    
+        
+        return pred_box_class
+
 def extract_ground_cell_truth_segfree(y_truth, categories, grid_h, grid_w, cell_grid, nboxes, box_vector, yolo_v0):
 
         true_box_class = y_truth[...,0:categories]
@@ -142,8 +159,6 @@ def extract_ground_cell_truth_segfree(y_truth, categories, grid_h, grid_w, cell_
     
         
         return true_box_class, true_box_xy
-
-
 def compute_conf_loss(pred_box_wh, true_box_wh, pred_box_xy,true_box_xy,true_box_conf,pred_box_conf):
     
 # compute the intersection of all boxes at once (the IOU)

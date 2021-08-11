@@ -106,7 +106,7 @@ def SimpleMovieMaker(z, y, x, image, crop_size, total_categories, trainlabel, na
                         newname = name + 'shift' + str(shift)
                         Event_data = []
                         
-                        Label = np.zeros([total_categories + 1])
+                        Label = np.zeros([total_categories  + 6])
                         
                         Label[trainlabel] = 1
                         
@@ -121,9 +121,12 @@ def SimpleMovieMaker(z, y, x, image, crop_size, total_categories, trainlabel, na
                                 #Define the movie region volume that was cut
                                 crop_image = image[region]   
 
-                                Label[total_categories] = 1 
-                                          
-
+                                Label[total_categories] = 0.5
+                                Label[total_categories + 1] = 0.5
+                                Label[total_categories + 2] = 0.5          
+                                Label[total_categories + 3] = 1
+                                Label[total_categories + 4] = 1
+                                Label[total_categories + 5] = 1
        
 
                                 #Write the image as 32 bit tif file 
