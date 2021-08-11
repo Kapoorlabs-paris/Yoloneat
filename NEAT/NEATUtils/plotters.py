@@ -80,24 +80,42 @@ def Printpredict(idx, model, data, Truelabel, key_categories,key_cord, gridx, gr
             if plot:
               ax[j].imshow(img, cm.Spectral)
     for i in range(0, prediction.shape[0]):
-        maxevent = np.argmax(prediction[i,:,:,:len(key_categories)], axis = -1)
-        trueevent = np.argmax(Truelabel[0,0,:len(key_categories)], axis = -1)
+        try:
+              maxevent = np.argmax(prediction[i,:,:,:len(key_categories)], axis = -1)
+              trueevent = np.argmax(Truelabel[0,0,:len(key_categories)], axis = -1)
+        except:
+ 
+              maxevent = np.argmax(prediction[i,:,:,:,:len(key_categories)], axis = -1)
+              trueevent = np.argmax(Truelabel[0,0,0,:len(key_categories)], axis = -1)
         for (k,v) in key_categories.items(): 
            if v == maxevent: 
                maxlabel =  k
            if v == trueevent:
                truelabel = k
-        
-        print( "Predicted cell:", maxlabel , "Probability:", prediction[i,0,0,maxevent])
-        print('True Cell type:', truelabel)
+        try:
+           print( "Predicted cell:", maxlabel , "Probability:", prediction[i,0,0,maxevent])
+           print('True Cell type:', truelabel)
+        except:
+           pass
+           #print( "Predicted cell:", maxlabel , "Probability:", prediction[i,0,0,0,maxevent])
+           #print('True Cell type:', truelabel)
+
         if nboxes > 1:
             for b in range(1,nboxes-1):
-                    prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] += prediction[i,:,:,len(key_categories) + b*len(key_cord):len(key_categories) + (b + 1)*len(key_cord) ] 
-            prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] = prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] / (nboxes - 1)        
+                    try:
+                        prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] += prediction[i,:,:,len(key_categories) + b*len(key_cord):len(key_categories) + (b + 1)*len(key_cord) ] 
+                        prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] = prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] / (nboxes - 1)
+                    except:
+                        prediction[i,:,:,:,len(key_categories):len(key_categories) + len(key_cord)] += prediction[i,:,:,len(key_categories) + b*len(key_cord):len(key_categories) + (b + 1)*len(key_cord) ] 
+                        prediction[i,:,:,:,len(key_categories):len(key_categories) + len(key_cord)] = prediction[i,:,:,len(key_categories):len(key_categories) + len(key_cord)] / (nboxes - 1)       
         for (k,v) in key_cord.items():
-            
-            print(k, prediction[i,:,:,len(key_categories) + v])
-            print('True positional value', k, Truelabel[0,0,len(key_categories) + v])
+            try:
+                   print(k, prediction[i,:,:,len(key_categories) + v])
+                   print('True positional value', k, Truelabel[0,0,len(key_categories) + v])
+            except:
+
+                   print(k, prediction[i,:,:,:,len(key_categories) + v])
+                   print('True positional value', k, Truelabel[0,0,0,len(key_categories) + v])
 
     if plot:
               plt.show()     

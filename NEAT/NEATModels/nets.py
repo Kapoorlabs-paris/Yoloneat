@@ -749,8 +749,8 @@ def resnet_3D_v2(input_shape, categories,box_vector, stage_number = 3, last_conv
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     
-    input_cat = Lambda(lambda x:x[:,:,:,0:categories])(x)
-    input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
+    input_cat = Lambda(lambda x:x[:,:,:,:,0:categories])(x)
+    input_box = Lambda(lambda x:x[:,:,:,:,categories:])(x)
     
       
     
@@ -852,8 +852,8 @@ def seqnet_3D_v2(input_shape, categories, box_vector, stage_number = 3, last_con
 
     
 
-    input_cat = Lambda(lambda x:x[:,:,:,0:categories])(x)
-    input_box = Lambda(lambda x:x[:,:,:,categories:])(x)
+    input_cat = Lambda(lambda x:x[:,:,:,:,0:categories])(x)
+    input_box = Lambda(lambda x:x[:,:,:,:,categories:])(x)
     
       
     

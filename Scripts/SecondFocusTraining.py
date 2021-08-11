@@ -12,7 +12,7 @@ from NEATModels import NEATFocus, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -25,7 +25,7 @@ npz_val_name = 'FoconeatVal.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Focusoneatmodels/'
-model_name = 'cadhistoned29s4f16res.h5'
+model_name = 'cadhistoned29s4f16seq.h5'
 
 
 # In[ ]:
@@ -38,7 +38,7 @@ focus_cord_json = model_dir + 'FocusCord.json'
 key_cord = load_json(focus_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
-residual = True
+residual = False
 #NUmber of starting convolutional filters, is doubled down with increasing depth
 startfilter = 16
 #CNN network start layer, mid layers and lstm layer kernel size

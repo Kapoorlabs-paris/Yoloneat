@@ -207,22 +207,11 @@ class NEATFocus(object):
         
         input_shape = (self.X.shape[1], self.X.shape[2], self.X.shape[3], self.X.shape[4])
         
-        
+        print(input_shape)
         Path(self.model_dir).mkdir(exist_ok=True)
        
         
 
-        Y_main = self.Y[:,:,:,0:self.categories-1]
-        Y_rest = self.Y[:,:,:,self.categories:]
-        y_integers = np.argmax(Y_main, axis = -1)
-        y_integers = y_integers[:,0,0]
-
-        
-            
-            
-        
-        d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
-        d_class_weights = d_class_weights.reshape(1,d_class_weights.shape[0])
         
         model_weights = self.model_dir + self.model_name
         if os.path.exists(model_weights):
@@ -234,10 +223,10 @@ class NEATFocus(object):
             self.model_weights = None
         
         dummyY = np.zeros([self.Y.shape[0],1 ,self.Y.shape[1],self.Y.shape[2],self.categories + self.box_vector])
-        dummyY[:,:,:,:,:self.Y.shape[3]] = self.Y
+        dummyY[:,:,:,:,:self.Y.shape[4]] = self.Y
        
         dummyY_val = np.zeros([self.Y_val.shape[0],1,self.Y_val.shape[1],self.Y_val.shape[2],self.categories + self.box_vector])
-        dummyY_val[:,:,:,:,:self.Y_val.shape[3]] = self.Y_val
+        dummyY_val[:,:,:,:,:self.Y_val.shape[4]] = self.Y_val
         
         
         self.Y = dummyY
@@ -245,7 +234,7 @@ class NEATFocus(object):
         
         
         
-        self.Trainingmodel = self.model_keras(input_shape, self.categories,  box_vector = Y_rest.shape[-1], stage_number = self.stage_number, last_conv_factor = self.last_conv_factor, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel,  startfilter = self.startfilter,  input_weights  =  self.model_weights)
+        self.Trainingmodel = self.model_keras(input_shape, self.categories,  box_vector = self.box_vector, stage_number = self.stage_number, last_conv_factor = self.last_conv_factor, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel,  startfilter = self.startfilter,  input_weights  =  self.model_weights)
         
             
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
@@ -261,7 +250,7 @@ class NEATFocus(object):
         
         
         #Train the model and save as a h5 file
-        self.Trainingmodel.fit(self.X,self.Y, class_weight = d_class_weights , batch_size = self.batch_size, epochs = self.epochs, validation_data=(self.X_val, self.Y_val), shuffle = True, callbacks = [lrate,hrate,srate,prate])
+        self.Trainingmodel.fit(self.X,self.Y, batch_size = self.batch_size, epochs = self.epochs, validation_data=(self.X_val, self.Y_val), shuffle = True, callbacks = [lrate,hrate,srate,prate])
 
      
         # Removes the old model to be replaced with new model, if old one exists
