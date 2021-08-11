@@ -54,21 +54,21 @@ def SegFreeMovieLabelDataSet(image_dir, csv_dir, save_dir, static_name, static_l
             total_categories = len(static_name)
                 
             
-            
-            for fname in files_raw:
-                          
-                         name = os.path.basename(os.path.splitext(fname)[0])  
-                         image = imread(fname)
-                         image = normalizeFloatZeroOne(image,1,99.8) 
-                        
-                         for csvfname in filesCsv:
+            for csvfname in filesCsv:
                                  count = 0  
                                  Csvname =  os.path.basename(os.path.splitext(csvfname)[0])
+                                 
                                  for i in  range(0, len(static_name)):
                                      event_name = static_name[i]
                                      trainlabel = static_label[i]
                                      classfound = (Csvname == csv_name_diff + name + event_name)   
                                      if classfound:
+                                        for fname in files_raw:
+
+                                                    name = os.path.basename(os.path.splitext(fname)[0])  
+                                                    image = imread(fname)
+                        
+                         
                                                     print(Csvname)
                                                     dataset = pd.read_csv(csvfname)
                                                     z = dataset[dataset.keys()[0]][1:]
@@ -164,7 +164,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                           
                           
                          image = imread(fname)
-                         image = normalizeFloatZeroOne(image,1,99.8) 
+                         
                          segimage = imread(Segfname)
                         
                          for csvfname in filesCsv:
@@ -338,7 +338,6 @@ def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, s
                           
                           
                          image = imread(fname)
-                         image = normalizeFloatZeroOne(image,1,99.8) 
                          segimage = imread(Segfname)
                          for i in  range(0, len(static_name)):
                              event_name = static_name[i]
@@ -379,7 +378,6 @@ def SegFreeImageLabelDataSet(image_dir, csv_dir,save_dir, static_name, static_la
                          name = os.path.basename(os.path.splitext(fname)[0])   
                          image = imread(fname)
                          image = image[:,:,0]
-                         image = normalizeFloatZeroOne(image,1,99.8)    
                          for i in  range(0, len(static_name)):
                              event_name = static_name[i]
                              trainlabel = static_label[i]
@@ -402,13 +400,10 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
             raw_path = os.path.join(save_dir, '*tif')
             files_raw = glob.glob(raw_path)
             files_raw.sort
-            if static:
-                  Images= [imread(fname) for fname in files_raw]
-            else:      
-                  Images= [imread(fname) for fname in files_raw]
+            Images= [imread(fname) for fname in files_raw]
             names = [Readname(fname)  for fname in files_raw]
             #Normalize everything before it goes inside the training
-            NormalizeImages = [image.astype('float32') for image in tqdm(Images)]
+            NormalizeImages = [normalizeFloatZeroOne( image.astype('float32'),1,99.8) for image in tqdm(Images)]
 
 
             for i in range(0,len(NormalizeImages)):
