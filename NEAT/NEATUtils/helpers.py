@@ -874,7 +874,8 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
     # return only the indicies of the bounding boxes that were picked
     
     meanscore = sum(d[event_name] for d in Averageboxes) / len(Averageboxes)
-    box = {'real_z_event':meanboxrealz, 'confidence':meanboxconfidence,  event_name:meanscore}
+    maxscore = max(d[event_name] for d in Averageboxes)
+    box = {'real_z_event':meanboxrealz, 'confidence':meanboxconfidence,  event_name:meanscore, 'max_score':maxscore}
         
     
     return box

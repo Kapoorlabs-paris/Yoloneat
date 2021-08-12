@@ -294,7 +294,7 @@ class NEATFocus(object):
         classedboxes = {}    
         print('Detecting focus planes in', os.path.basename(os.path.splitext(self.imagename)[0]))
         for inputz in tqdm(range(0, self.image.shape[0])):
-                    if inputz < self.image.shape[0] - self.imagez:
+                    if inputz <= self.image.shape[0] - self.imagez:
                                 
                                 eventboxes = []
                                 
@@ -379,6 +379,7 @@ class NEATFocus(object):
                 event = self.interest_event[0]
                 iou_current_event_box = self.iou_classedboxes[event][0]
                 zcenter = iou_current_event_box['real_z_event']
+                
                 score = iou_current_event_box[event]
                 for sec_event in self.interest_event:
                     
@@ -413,22 +414,23 @@ class NEATFocus(object):
                    if event_label > 0:
                                             zlocations = []
                                             scores = []
-                                  
+                                            max_scores = []
                                             iou_current_event_box = self.iou_classedboxes[event_name][0]
                                             zcenter = iou_current_event_box['real_z_event']
+                                            max_score = iou_current_event_box['max_score']
                                             score = iou_current_event_box[event_name]
-                                            print(event_name, zcenter, score)           
+                                            print(event_name, zcenter, score, max_score)           
                                             zlocations.append(zcenter)
                                             scores.append(score)
-                                  
-                                            event_count = np.column_stack([zlocations,scores]) 
+                                            max_scores.append(max_score)
+                                            event_count = np.column_stack([zlocations,scores, max_scores]) 
                                             event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                                             event_data = []
                                             csvname = self.savedir+ "/" + event_name + "FocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                             writer = csv.writer(open(csvname  +".csv", "a"))
                                             filesize = os.stat(csvname + ".csv").st_size
                                             if filesize < 1:
-                                               writer.writerow(['Z','Score'])
+                                               writer.writerow(['Z','Score','Max_score'])
                                             for line in event_count:
                                                if line not in event_data:  
                                                   event_data.append(line)
@@ -443,16 +445,35 @@ class NEATFocus(object):
         
         Csv_path = os.path.join(self.savedir, '*csv')
         filesCsv = glob.glob(Csv_path)
+        savename = self.savedir+ "/"  + "Stats" + (os.path.splitext(os.path.basename(self.imagename))[0])
+        writer = csv.writer(open(savename  +".csv", "w"))
+        filesize = os.stat(savename + ".csv").st_size
+        if filesize < 1:
+           writer.writerow(['FileName','Z found','Average Score'])
+        filelist = []
+        zlist = []
+        scorelist = []
         for csvfname in filesCsv:
                                  Csvname =  os.path.basename(os.path.splitext(csvfname)[0])
                                  dataset = pd.read_csv(csvfname, skiprows = 1)
                                  z = dataset[dataset.keys()[0]][1:]
                                  score = dataset[dataset.keys()[1]][1:]
-                                 maxscore = np.max(score)
-                                 maxz = z[np.argmax(score)]
-                                 print('For file' ,  Csvname, 'max score of', maxscore, 'was found at Z = ', maxz)
-                                 
-                                 
+                                 try:
+                                     maxscore = np.max(score)
+                                     maxz = z[np.argmax(score)]
+                                     filelist.append(Csvname)
+                                     zlist.append(maxz)
+                                     scorelist.append(maxscore)
+                                 except:
+                                    pass
+        
+        event_count = np.column_stack([filelist,zlist,scorelist]) 
+        event_data = []
+        for line in event_count:
+              event_data.append(line)
+              writer.writerows(event_data)
+        
+        
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
          
          
