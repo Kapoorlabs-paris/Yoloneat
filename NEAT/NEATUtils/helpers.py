@@ -988,11 +988,11 @@ def focyoloprediction(sy, sx, z_prediction, stride, inputz, config, key_categori
                              k = 1
                              while True:
                                       j = j + 1
-                                      if j >z_prediction.shape[1]:
+                                      if j >z_prediction.shape[2]:
                                            j = 1
                                            k = k + 1
 
-                                      if k > z_prediction.shape[0]:
+                                      if k > z_prediction.shape[1]:
                                           break;
                       
                                       Classybox = focpredictionloop(j, k, sx, sy, nboxes, stride, z_prediction, config, key_categories,key_cord, inputz)
@@ -1160,7 +1160,7 @@ def focpredictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key
                                                   total_coords = len(key_cord)
                                                   y = (k - 1) * stride
                                                   x = (j - 1) * stride
-                                                  prediction_vector = time_prediction[k-1,j-1,:]
+                                                  prediction_vector = time_prediction[0,k-1,j-1,:]
                                                   
                                                   xstart = x + sx
                                                   ystart = y + sy
