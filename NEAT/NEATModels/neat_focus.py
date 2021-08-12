@@ -292,7 +292,7 @@ class NEATFocus(object):
 
         eventboxes = []
         classedboxes = {}    
-        print('Detecting focus planes')
+        print('Detecting focus planes in', os.path.basename(os.path.splitext(self.imagename)[0]))
         for inputz in tqdm(range(0, self.image.shape[0])):
                     if inputz < self.image.shape[0] - self.imagez:
                                 
@@ -395,7 +395,7 @@ class NEATFocus(object):
                 event_count = np.column_stack([zlocations,scores]) 
                 event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                 event_data = []
-                csvname = self.savedir+ "/" + self.interest_event + "ComboFocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                csvname = self.savedir+ "/"  + "ComboFocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
                 writer = csv.writer(open(csvname  +".csv", "a"))
                 filesize = os.stat(csvname + ".csv").st_size
                 if filesize < 1:
@@ -417,7 +417,7 @@ class NEATFocus(object):
                                             iou_current_event_box = self.iou_classedboxes[event_name][0]
                                             zcenter = iou_current_event_box['real_z_event']
                                             score = iou_current_event_box[event_name]
-                                           
+                                            print(event_name, zcenter, score)           
                                             zlocations.append(zcenter)
                                             scores.append(score)
                                   

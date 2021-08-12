@@ -735,8 +735,8 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         boxAYstart = boxAscore * boxes[i]['ystart']
                         boxAXcenter = boxAscore * boxes[i]['xcenter']
                         boxAYcenter = boxAscore * boxes[i]['ycenter']
-                        boxArealtime = boxAscore * boxes[i]['real_time_event']
-                        boxAboxtime = boxAscore * boxes[i]['box_time_event']
+                        boxArealtime =  boxes[i]['real_time_event']
+                        boxAboxtime =  boxes[i]['box_time_event']
                         boxAheight = boxAscore * boxes[i]['height']
                         boxAwidth = boxAscore * boxes[i]['width']
                         boxAconfidence = boxAscore * boxes[i]['confidence']
@@ -748,8 +748,8 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         boxBYstart = boxBscore * boxes[j]['ystart']
                         boxBXcenter = boxBscore * boxes[j]['xcenter']
                         boxBYcenter = boxBscore * boxes[j]['ycenter']
-                        boxBrealtime = boxBscore * boxes[j]['real_time_event']
-                        boxBboxtime = boxBscore * boxes[j]['box_time_event']
+                        boxBrealtime = boxes[j]['real_time_event']
+                        boxBboxtime = boxes[j]['box_time_event']
                         boxBheight = boxBscore * boxes[j]['height']
                         boxBwidth = boxBscore * boxes[j]['width']
                         boxBconfidence = boxBscore * boxes[j]['confidence']
@@ -837,7 +837,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
                         boxAYstart = boxAscore * boxes[i]['ystart']
                         boxAXcenter = boxAscore * boxes[i]['xcenter']
                         boxAYcenter = boxAscore * boxes[i]['ycenter']
-                        boxArealz = boxAscore * boxes[i]['real_z_event']
+                        boxArealz = boxes[i]['real_z_event']
                         boxAheight = boxAscore * boxes[i]['height']
                         boxAwidth = boxAscore * boxes[i]['width']
                         boxAconfidence = boxAscore * boxes[i]['confidence']
@@ -847,7 +847,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
                         boxBYstart = boxBscore * boxes[j]['ystart']
                         boxBXcenter = boxBscore * boxes[j]['xcenter']
                         boxBYcenter = boxBscore * boxes[j]['ycenter']
-                        boxBrealz = boxBscore * boxes[j]['real_z_event']
+                        boxBrealz = boxes[j]['real_z_event']
                         boxBheight = boxBscore * boxes[j]['height']
                         boxBwidth = boxBscore * boxes[j]['width']
                         boxBconfidence = boxBscore * boxes[j]['confidence']
@@ -998,7 +998,7 @@ def focyoloprediction(sy, sx, z_prediction, stride, inputz, config, key_categori
                                       Classybox = focpredictionloop(j, k, sx, sy, nboxes, stride, z_prediction, config, key_categories,key_cord, inputz)
                                       #Append the box and the maximum likelehood detected class
                                       if Classybox is not None:
-                                        if Classybox['confidence'] > 0.5:
+                                        if Classybox['confidence'] > 0.1:
                                             LocationBoxes.append(Classybox)         
                              return LocationBoxes
                             
@@ -1187,7 +1187,7 @@ def focpredictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key
                                           
                                                   max_prob_label = np.argmax(prediction_vector[:total_classes])
                                                   
-                                                  if max_prob_label > 0:
+                                                  if max_prob_label >= 0:
                                               
                                                                   real_z_event = zcentermean
        
@@ -1196,14 +1196,14 @@ def focpredictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key
                                                                     'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean}
                                                   
                                                   
-                                                  #Make a single dict object containing the class and the box vectors return also the max prob label
-                                                  classybox = {}
-                                                  for d in [Class,box]:
-                                                      classybox.update(d) 
-                                                  
-                                                 
-                                                    
-                                                  return classybox
+                                                                  #Make a single dict object containing the class and the box vectors return also the max prob label
+                                                                  classybox = {}
+                                                                  for d in [Class,box]:
+                                                                      classybox.update(d) 
+
+
+
+                                                                  return classybox
                                       
                                          
 def get_nearest(marker_tree, ycenter, xcenter, tcenter):
