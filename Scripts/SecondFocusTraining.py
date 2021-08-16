@@ -25,7 +25,7 @@ npz_val_name = 'FoconeatVal.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Focusoneatmodels/'
-model_name = 'cadhistoned38s4f16seq.h5'
+model_name = 'cadhistoned29s4f32seq.h5'
 
 
 # In[ ]:
@@ -40,13 +40,13 @@ key_cord = load_json(focus_cord_json)
 #For ORNET use residual = True and for OSNET use residual = False
 residual = False
 #NUmber of starting convolutional filters, is doubled down with increasing depth
-startfilter = 16
+startfilter = 32
 #CNN network start layer, mid layers and lstm layer kernel size
 start_kernel = 7
 
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 38
+depth = 29
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients

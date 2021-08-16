@@ -26,9 +26,9 @@ from pathlib import Path
 
 imagedir =  '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/SaveDynamicd29resf48/'
+savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/SaveDynamicd29seqf32/'
 
-model_name = 'wtdivd29resf48'
+model_name = 'wtdivd29seqf32'
 
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)

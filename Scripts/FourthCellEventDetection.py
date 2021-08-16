@@ -23,8 +23,8 @@ from pathlib import Path
 
 imagedir = '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/Saved29resf16/'
-model_name = 'CellNetbin1d29resf16'
+savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/Saved29s4seqf32/'
+model_name = 'CellNetbin1d29s4seqf32'
 division_categories_json = model_dir + 'StaticCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'StaticCord.json'

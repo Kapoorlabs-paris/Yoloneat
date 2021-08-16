@@ -25,14 +25,14 @@ from pathlib import Path
 
 
 imagedir =  '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/SaveDynamicd29resf48/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
+savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/SaveMicrod29res/'
 
-model_name = 'wtdivd29resf48'
+model_name = 'micronetbin1d29res'
 
-division_categories_json = model_dir + 'DivisionCategories.json'
+division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'DivisionCord.json'
+division_cord_json = model_dir + 'MicroscopeCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
