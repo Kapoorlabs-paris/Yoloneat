@@ -381,7 +381,7 @@ class NEATFocus(object):
                 zlocations = []
                 scores = []
                 event = self.interest_event[0]
-                iou_current_event_box, all_boxes = self.iou_classedboxes[event][0]
+                iou_current_event_box = self.iou_classedboxes[event][0]
                 zcenter = iou_current_event_box['real_z_event']
                 
                 
