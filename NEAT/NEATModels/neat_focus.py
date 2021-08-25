@@ -511,33 +511,41 @@ class NEATFocus(object):
                                               ycenter = iou_current_event_box['ycenter']
                                               zcenter = iou_current_event_box['real_z_event']
                                               score = iou_current_event_box[event_name]
-                                            
-                                              xlocations.append(round(xcenter))
-                                              ylocations.append(round(ycenter))
-                                              scores.append(score)
-                                              zlocations.append(zcenter)
-                                              heights.append(iou_current_event_box['height'])
-                                              widths.append(iou_current_event_box['width'] )  
+                                              if score > 0.8:
+                                                  
+                                                 xlocations.append(round(xcenter))
+                                                 ylocations.append(round(ycenter))
+                                                 scores.append(score)
+                                                 zlocations.append(zcenter)
+                                                 heights.append(iou_current_event_box['height'])
+                                                 widths.append(iou_current_event_box['width'] )  
         
                                    
                                    
-                                   try:
-                                      color = colors[event_label]
-                                   except:
-                                      color = colors[0]
+                        
                                         
                                    for j in range(len(xlocations)):
                                      startlocation = (int(xlocations[j] - heights[j]//2), int(ylocations[j]-widths[j]//2))
                                      endlocation =  (int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2))
-                                     Z = int(zlocations[j])                              
-                                      
-                                     cv2.rectangle(np.array(self.Colorimage[Z,:,:,1]), startlocation, endlocation, color, thickness)
-                                     print(startlocation, endlocation)     
-                                     cv2.putText(np.array(self.Colorimage[Z,:,:,1]), str(score), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
+                                     Z = int(zlocations[j])  
+                                     if event_label == 1:                            
+                                       image = self.Colorimage[Z,:,:,1]
+                                       color = (0,255,0)
+                                     else:
+                                       color = (0,0,255)
+                                       image = self.Colorimage[Z,:,:,2]
+                                     img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
+                                     cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
+                                         
+                                     cv2.putText(img, str('%.2f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
+                                     if event_label == 1:
+                                       self.Colorimage[Z,:,:,1] = img[:,:,0]
+                                     else:
+                                       self.Colorimage[Z,:,:,2] = img[:,:,0]
+
           savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
         
-          
-             
+                                                  
           imwrite((savename + '.tif' ), self.Colorimage)
                     
                     
