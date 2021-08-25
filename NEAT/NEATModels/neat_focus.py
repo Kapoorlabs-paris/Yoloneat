@@ -268,7 +268,8 @@ class NEATFocus(object):
         
         self.imagename = imagename
         self.image = imread(imagename)
-        self.Colorimage = np.zeros_like(self.image)
+        self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
+        self.Colorimage[:,:,:,0] = self.image
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.interest_event = interest_event
@@ -401,7 +402,7 @@ class NEATFocus(object):
                 event_count = np.column_stack([zlocations,scores]) 
                 event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                 event_data = []
-                csvname = self.savedir+ "/"   + (os.path.splitext(os.path.basename(self.imagename))[0])+ "ComboFocusQuality"
+                csvname = self.savedir+ "/"   + (os.path.splitext(os.path.basename(self.imagename))[0])+ "_ComboFocusQuality"
                 writer = csv.writer(open(csvname  +".csv", "a"))
                 filesize = os.stat(csvname + ".csv").st_size
                 if filesize < 1:
@@ -431,7 +432,7 @@ class NEATFocus(object):
                                             event_count = np.column_stack([zlocations,scores, max_scores]) 
                                             event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                                             event_data = []
-                                            csvname = self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "FocusQuality"
+                                            csvname = self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "_FocusQuality"
                                             writer = csv.writer(open(csvname  +".csv", "a"))
                                             filesize = os.stat(csvname + ".csv").st_size
                                             if filesize < 1:
@@ -518,26 +519,26 @@ class NEATFocus(object):
                                               heights.append(iou_current_event_box['height'])
                                               widths.append(iou_current_event_box['width'] )  
         
-                                   self.image = normalizeFloatZeroOne(self.image,1,99.8)
-                                   Colorimage = np.zeros_like(self.image)
+                                   
+                                   
                                    try:
                                       color = colors[event_label]
                                    except:
                                       color = colors[0]
                                         
                                    for j in range(len(xlocations)):
-                                     startlocation = (int(xlocations[j] - heights[j]), int(ylocations[j]-widths[j]))
-                                     endlocation =  (int(xlocations[j] + heights[j]), int(ylocations[j]+ widths[j]))
+                                     startlocation = (int(xlocations[j] - heights[j]//2), int(ylocations[j]-widths[j]//2))
+                                     endlocation =  (int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2))
                                      Z = int(zlocations[j])                              
                                       
-                                     cv2.rectangle(Colorimage[Z,:], startlocation, endlocation, color = color, thickness = thickness)
-             
-                                     cv2.putText(Colorimage[Z,:], str(score), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
+                                     cv2.rectangle(np.array(self.Colorimage[Z,:,:,1]), startlocation, endlocation, color, thickness)
+                                     print(startlocation, endlocation)     
+                                     cv2.putText(np.array(self.Colorimage[Z,:,:,1]), str(score), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
           savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
-          RGBImage = [self.image, Colorimage, Colorimage]
-          RGBImage = np.swapaxes(np.asarray(RGBImage),0, 2)
+        
+          
              
-          imwrite((savename + '.tif' ), RGBImage)
+          imwrite((savename + '.tif' ), self.Colorimage)
                     
                     
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
