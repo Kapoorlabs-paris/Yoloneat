@@ -13,7 +13,7 @@ from NEATModels import NEATStatic, nets
 from NEATModels.Staticconfig import static_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 

@@ -1,23 +1,2 @@
-nohup python3.7 CellEventDetection.py > job1.txt & 
-
-nohup python3.7 SecondCellEventDetection.py > job2.txt &
-
-nohup python3.7 ThirdCellEventDetection.py > job3.txt &
-
-nohup python3.7 FourthCellEventDetection.py > job4.txt &
-
-nohup python3.7 Bin1Detection.py > job5.txt &
-
-nohup python3.7 SecondBin1Detection.py > job6.txt &
-
-nohup python3.7 ThirdBin1Detection.py > job7.txt &
-
-nohup python3.7 FourthBin1Detection.py > job8.txt &
-
 nohup python3.7 FifthBin1Detection.py > job9.txt &
-
-nohup python3.7 MicroBin1Detection.py > job10.txt &
-
-nohup python3.7 SecondMicroBin1Detection.py > job11.txt &
-
-nohup python3.7 ThirdMicroBin1Detection.py > job12.txt &
+  
