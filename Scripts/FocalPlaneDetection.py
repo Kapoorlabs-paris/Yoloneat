@@ -21,7 +21,7 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/foconeatimages/'
+imagedir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/foconeatimages/Test/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Focusoneatmodels/'
 savedir= '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/foconeatimages/Predictionsd29s4f32res/'
 

@@ -336,16 +336,19 @@ class NEATFocus(object):
                                 
                                 self.nms()
                                 self.to_csv()
+                                self.draw()
                                 eventboxes = []
                                 classedboxes = {}    
                                                             
-        self.print_planes()                                                    
+        #self.print_planes()                                                    
                           
         
     def nms(self):
         
         
         best_iou_classedboxes = {}
+        all_best_iou_classedboxes = {}
+        self.all_iou_classedboxes = {}
         self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
@@ -356,14 +359,15 @@ class NEATFocus(object):
                sorted_event_box = sorted(sorted_event_box, key = lambda x:x[event_name], reverse = True)
                
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               best_sorted_event_box = simpleaveragenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
+               best_sorted_event_box, all_boxes = simpleaveragenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
                #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
                
-               
+               all_best_iou_classedboxes[event_name] = [all_boxes]
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                #print("nms",best_iou_classedboxes[event_name])
-        self.iou_classedboxes = best_iou_classedboxes                
+        self.iou_classedboxes = best_iou_classedboxes      
+        self.all_iou_classedboxes = all_best_iou_classedboxes
     
 
    
@@ -377,8 +381,9 @@ class NEATFocus(object):
                 zlocations = []
                 scores = []
                 event = self.interest_event[0]
-                iou_current_event_box = self.iou_classedboxes[event][0]
+                iou_current_event_box, all_boxes = self.iou_classedboxes[event][0]
                 zcenter = iou_current_event_box['real_z_event']
+                
                 
                 score = iou_current_event_box[event]
                 for sec_event in self.interest_event:
@@ -396,7 +401,7 @@ class NEATFocus(object):
                 event_count = np.column_stack([zlocations,scores]) 
                 event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                 event_data = []
-                csvname = self.savedir+ "/"  + "ComboFocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                csvname = self.savedir+ "/"   + (os.path.splitext(os.path.basename(self.imagename))[0])+ "ComboFocusQuality"
                 writer = csv.writer(open(csvname  +".csv", "a"))
                 filesize = os.stat(csvname + ".csv").st_size
                 if filesize < 1:
@@ -426,7 +431,7 @@ class NEATFocus(object):
                                             event_count = np.column_stack([zlocations,scores, max_scores]) 
                                             event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                                             event_data = []
-                                            csvname = self.savedir+ "/" + event_name + "FocusQuality" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                            csvname = self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "FocusQuality"
                                             writer = csv.writer(open(csvname  +".csv", "a"))
                                             filesize = os.stat(csvname + ".csv").st_size
                                             if filesize < 1:
@@ -474,6 +479,64 @@ class NEATFocus(object):
               writer.writerows(event_data)
         
         
+    def draw(self):
+          colors = ['red','green','blue','purple']
+          # fontScale
+          fontScale = 1
+
+          # Blue color in BGR
+          texrcolor = (255, 0, 0)
+
+          # Line thickness of 2 px
+          thickness = 2  
+          for (event_name,event_label) in self.key_categories.items():
+                   
+                  if event_label > 0:
+                                  
+                                   xlocations = []
+                                   ylocations = []
+                                   scores = []
+                                   zlocations = []   
+                                   heights = []
+                                   widths = [] 
+                                   iou_current_event_boxes = self.all_iou_classedboxes[event_name][0]
+                                   
+                                  
+                                                                           
+                                   for iou_current_event_box in iou_current_event_boxes:
+                                              
+                                             
+                                              xcenter = iou_current_event_box['xcenter']
+                                              ycenter = iou_current_event_box['ycenter']
+                                              zcenter = iou_current_event_box['real_z_event']
+                                              score = iou_current_event_box[event_name]
+                                            
+                                              xlocations.append(round(xcenter))
+                                              ylocations.append(round(ycenter))
+                                              scores.append(score)
+                                              zlocations.append(zcenter)
+                                              heights.append(iou_current_event_box['height'])
+                                              widths.append(iou_current_event_box['width'] )  
+        
+                                   self.image = normalizeFloatZeroOne(self.image,1,99.8)
+                                   Colorimage = np.zeros_like(self.image)
+                                   try:
+                                      color = colors[event_label]
+                                   except:
+                                      color = colors[0]
+                                        
+                                   for j in range(len(xlocations)):
+                                     startlocation = (int(xlocations[j] - heights[j]), int(ylocations[j]-widths[j]))
+                                     endlocation =  (int(xlocations[j] + heights[j]), int(ylocations[j]+ widths[j]))
+                                     Z = int(zlocations[j])                              
+        
+                                     cv2.rectangle(Colorimage[Z,:], startlocation, endlocation, color, 1 )
+             
+                                     cv2.putText(Colorimage[Z,:], str(score), startlocation, color = textcolor, thickness = thickness)
+          savename = self.savedir+ "/"  + "ColoredImage" + (os.path.splitext(os.path.basename(self.imagename))[0])                         
+          imageio.imwrite((savename + '.tif' ), Colorimage)
+                    
+                    
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
          
          
