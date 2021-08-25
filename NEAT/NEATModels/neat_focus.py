@@ -480,12 +480,12 @@ class NEATFocus(object):
         
         
     def draw(self):
-          colors = ['red','green','blue','purple']
+          colors = [(0,255,0),(0,0,255),(255,0,0)]
           # fontScale
           fontScale = 1
 
           # Blue color in BGR
-          texrcolor = (255, 0, 0)
+          textcolor = (255, 0, 0)
 
           # Line thickness of 2 px
           thickness = 2  
@@ -530,13 +530,14 @@ class NEATFocus(object):
                                      endlocation =  (int(xlocations[j] + heights[j]), int(ylocations[j]+ widths[j]))
                                      Z = int(zlocations[j])                              
                                       
-                                     cv2.rectangle(Colorimage[Z,:], startlocation, endlocation, color = color, thickness = thickness
+                                     cv2.rectangle(Colorimage[Z,:], startlocation, endlocation, color = color, thickness = thickness)
              
-                                     cv2.putText(Colorimage[Z,:], str(score), startlocation, color = textcolor, thickness = thickness)
-          savename = self.savedir+ "/"  + "ColoredImage" + (os.path.splitext(os.path.basename(self.imagename))[0])                       RGBImage = [StaticImage, Colorimage, Colorimage]
+                                     cv2.putText(Colorimage[Z,:], str(score), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
+          savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
+          RGBImage = [self.image, Colorimage, Colorimage]
           RGBImage = np.swapaxes(np.asarray(RGBImage),0, 2)
-          RGBImage = np.swapaxes(RGBImage, 0,1)   
-          imageio.imwrite((savename + '.tif' ), RGBImage)
+             
+          imwrite((savename + '.tif' ), RGBImage)
                     
                     
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
