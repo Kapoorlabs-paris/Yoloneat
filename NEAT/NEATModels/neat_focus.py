@@ -529,12 +529,14 @@ class NEATFocus(object):
                                      startlocation = (int(xlocations[j] - heights[j]), int(ylocations[j]-widths[j]))
                                      endlocation =  (int(xlocations[j] + heights[j]), int(ylocations[j]+ widths[j]))
                                      Z = int(zlocations[j])                              
-        
-                                     cv2.rectangle(Colorimage[Z,:], startlocation, endlocation, color, 1 )
+                                      
+                                     cv2.rectangle(Colorimage[Z,:], startlocation, endlocation, color = color, thickness = thickness
              
                                      cv2.putText(Colorimage[Z,:], str(score), startlocation, color = textcolor, thickness = thickness)
-          savename = self.savedir+ "/"  + "ColoredImage" + (os.path.splitext(os.path.basename(self.imagename))[0])                         
-          imageio.imwrite((savename + '.tif' ), Colorimage)
+          savename = self.savedir+ "/"  + "ColoredImage" + (os.path.splitext(os.path.basename(self.imagename))[0])                       RGBImage = [StaticImage, Colorimage, Colorimage]
+          RGBImage = np.swapaxes(np.asarray(RGBImage),0, 2)
+          RGBImage = np.swapaxes(RGBImage, 0,1)   
+          imageio.imwrite((savename + '.tif' ), RGBImage)
                     
                     
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
