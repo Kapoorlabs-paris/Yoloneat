@@ -453,14 +453,14 @@ class NEATDynamicSegFree(object):
                                                       score = iou_current_event_box[event_name]
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
-                                                      if confidence >= self.event_threshold and abs(xcenter) > self.imagex and abs(ycenter) > self.imagey and abs(self.image.shape[2] - xcenter) > self.imagex and abs(self.image.shape[1] -ycenter) > self.imagey:
-                                                              xlocations.append(xcenter)
-                                                              ylocations.append(ycenter)
-                                                              scores.append(score)
-                                                              confidences.append(confidence)
-                                                              tlocations.append(tcenter)
-                                                              radiuses.append(radius)
-                                                              angles.append(angle)
+                                                      
+                                                      xlocations.append(xcenter)
+                                                      ylocations.append(ycenter)
+                                                      scores.append(score)
+                                                      confidences.append(confidence)
+                                                      tlocations.append(tcenter)
+                                                      radiuses.append(radius)
+                                                      angles.append(angle)
                                                                
                                             
                                               event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
