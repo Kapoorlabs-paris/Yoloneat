@@ -645,7 +645,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
 
     
-    thresh = 8
+    thresh = 5
     if len(boxes) == 0:
         return []
 
