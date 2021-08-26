@@ -275,7 +275,8 @@ class NEATStatic(object):
         
         self.imagename = imagename
         self.image = imread(imagename)
-        self.Colorimage = np.zeros_like(self.image)
+        self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
+        self.Colorimage[:,:,:,0] = self.image
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.fcn = fcn
@@ -472,33 +473,60 @@ class NEATStatic(object):
                                                  writer.writerows(event_data)
                                                  event_data = []           
                               
-                                              ImageResults = self.savedir + '/'+ event_name + 'ImageLocations' + (os.path.splitext(os.path.basename(self.imagename))[0])
                                               
                                               
-                                              self.saveimage(xlocations, ylocations, tlocations, radiuses, ImageResults)
+                                              self.saveimage(xlocations, ylocations, tlocations,scores, radiuses)
 
 
                       
 
      
 
-    def saveimage(self, xlocations, ylocations, tlocations, radius, csvimagename):
+    def saveimage(self, xlocations, ylocations, tlocations,scores, radius):
 
                         
 
                                       
                                       
+                                   
+                                      colors = [(0,255,0),(0,0,255),(255,0,0)]
+                                      # fontScale
+                                      fontScale = 1
+                            
+                                      # Blue color in BGR
+                                      textcolor = (255, 0, 0)
+                            
+                                      # Line thickness of 2 px
+                                      thickness = 2
+                                      for j in range(len(xlocations)):
+                                                 startlocation = (int(xlocations[j] - heights[j]//2), int(ylocations[j]-widths[j]//2))
+                                                 endlocation =  (int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2))
+                                                 Z = int(zlocations[j])  
+                                                 if event_label == 1:                            
+                                                   image = self.Colorimage[Z,:,:,1]
+                                                   color = (0,255,0)
+                                                 if event_label == 2:
+                                                   color = (0,0,255)
+                                                   image = self.Colorimage[Z,:,:,2]
+                                                 if event_label == 3:
+                                                   color = (255,0,0)
+                                                   image = self.Colorimage[Z,:,:,3]  
+                                                   
+                                                 img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
+                                                 cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
+                                                     
+                                                 cv2.putText(img, str('%.2f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
+                                                 if event_label == 1:
+                                                   self.Colorimage[Z,:,:,1] = img[:,:,0]
+                                                 if event_label == 2:
+                                                   self.Colorimage[Z,:,:,2] = img[:,:,0]
+                                                 if event_label == 3:
+                                                   self.Colorimage[Z,:,:,3] = img[:,:,0]  
 
-                                      copyxlocations = xlocations.copy()
-                                      copyylocations = ylocations.copy()
-                                      for j in range(len(copyxlocations)):
-                                         startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
-                                         endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
-                                         tlocation = int(round(tlocations[j]))
-                                         
-                                         cv2.rectangle(self.Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
-                                       
-                                      imwrite((csvimagename + '.tif' ), self.Colorimage.astype('uint8'))          
+                                      savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
+                                    
+                                                                              
+                                      imwrite((savename + '.tif' ), self.Colorimage)
                               
          
     def showNapari(self, imagedir, savedir):

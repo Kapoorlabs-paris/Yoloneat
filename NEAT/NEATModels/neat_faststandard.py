@@ -479,24 +479,31 @@ class NEATDynamicSegFree(object):
                                                  writer.writerows(event_data)
                                                  event_data = []           
                               
-                                              ImageResults = self.savedir + '/'+ event_name + 'ImageLocations' + (os.path.splitext(os.path.basename(self.imagename))[0])
                                               
                                               
-                                              self.saveimage(xlocations, ylocations, tlocations, radiuses,scores, ImageResults)
+                                              self.saveimage(xlocations, ylocations, tlocations, radiuses,scores)
 
 
                       
 
      
 
-    def saveimage(self, xlocations, ylocations, tlocations, radius, scores, csvimagename):
+    def saveimage(self, xlocations, ylocations, tlocations, radius, scores):
 
                         
 
                                       
                                       
 
-                                      
+                                      colors = [(0,255,0),(0,0,255),(255,0,0)]
+                                      # fontScale
+                                      fontScale = 1
+                            
+                                      # Blue color in BGR
+                                      textcolor = (255, 0, 0)
+                            
+                                      # Line thickness of 2 px
+                                      thickness = 2
                                       for j in range(len(xlocations)):
                                                  startlocation = (int(xlocations[j] - radius[j]//2), int(ylocations[j]-radius[j]//2))
                                                  endlocation =  (int(xlocations[j] + radius[j]//2), int(ylocations[j]+ radius[j]//2))

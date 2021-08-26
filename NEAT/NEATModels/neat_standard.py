@@ -532,39 +532,50 @@ class NEATDynamicSeg(object):
                                                  writer.writerows(event_data)
                                                  event_data = []           
                               
-                                              ImageResults = self.savedir + '/'+ event_name + 'ImageLocations' + (os.path.splitext(os.path.basename(self.imagename))[0])
                                               
                                               
-                                              self.saveimage(xlocations, ylocations, tlocations, angles, radiuses, ImageResults)
+                                              self.saveimage(xlocations, ylocations, tlocations, radiuses,scores)
 
 
                       
 
      
 
-    def saveimage(self, xlocations, ylocations, tlocations, anglelocations, radius, csvimagename):
+    def saveimage(self, xlocations, ylocations, tlocations, radius, scores):
 
                         
 
                                       
                                       
 
-                                      copyxlocations = xlocations.copy()
-                                      copyylocations = ylocations.copy()
-                                      for j in range(len(copyxlocations)):
-                                         startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j]-radius[j]))
-                                         endlocation =  (int(copyxlocations[j] + radius[j]), int(copyylocations[j]+radius[j]))
-                                         tlocation = int(round(tlocations[j]))
-                                         anglelocation = anglelocations[j]
-                                         cv2.rectangle(self.Colorimage[tlocation,:], startlocation, endlocation, (255,255,255), 1 )
-                                         if self.yolo_v2:
-                                              
-                                              x1 =  copyxlocations[j]
-                                              y1 =  copyylocations[j] 
-                                              x2 = x1 + radius[j] * math.cos(anglelocation)
-                                              y2 = y1 + radius[j] * math.sin(anglelocation)
-                                              cv2.line(self.Colorimage[tlocation,:], (int(x1),int(y1)), (int(x2),int(y2)), (255,255,255), 1) 
-                                      imwrite((csvimagename + '.tif' ), self.Colorimage.astype('uint8'))
+                                      colors = [(0,255,0),(0,0,255),(255,0,0)]
+                                      # fontScale
+                                      fontScale = 1
+                            
+                                      # Blue color in BGR
+                                      textcolor = (255, 0, 0)
+                            
+                                      # Line thickness of 2 px
+                                      thickness = 2
+                                      for j in range(len(xlocations)):
+                                                 startlocation = (int(xlocations[j] - radius[j]//2), int(ylocations[j]-radius[j]//2))
+                                                 endlocation =  (int(xlocations[j] + radius[j]//2), int(ylocations[j]+ radius[j]//2))
+                                                 T = int(tlocations[j])  
+                                                   image = self.Colorimage[Z,:,:,1]
+                                                   color = (0,255,0)
+                                                 if score[j] >= 1.0 - 1.0E-7:
+                                                     color = (0,0,255)
+                                                     image = self.Colorimage[Z,:,:,2]
+                                                 img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
+                                                 cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
+                                                     
+                                                 cv2.putText(img, str('%.2f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
+                                                 if score[j] >= 1.0 - 1.0E-7:
+                                                   self.Colorimage[Z,:,:,2] = img[:,:,0]
+                                                 else:
+                                                   self.Colorimage[Z,:,:,1] = img[:,:,0]
+                                      savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
+                                      imwrite((savename + '.tif' ), self.Colorimage)
     
           
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
