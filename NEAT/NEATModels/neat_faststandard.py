@@ -340,7 +340,10 @@ class NEATDynamicSegFree(object):
         for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
                                 count = count + 1
-                                
+                                if inputtime%10 or inputtime >= self.image.shape[0] - self.imaget - 1:
+                                      savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
+                                                                              
+                                      imwrite((savename + '.tif' ), self.Colorimage)
                                 smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 # Cut off the region for training movie creation
@@ -521,8 +524,7 @@ class NEATDynamicSegFree(object):
                                                    self.Colorimage[Z,:,:,2] = img[:,:,0]
                                                  else:
                                                    self.Colorimage[Z,:,:,1] = img[:,:,0]
-                                      savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
-                                      imwrite((savename + '.tif' ), self.Colorimage)
+
 
     
           

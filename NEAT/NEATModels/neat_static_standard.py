@@ -300,7 +300,10 @@ class NEATStatic(object):
         if RGB == False:
                 for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0]:
-
+                                if inputtime%10 or inputtime >= self.image.shape[0] - 1:
+                                      savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
+                                                                              
+                                      imwrite((savename + '.tif' ), self.Colorimage)
                                 count = count + 1
                     smallimage = self.image[inputtime,:]
                     smallimage = normalizeFloatZeroOne(smallimage,1,99.8) 
@@ -520,10 +523,7 @@ class NEATStatic(object):
                                                  if event_label == 3:
                                                    self.Colorimage[Z,:,:,3] = img[:,:,0]  
 
-                                      savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
-                                    
-                                                                              
-                                      imwrite((savename + '.tif' ), self.Colorimage)
+
                               
          
     def showNapari(self, imagedir, savedir):
