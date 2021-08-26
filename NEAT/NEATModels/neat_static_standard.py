@@ -297,11 +297,12 @@ class NEATStatic(object):
         eventboxes = []
         classedboxes = {}    
         count = 0
+        savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
         if RGB == False:
                 for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0]:
-                                if inputtime%10 or inputtime >= self.image.shape[0] - 1:
-                                      savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
+                                if inputtime%10==0 or inputtime >= self.image.shape[0] - 1:
+
                                                                               
                                       imwrite((savename + '.tif' ), self.Colorimage)
                                 count = count + 1

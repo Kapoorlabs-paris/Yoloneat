@@ -334,14 +334,14 @@ class NEATDynamicSegFree(object):
         count = 0
         
 
-        #Do the prediction in the fully convolutional way if no marker image is input it is the only way we get the candidate points
+        savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
         self.Colorimage = np.zeros_like(self.image)
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
                                 count = count + 1
-                                if inputtime%10 or inputtime >= self.image.shape[0] - self.imaget - 1:
-                                      savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
+                                if inputtime%10==0 or inputtime >= self.image.shape[0] - self.imaget - 1:
+                                      
                                                                               
                                       imwrite((savename + '.tif' ), self.Colorimage)
                                 smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
