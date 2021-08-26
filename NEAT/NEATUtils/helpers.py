@@ -645,7 +645,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
 
     
-
+    thresh = 8
     if len(boxes) == 0:
         return []
 
@@ -724,7 +724,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         meanboxheight = (boxAheight + boxBheight)/2
                         meanboxwidth = (boxAwidth + boxBwidth)/2
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2
-                        if count > 5:
+                        if count >=thresh:
                           newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_time_event':meanboxrealtime, 'box_time_event':meanboxtime,
                                   'height':meanboxheight, 'width':meanboxwidth , 'confidence':meanboxconfidence, event_name:meanboxscore}
                        
@@ -769,7 +769,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2
                         meanboxrealangle = (boxArealangle + boxBrealangle)/2
                         meanboxrawangle = (boxArawangle + boxBrawangle)/2
-                        if count > 5:
+                        if count >= thresh:
                            newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_time_event':meanboxrealtime, 'box_time_event':meanboxtime,
                                   'height':meanboxheight, 'width':meanboxwidth , 'confidence':meanboxconfidence, 'realangle':meanboxrealangle, 'rawangle':meanboxrawangle, event_name:meanboxscore}
                 
