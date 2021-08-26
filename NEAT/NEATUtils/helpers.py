@@ -679,7 +679,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
         i = idxs[last]
         pick.append(i)
         suppress = [last]
-
+        count = 0
         # loop over all indexes in the indexes list
         for pos in range(0, last):
             # grab the current index
@@ -690,7 +690,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
             
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
-                
+                count = count + 1
                 if event_type == 'static':
                         boxAscore = boxes[i][event_name]
                         boxAXstart = boxAscore * boxes[i]['xstart']
@@ -724,7 +724,8 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         meanboxheight = (boxAheight + boxBheight)/2
                         meanboxwidth = (boxAwidth + boxBwidth)/2
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2
-                        newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_time_event':meanboxrealtime, 'box_time_event':meanboxtime,
+                        if count > 5:
+                          newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_time_event':meanboxrealtime, 'box_time_event':meanboxtime,
                                   'height':meanboxheight, 'width':meanboxwidth , 'confidence':meanboxconfidence, event_name:meanboxscore}
                        
                 
@@ -768,7 +769,8 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2
                         meanboxrealangle = (boxArealangle + boxBrealangle)/2
                         meanboxrawangle = (boxArawangle + boxBrawangle)/2
-                        newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_time_event':meanboxrealtime, 'box_time_event':meanboxtime,
+                        if count > 5:
+                           newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_time_event':meanboxrealtime, 'box_time_event':meanboxtime,
                                   'height':meanboxheight, 'width':meanboxwidth , 'confidence':meanboxconfidence, 'realangle':meanboxrealangle, 'rawangle':meanboxrawangle, event_name:meanboxscore}
                 
         
@@ -980,7 +982,7 @@ def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categ
                                       Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories,key_cord, inputtime, mode, event_type, marker_tree)
                                       #Append the box and the maximum likelehood detected class
                                       if Classybox is not None:
-                                        if Classybox['confidence'] > 0.5:
+                                        if Classybox['confidence'] > 0.1:
                                             LocationBoxes.append(Classybox)         
                              return LocationBoxes
 def focyoloprediction(sy, sx, z_prediction, stride, inputz, config, key_categories,key_cord, nboxes, mode, event_type):

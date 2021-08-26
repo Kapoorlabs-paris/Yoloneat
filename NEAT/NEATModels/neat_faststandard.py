@@ -508,8 +508,8 @@ class NEATDynamicSegFree(object):
                                                  startlocation = (int(xlocations[j] - radius[j]//2), int(ylocations[j]-radius[j]//2))
                                                  endlocation =  (int(xlocations[j] + radius[j]//2), int(ylocations[j]+ radius[j]//2))
                                                  T = int(tlocations[j])  
-                                                   image = self.Colorimage[Z,:,:,1]
-                                                   color = (0,255,0)
+                                                 image = self.Colorimage[Z,:,:,1]
+                                                 color = (0,255,0)
                                                  if score[j] >= 1.0 - 1.0E-7:
                                                      color = (0,0,255)
                                                      image = self.Colorimage[Z,:,:,2]

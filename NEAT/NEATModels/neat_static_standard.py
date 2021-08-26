@@ -334,10 +334,10 @@ class NEATStatic(object):
                         if event_label > 0:
                              current_event_box = []
                              for box in eventboxes:
-
+                                
                                 event_prob = box[event_name]
                                 if event_prob >= self.event_threshold:
-
+                                    
                                     current_event_box.append(box)
                              classedboxes[event_name] = [current_event_box]
 
@@ -379,16 +379,16 @@ class NEATStatic(object):
                                  boxprediction = yoloprediction( ally[p], allx[p], time_prediction, self.stride, 0, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static')
                               else:
                                  boxprediction = nonfcn_yoloprediction(ally[p], allx[p], time_prediction, self.stride, 0, self.staticconfig, self.key_categories, self.key_cord, self.nboxes, 'detection', 'static') 
-
+                               
                               if boxprediction is not None:
                                       eventboxes = eventboxes + boxprediction
-
+                     
                     for (event_name,event_label) in self.key_categories.items(): 
 
                         if event_label > 0:
                              current_event_box = []
                              for box in eventboxes:
-
+                                
                                 event_prob = box[event_name]
                                 if event_prob >= self.event_threshold:
 
@@ -414,14 +414,10 @@ class NEATStatic(object):
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
                #Get all events
-               
                sorted_event_box = self.classedboxes[event_name][0]
-               sorted_event_box = sorted(sorted_event_box, key = lambda x:x[event_name], reverse = True)
-               
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-               #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
-               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'static' )
+               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'static')
+               
                best_iou_classedboxes[event_name] = [best_sorted_event_box] 
                
         self.iou_classedboxes = best_iou_classedboxes                              
@@ -441,7 +437,8 @@ class NEATStatic(object):
                               
                                     
                                               iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True) 
+                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:x[event_name], reverse = True)              
+                                              
                                               for iou_current_event_box in iou_current_event_boxes:
                                                       xcenter = iou_current_event_box['xcenter']
                                                       ycenter = iou_current_event_box['ycenter']
@@ -475,14 +472,14 @@ class NEATStatic(object):
                               
                                               
                                               
-                                              self.saveimage(xlocations, ylocations, tlocations,scores, radiuses)
+                                              self.saveimage(xlocations, ylocations, tlocations,scores, radiuses, event_label)
 
 
                       
 
      
 
-    def saveimage(self, xlocations, ylocations, tlocations,scores, radius):
+    def saveimage(self, xlocations, ylocations, tlocations,scores, radius, event_label):
 
                         
 
@@ -499,9 +496,9 @@ class NEATStatic(object):
                                       # Line thickness of 2 px
                                       thickness = 2
                                       for j in range(len(xlocations)):
-                                                 startlocation = (int(xlocations[j] - heights[j]//2), int(ylocations[j]-widths[j]//2))
-                                                 endlocation =  (int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2))
-                                                 Z = int(zlocations[j])  
+                                                 startlocation = (int(xlocations[j] - radius[j]), int(ylocations[j]-radius[j]))
+                                                 endlocation =  (int(xlocations[j] + radius[j]), int(ylocations[j]+ radius[j]))
+                                                 Z = int(tlocations[j])  
                                                  if event_label == 1:                            
                                                    image = self.Colorimage[Z,:,:,1]
                                                    color = (0,255,0)
