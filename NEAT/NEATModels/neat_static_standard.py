@@ -516,7 +516,7 @@ class NEATStatic(object):
                                                  img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
                                                  cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
                                                      
-                                                 cv2.putText(img, str('%.2f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
+                                                 cv2.putText(img, str('%.5f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
                                                  if event_label == 1:
                                                    self.Colorimage[Z,:,:,1] = img[:,:,0]
                                                  if event_label == 2:

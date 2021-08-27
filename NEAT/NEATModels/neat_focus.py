@@ -208,6 +208,7 @@ class NEATFocus(object):
         input_shape = (self.X.shape[1], self.X.shape[2], self.X.shape[3], self.X.shape[4])
         
         print(input_shape)
+        print( self.last_activation)
         Path(self.model_dir).mkdir(exist_ok=True)
        
         
@@ -234,7 +235,7 @@ class NEATFocus(object):
         
         
         
-        self.Trainingmodel = self.model_keras(input_shape, self.categories,  box_vector = self.box_vector, stage_number = self.stage_number, last_conv_factor = self.last_conv_factor, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel,  startfilter = self.startfilter,  input_weights  =  self.model_weights)
+        self.Trainingmodel = self.model_keras(input_shape, self.categories,  box_vector = self.box_vector, stage_number = self.stage_number, last_conv_factor = self.last_conv_factor, depth = self.depth, start_kernel = self.start_kernel, mid_kernel = self.mid_kernel,  startfilter = self.startfilter,  input_weights  =  self.model_weights, last_activation = self.last_activation)
         
             
         sgd = optimizers.SGD(lr=self.learning_rate, momentum = 0.99, decay=1e-6, nesterov = True)
@@ -269,6 +270,7 @@ class NEATFocus(object):
         self.imagename = imagename
         self.image = imread(imagename)
         self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
+        
         self.Colorimage[:,:,:,0] = self.image
         self.savedir = savedir
         self.n_tiles = n_tiles
@@ -298,8 +300,11 @@ class NEATFocus(object):
                     if inputz <= self.image.shape[0] - self.imagez:
                                 
                                 eventboxes = []
-                                
-                                
+                                if inputz == 0 or inputz >= self.image.shape[0] -self.imagez - 1:
+                                        savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
+
+
+                                        imwrite((savename + '.tif' ), self.Colorimage)
                                 smallimage = CreateVolume(self.image, self.imagez, inputz,self.imagex, self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 
@@ -341,7 +346,7 @@ class NEATFocus(object):
                                 eventboxes = []
                                 classedboxes = {}    
                                                             
-        #self.print_planes()                                                    
+        self.print_planes()                                                    
                           
         
     def nms(self):
@@ -378,40 +383,40 @@ class NEATFocus(object):
         
         
         
-        if len(self.interest_event) > 1:
-                zlocations = []
-                scores = []
-                event = self.interest_event[0]
-                iou_current_event_box = self.iou_classedboxes[event][0]
-                zcenter = iou_current_event_box['real_z_event']
+        #if len(self.interest_event) > 1:
+                #zlocations = []
+                #scores = []
+                #event = self.interest_event[0]
+                #iou_current_event_box = self.iou_classedboxes[event][0]
+                #zcenter = iou_current_event_box['real_z_event']
                 
                 
-                score = iou_current_event_box[event]
-                for sec_event in self.interest_event:
+                #score = iou_current_event_box[event]
+                #for sec_event in self.interest_event:
                     
-                     sec_iou_current_event_box = self.iou_classedboxes[sec_event][0]
-                     sec_zcenter = sec_iou_current_event_box['real_z_event']
-                     if event is not sec_event and zcenter == sec_zcenter:
+                     #sec_iou_current_event_box = self.iou_classedboxes[sec_event][0]
+                     #sec_zcenter = sec_iou_current_event_box['real_z_event']
+                     #if event is not sec_event and zcenter == sec_zcenter:
                          
-                              sec_score = sec_iou_current_event_box[sec_event]
-                              score = score + sec_score
+                              #sec_score = sec_iou_current_event_box[sec_event]
+                              #score = score + sec_score
                               
-                zlocations.append(zcenter)
-                scores.append(score/len(self.interest_event))
+                #zlocations.append(zcenter)
+                #scores.append(score/len(self.interest_event))
                 
-                event_count = np.column_stack([zlocations,scores]) 
-                event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
-                event_data = []
-                csvname = self.savedir+ "/"   + (os.path.splitext(os.path.basename(self.imagename))[0])+ "_ComboFocusQuality"
-                writer = csv.writer(open(csvname  +".csv", "a"))
-                filesize = os.stat(csvname + ".csv").st_size
-                if filesize < 1:
-                   writer.writerow(['Z','Score'])
-                for line in event_count:
-                   if line not in event_data:  
-                      event_data.append(line)
-                   writer.writerows(event_data)
-                   event_data = []
+                #event_count = np.column_stack([zlocations,scores]) 
+                #event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
+                #event_data = []
+                #csvname = self.savedir+ "/"   + (os.path.splitext(os.path.basename(self.imagename))[0])+ "_ComboFocusQuality"
+                #writer = csv.writer(open(csvname  +".csv", "a"))
+                #filesize = os.stat(csvname + ".csv").st_size
+                #if filesize < 1:
+                   #writer.writerow(['Z','Score'])
+                #for line in event_count:
+                   #if line not in event_data:  
+                      #event_data.append(line)
+                   #writer.writerows(event_data)
+                   #event_data = []
         
         for (event_name,event_label) in self.key_categories.items():
                    
@@ -425,7 +430,7 @@ class NEATFocus(object):
                                             zcenter = iou_current_event_box['real_z_event']
                                             max_score = iou_current_event_box['max_score']
                                             score = iou_current_event_box[event_name]
-                                            print(event_name, zcenter, score, max_score)           
+                                                   
                                             zlocations.append(zcenter)
                                             scores.append(score)
                                             max_scores.append(max_score)
@@ -448,38 +453,22 @@ class NEATFocus(object):
                                               
     
     def print_planes(self):
-        
-        Csv_path = os.path.join(self.savedir, '*csv')
-        filesCsv = glob.glob(Csv_path)
-        savename = self.savedir+ "/"  + "Stats" + (os.path.splitext(os.path.basename(self.imagename))[0])
-        writer = csv.writer(open(savename  +".csv", "w"))
-        filesize = os.stat(savename + ".csv").st_size
-        if filesize < 1:
-           writer.writerow(['FileName','Z found','Average Score'])
-        filelist = []
-        zlist = []
-        scorelist = []
-        for csvfname in filesCsv:
-                                 Csvname =  os.path.basename(os.path.splitext(csvfname)[0])
-                                 dataset = pd.read_csv(csvfname, skiprows = 1)
-                                 z = dataset[dataset.keys()[0]][1:]
-                                 score = dataset[dataset.keys()[1]][1:]
-                                 try:
-                                     maxscore = np.max(score)
-                                     maxz = z[np.argmax(score)]
-                                     filelist.append(Csvname)
-                                     zlist.append(maxz)
-                                     scorelist.append(maxscore)
-                                 except:
-                                    pass
-        
-        event_count = np.column_stack([filelist,zlist,scorelist]) 
-        event_data = []
-        for line in event_count:
-              event_data.append(line)
-              writer.writerows(event_data)
-        
-        
+        for (event_name,event_label) in self.key_categories.items():
+             if event_label > 0:
+                     csvfname =  self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "_FocusQuality" + ".csv"
+                     dataset = pd.read_csv(csvfname, skiprows = 1)
+                     z = dataset[dataset.keys()[0]][1:]
+                     score = dataset[dataset.keys()[1]][1:]
+                     terminalZ = dataset[dataset.keys()[2]][1:]
+                     subZ = terminalZ[terminalZ > 0.1]
+                     maxscore = np.max(score)
+                     maxz = z[np.argmax(score)]
+                       
+
+                     print('Best Zs'+ (os.path.splitext(os.path.basename(self.imagename))[0]) + 'for'+ event_name + 'at' +  str(maxz))
+                    
+
+
     def draw(self):
           colors = [(0,255,0),(0,0,255),(255,0,0)]
           # fontScale
@@ -511,7 +500,7 @@ class NEATFocus(object):
                                               ycenter = iou_current_event_box['ycenter']
                                               zcenter = iou_current_event_box['real_z_event']
                                               score = iou_current_event_box[event_name]
-                                              if score > 0.8:
+                                              if score > 0.1:
                                                   
                                                  xlocations.append(round(xcenter))
                                                  ylocations.append(round(ycenter))
@@ -537,16 +526,13 @@ class NEATFocus(object):
                                      img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
                                      cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
                                          
-                                     cv2.putText(img, str('%.2f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
+                                     cv2.putText(img, str('%.4f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
                                      if event_label == 1:
                                        self.Colorimage[Z,:,:,1] = img[:,:,0]
                                      else:
                                        self.Colorimage[Z,:,:,2] = img[:,:,0]
 
-          savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
-        
-                                                  
-          imwrite((savename + '.tif' ), self.Colorimage)
+
                     
                     
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
