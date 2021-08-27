@@ -500,7 +500,7 @@ class NEATFocus(object):
                                               ycenter = iou_current_event_box['ycenter']
                                               zcenter = iou_current_event_box['real_z_event']
                                               score = iou_current_event_box[event_name]
-                                              if score > 0.1:
+                                              if score > 0.5:
                                                   
                                                  xlocations.append(round(xcenter))
                                                  ylocations.append(round(ycenter))
