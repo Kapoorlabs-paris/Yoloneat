@@ -766,7 +766,6 @@ def resnet_3D_v2(input_shape, categories,box_vector, stage_number = 3, last_conv
     
     inputs = img_input
    
-     
     # Create model.
     model = models.Model(inputs, outputs)
     

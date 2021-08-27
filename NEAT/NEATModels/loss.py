@@ -215,7 +215,7 @@ def calc_loss_class(true_box_class, pred_box_class, entropy):
 def dynamic_yolo_loss(categories, grid_h, grid_w, grid_t, nboxes, box_vector, entropy, yolo_v0, yolo_v1, yolo_v2):
     
     def loss(y_true, y_pred):    
-
+        print(entropy)
         event_grid = get_event_grid(grid_h, grid_w, grid_t, nboxes)
         true_box_class, true_box_xyt, true_box_wh, true_box_conf, true_box_angle = extract_ground_event_truth(y_true, categories, grid_h, grid_w,grid_t, event_grid, nboxes, box_vector, yolo_v0, yolo_v1, yolo_v2)
        

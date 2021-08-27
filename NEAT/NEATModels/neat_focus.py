@@ -456,13 +456,13 @@ class NEATFocus(object):
         for (event_name,event_label) in self.key_categories.items():
              if event_label > 0:
                      csvfname =  self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "_FocusQuality" + ".csv"
-                     dataset = pd.read_csv(csvfname, skiprows = 1)
+                     dataset = pd.read_csv(csvfname, skiprows = 0)
                      z = dataset[dataset.keys()[0]][1:]
                      score = dataset[dataset.keys()[1]][1:]
                      terminalZ = dataset[dataset.keys()[2]][1:]
                      subZ = terminalZ[terminalZ > 0.1]
                      maxscore = np.max(score)
-                     maxz = z[np.argmax(score)]
+                     maxz = z[np.argmax(score)] + 2
                        
 
                      print('Best Zs'+ (os.path.splitext(os.path.basename(self.imagename))[0]) + 'for'+ event_name + 'at' +  str(maxz))
