@@ -270,15 +270,17 @@ class NEATFocus(object):
         self.imagename = imagename
         self.image = imread(imagename)
         self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
-        
+        self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2]], dtype = 'uint8')
         self.Colorimage[:,:,:,0] = self.image
+        
+        
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.interest_event = interest_event
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
-        
+        self.maskboxes = {}
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate","lr").encode()
@@ -296,18 +298,29 @@ class NEATFocus(object):
         eventboxes = []
         classedboxes = {}    
         print('Detecting focus planes in', os.path.basename(os.path.splitext(self.imagename)[0]))
+        
         for inputz in tqdm(range(0, self.image.shape[0])):
                     if inputz <= self.image.shape[0] - self.imagez:
                                 
                                 eventboxes = []
+                                
+                                
+                                
+                                
                                 if inputz == 0 or inputz >= self.image.shape[0] -self.imagez - 1:
                                         savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
 
 
                                         imwrite((savename + '.tif' ), self.Colorimage)
+                                        
+                                        savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Mask'                       
+
+
+                                        imwrite((savename + '.tif' ), self.Maskimage)
+                                        
                                 smallimage = CreateVolume(self.image, self.imagez, inputz,self.imagex, self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
-                                
+                                self.current_Zpoints = [(i,j,k) for i in range(smallimage.shape[0]) for j in range(smallimage.shape[1]) for k in range(smallimage.shape[2]) ]
                                 # Cut off the region for training movie creation
                                 #Break image into tiles if neccessary
                                 predictions, allx, ally = self.predict_main(smallimage)
@@ -481,6 +494,7 @@ class NEATFocus(object):
           thickness = 2  
           for (event_name,event_label) in self.key_categories.items():
                    
+                  event_maskboxes = []
                   if event_label > 0:
                                   
                                    xlocations = []
@@ -517,6 +531,11 @@ class NEATFocus(object):
                                      startlocation = (int(xlocations[j] - heights[j]//2), int(ylocations[j]-widths[j]//2))
                                      endlocation =  (int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2))
                                      Z = int(zlocations[j])  
+                                     
+                                     event_maksboxes.append((Z, int(xlocations[j] - heights[j]//2), int(ylocations[j]-widths[j]//2),int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2)  ))
+                                     
+                                     
+                                     
                                      if event_label == 1:                            
                                        image = self.Colorimage[Z,:,:,1]
                                        color = (0,255,0)
@@ -533,8 +552,46 @@ class NEATFocus(object):
                                        self.Colorimage[Z,:,:,2] = img[:,:,0]
 
 
+                  self.maskboxes[event_name] = [event_maskboxes]
+
                     
-                    
+    
+    def createMask(self):
+
+        for (event_name,event_label) in self.key_categories.items():
+            if event_label > 0:
+                       #Get all events
+                       
+                       mask_event_box = self.maskboxes[event_name][0]  
+                       for zpoint in self.current_Zpoints:
+                           
+                             inside = [isInside(self, box, zpoint) for mask_event_box]
+                             
+                             if any(inside):
+                                 
+                                 self.Maskimage[zpoint[0,zpoint[1],zpoint[2]]] = 1
+    
+    def isInside(self, box, centroid):
+        
+        ndim = len(centroid)
+        inside = False
+        Condition = [Conditioncheck(centroid, box, p, ndim) for p in range(0,ndim)]
+        inside = all(Condition)
+    
+        return inside
+        
+    
+    def Conditioncheck(centroid, box, p, ndim):
+    
+      condition = False
+    
+      if centroid[p] >=  box[p]  and centroid[p] <=  box[p + ndim]:
+          
+           condition = True
+           
+      return condition     
+    
+    
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
          
          
