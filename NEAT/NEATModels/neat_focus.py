@@ -565,7 +565,7 @@ class NEATFocus(object):
                        mask_event_box = self.maskboxes[event_name][0]  
                        for zpoint in self.current_Zpoints:
                            
-                             inside = [isInside(self, box, zpoint) for mask_event_box]
+                             inside = [isInside(self, box, zpoint) for box in  mask_event_box]
                              
                              if any(inside):
                                  if event_label == 1:
