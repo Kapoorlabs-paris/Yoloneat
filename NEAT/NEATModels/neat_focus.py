@@ -270,9 +270,9 @@ class NEATFocus(object):
         self.imagename = imagename
         self.image = imread(imagename)
         self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
-        self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2]], dtype = 'uint8')
+        self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2]],3 dtype = 'uint8')
         self.Colorimage[:,:,:,0] = self.image
-        
+        self.Maskimage[:,:,:,0] = self.image
         
         self.savedir = savedir
         self.n_tiles = n_tiles
@@ -568,8 +568,10 @@ class NEATFocus(object):
                              inside = [isInside(self, box, zpoint) for mask_event_box]
                              
                              if any(inside):
-                                 
-                                 self.Maskimage[zpoint[0,zpoint[1],zpoint[2]]] = 1
+                                 if event_label == 1:
+                                     self.Maskimage[zpoint[0,zpoint[1],zpoint[2]],1] = 1
+                                 else:
+                                     self.Maskimage[zpoint[0,zpoint[1],zpoint[2]],2] = 1
     
     def isInside(self, box, centroid):
         
