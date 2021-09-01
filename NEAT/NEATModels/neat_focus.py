@@ -11,6 +11,7 @@ from tqdm import tqdm
 from NEATModels import nets
 from NEATModels.nets import Concat
 from NEATModels.loss import dynamic_yolo_loss
+from scipy.ndimage.morphology import binary_fill_holes
 from keras import backend as K
 #from IPython.display import clear_output
 from keras import optimizers
@@ -270,7 +271,7 @@ class NEATFocus(object):
         self.imagename = imagename
         self.image = imread(imagename)
         self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
-        self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2],3], dtype = 'uint8')
+        self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2],3], dtype = 'uint16')
         self.Colorimage[:,:,:,0] = self.image
         self.Maskimage[:,:,:,0] = self.image
         
@@ -306,7 +307,7 @@ class NEATFocus(object):
                                 
                                 
                                 
-                                
+                                self.currentZ = inputz
                                 if inputz == 0 or inputz >= self.image.shape[0] -self.imagez - 1:
                                         savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
 
@@ -320,7 +321,7 @@ class NEATFocus(object):
                                         
                                 smallimage = CreateVolume(self.image, self.imagez, inputz,self.imagex, self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
-                                self.current_Zpoints = [(i,j,k) for i in range(smallimage.shape[0]) for j in range(smallimage.shape[1]) for k in range(smallimage.shape[2]) ]
+                                #self.current_Zpoints = [(j,k) for j in range(smallimage.shape[1]) for k in range(smallimage.shape[2]) ]
                                 # Cut off the region for training movie creation
                                 #Break image into tiles if neccessary
                                 predictions, allx, ally = self.predict_main(smallimage)
@@ -356,6 +357,7 @@ class NEATFocus(object):
                                 self.nms()
                                 self.to_csv()
                                 self.draw()
+                                #self.createMask()
                                 eventboxes = []
                                 classedboxes = {}    
                                                             
@@ -532,24 +534,30 @@ class NEATFocus(object):
                                      endlocation =  (int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2))
                                      Z = int(zlocations[j])  
                                      
-                                     event_maksboxes.append((Z, int(xlocations[j] - heights[j]//2), int(ylocations[j]-widths[j]//2),int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2)  ))
+                                     event_maskboxes.append(( int(ylocations[j] - widths[j]//2), int(xlocations[j]-heights[j]//2),int(ylocations[j] + widths[j]//2), int(ylocations[j]+ heights[j]//2)  ))
                                      
                                      
                                      
                                      if event_label == 1:                            
                                        image = self.Colorimage[Z,:,:,1]
+                                       image_mask = self.Maskimage[Z,:,:,1]
                                        color = (0,255,0)
                                      else:
                                        color = (0,0,255)
                                        image = self.Colorimage[Z,:,:,2]
-                                     img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
+                                       image_mask = self.Maskimage[Z,:,:,2]
+                                     img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                                     img_mask = cv2.cvtColor(image_mask, cv2.COLOR_BGR2RGB)     
                                      cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
-                                         
+                                     cv2.rectangle(img_mask, startlocation, endlocation, textcolor, -1)
+    
                                      cv2.putText(img, str('%.4f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
                                      if event_label == 1:
                                        self.Colorimage[Z,:,:,1] = img[:,:,0]
+                                       self.Maskimage[Z,:,:,1] = binary_fill_holes(img_mask[:,:,0]) 
                                      else:
                                        self.Colorimage[Z,:,:,2] = img[:,:,0]
+                                       self.Maskimage[Z,:,:,2] = binary_fill_holes(img_mask[:,:,0])
 
 
                   self.maskboxes[event_name] = [event_maskboxes]
@@ -565,25 +573,28 @@ class NEATFocus(object):
                        mask_event_box = self.maskboxes[event_name][0]  
                        for zpoint in self.current_Zpoints:
                            
-                             inside = [isInside(self, box, zpoint) for box in  mask_event_box]
+                             inside = [self.isInside(box, zpoint) for box in  mask_event_box]
                              
                              if any(inside):
                                  if event_label == 1:
-                                     self.Maskimage[zpoint[0,zpoint[1],zpoint[2]],1] = 1
+                                                              
+                                     self.Maskimage[self.currentZ + self.imagez//2,zpoint[0],zpoint[1],1] = 1
                                  else:
-                                     self.Maskimage[zpoint[0,zpoint[1],zpoint[2]],2] = 1
+                                     
+                                     self.Maskimage[self.currentZ + self.imagez//2,zpoint[0],zpoint[1],2] = 1
     
     def isInside(self, box, centroid):
         
+       
         ndim = len(centroid)
         inside = False
-        Condition = [Conditioncheck(centroid, box, p, ndim) for p in range(0,ndim)]
+        Condition = [self.Conditioncheck(centroid, box, p, ndim) for p in range(0,ndim)]
         inside = all(Condition)
     
         return inside
         
     
-    def Conditioncheck(centroid, box, p, ndim):
+    def Conditioncheck(self, centroid, box, p, ndim):
     
       condition = False
     
