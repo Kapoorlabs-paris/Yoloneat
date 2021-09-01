@@ -270,7 +270,7 @@ class NEATFocus(object):
         self.imagename = imagename
         self.image = imread(imagename)
         self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
-        self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2]],3 dtype = 'uint8')
+        self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2],3] dtype = 'uint8')
         self.Colorimage[:,:,:,0] = self.image
         self.Maskimage[:,:,:,0] = self.image
         
