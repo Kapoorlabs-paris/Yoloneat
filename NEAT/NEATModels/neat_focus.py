@@ -477,11 +477,14 @@ class NEATFocus(object):
                      terminalZ = dataset[dataset.keys()[2]][1:]
                      subZ = terminalZ[terminalZ > 0.1]
                      maxscore = np.max(score)
-                     maxz = z[np.argmax(score)] + 2
+                     try: 
+                         maxz = z[np.argmax(score)] + 2
                        
 
-                     print('Best Zs'+ (os.path.splitext(os.path.basename(self.imagename))[0]) + 'for'+ event_name + 'at' +  str(maxz))
-                    
+                         print('Best Zs'+ (os.path.splitext(os.path.basename(self.imagename))[0]) + 'for'+ event_name + 'at' +  str(maxz))
+                     except:
+
+                           pass
 
 
     def draw(self):
