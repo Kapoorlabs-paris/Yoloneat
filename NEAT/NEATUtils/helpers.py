@@ -821,7 +821,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
         i = idxs[last]
         pick.append(i)
         suppress = [last]
-
+        count = 0
         # loop over all indexes in the indexes list
         for pos in range(0, last):
             # grab the current index
@@ -833,7 +833,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
                 
-                    
+                        count = count + 1   
                         boxAscore = boxes[i][event_name]
                         boxAXstart = boxes[i]['xstart']
                         boxAYstart = boxes[i]['ystart']
