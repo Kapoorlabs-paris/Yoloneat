@@ -13,7 +13,7 @@ from NEATModels import NEATFocus, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="3"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -21,11 +21,11 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/foconeatimages/Test/'
+imagedir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/foconeatimages/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Focusoneatmodels/'
-savedir= '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/foconeatimages/Predictionsd65s5f16res/'
+savedir= '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/foconeatimages/Predictionsd29s5f16res/'
 
-model_name = 'cadhistoned65s5f16res'
+model_name = 'cadhistoned29s5f16res'
 focus_categories_json = model_dir + 'FocusCategories.json'
 catconfig = load_json(focus_categories_json)
 focus_cord_json = model_dir + 'FocusCord.json'
