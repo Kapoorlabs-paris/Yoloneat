@@ -275,7 +275,7 @@ class NEATStatic(object):
         
         self.imagename = imagename
         self.image = imread(imagename)
-        self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 4], dtype = 'uint16')
+        self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 6], dtype = 'uint16')
         self.Colorimage[:,:,:,0] = self.image
         self.savedir = savedir
         self.n_tiles = n_tiles
@@ -301,7 +301,7 @@ class NEATStatic(object):
         if RGB == False:
                 for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0]:
-                                if inputtime%10==0 or inputtime >= self.image.shape[0] - 1:
+                                if inputtime >= self.image.shape[0] - 1:
 
                                                                               
                                       imwrite((savename + '.tif' ), self.Colorimage)
@@ -511,7 +511,13 @@ class NEATStatic(object):
                                                    image = self.Colorimage[Z,:,:,2]
                                                  if event_label == 3:
                                                    color = (255,0,0)
-                                                   image = self.Colorimage[Z,:,:,3]  
+                                                   image = self.Colorimage[Z,:,:,3]
+                                                 if event_label == 4:
+                                                   color = (255,255,0)
+                                                   image = self.Colorimage[Z,:,:,4] 
+                                                 if event_label == 5:
+                                                   color = (255,0,255)
+                                                   image = self.Colorimage[Z,:,:,5] 
                                                    
                                                  img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
                                                  cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
@@ -523,7 +529,10 @@ class NEATStatic(object):
                                                    self.Colorimage[Z,:,:,2] = img[:,:,0]
                                                  if event_label == 3:
                                                    self.Colorimage[Z,:,:,3] = img[:,:,0]  
-
+                                                 if event_label == 4:
+                                                   self.Colorimage[Z,:,:,4] = img[:,:,0]
+                                                 if event_label == 5:
+                                                   self.Colorimage[Z,:,:,5] = img[:,:,0]  
 
                               
          
