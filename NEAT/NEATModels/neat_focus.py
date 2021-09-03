@@ -299,7 +299,8 @@ class NEATFocus(object):
         eventboxes = []
         classedboxes = {}    
         print('Detecting focus planes in', os.path.basename(os.path.splitext(self.imagename)[0]))
-        
+        #self.image = normalizeFloatZeroOne(self.image,1,99.8)
+
         for inputz in tqdm(range(0, self.image.shape[0])):
                     if inputz <= self.image.shape[0] - self.imagez:
                                 

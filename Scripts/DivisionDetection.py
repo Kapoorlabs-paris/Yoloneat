@@ -24,7 +24,8 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/'
+imagedir = '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/'
+
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
 savedir= '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest/NineFrameFastAccurated47/'
 markerdir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/NEATTest//Markers/'

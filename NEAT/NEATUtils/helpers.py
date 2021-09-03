@@ -787,7 +787,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
 
 
     
-    thresh = 5
+    
     if len(boxes) == 0:
         return []
 
@@ -833,7 +833,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
                 
-                        count = count + 1   
+                       
                         boxAscore = boxes[i][event_name]
                         boxAXstart = boxes[i]['xstart']
                         boxAYstart = boxes[i]['ystart']
@@ -863,8 +863,10 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
                         meanboxheight = (boxAheight + boxBheight)/2
                         meanboxwidth = (boxAwidth + boxBwidth)/2
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2
-                        if count >= thresh:
-                            newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_z_event':meanboxrealz, 
+                       
+                        
+                            
+                        newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_z_event':meanboxrealz, 
                                   'height':meanboxheight, 'width':meanboxwidth , 'confidence':meanboxconfidence,  event_name:meanboxscore}
                 
         

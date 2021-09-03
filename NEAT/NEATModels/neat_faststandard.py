@@ -307,6 +307,7 @@ class NEATDynamicSegFree(object):
         self.imagename = imagename
         self.image = imread(imagename)
         self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
+        print(self.Colorimage.shape)
         self.Colorimage[:,:,:,0] = self.image
         self.savedir = savedir
         self.n_tiles = n_tiles
@@ -335,7 +336,7 @@ class NEATDynamicSegFree(object):
         
 
         savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
-        self.Colorimage = np.zeros_like(self.image)
+        
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
@@ -510,17 +511,18 @@ class NEATDynamicSegFree(object):
                                       for j in range(len(xlocations)):
                                                  startlocation = (int(xlocations[j] - radius[j]//2), int(ylocations[j]-radius[j]//2))
                                                  endlocation =  (int(xlocations[j] + radius[j]//2), int(ylocations[j]+ radius[j]//2))
-                                                 T = int(tlocations[j])  
+                                                 Z = int(tlocations[j])
+                                                 print(self.Colorimage.shape)  
                                                  image = self.Colorimage[Z,:,:,1]
                                                  color = (0,255,0)
-                                                 if score[j] >= 1.0 - 1.0E-7:
+                                                 if scores[j] >= 1.0 - 1.0E-7:
                                                      color = (0,0,255)
                                                      image = self.Colorimage[Z,:,:,2]
                                                  img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
                                                  cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
                                                      
                                                  cv2.putText(img, str('%.2f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
-                                                 if score[j] >= 1.0 - 1.0E-7:
+                                                 if scores[j] >= 1.0 - 1.0E-7:
                                                    self.Colorimage[Z,:,:,2] = img[:,:,0]
                                                  else:
                                                    self.Colorimage[Z,:,:,1] = img[:,:,0]

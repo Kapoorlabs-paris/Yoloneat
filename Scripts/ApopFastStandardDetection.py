@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -25,14 +25,14 @@ from pathlib import Path
 
 
 imagedir =  '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/EasyTest/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/EasyTest/SaveDynamicd38resf32/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/ApoptosisBinning1V1Models/'
+savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/EasyTest/SaveApoptosisDynamicd38resf32/'
 
-model_name = 'wtdivd38resf32'
+model_name = 'wtapoptosisd29s4f16'
 
-division_categories_json = model_dir + 'DivisionCategories.json'
+division_categories_json = model_dir + 'ApoptosisCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'DivisionCord.json'
+division_cord_json = model_dir + 'ApoptosisCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
