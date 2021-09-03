@@ -509,8 +509,8 @@ class NEATDynamicSegFree(object):
                                       # Line thickness of 2 px
                                       thickness = 2
                                       for j in range(len(xlocations)):
-                                                 startlocation = (int(xlocations[j] - radius[j]//2), int(ylocations[j]-radius[j]//2))
-                                                 endlocation =  (int(xlocations[j] + radius[j]//2), int(ylocations[j]+ radius[j]//2))
+                                                 startlocation = (int(xlocations[j] - radius[j]), int(ylocations[j]-radius[j]))
+                                                 endlocation =  (int(xlocations[j] + radius[j]), int(ylocations[j]+ radius[j]))
                                                  Z = int(tlocations[j])
                                                  
                                                  image = self.Colorimage[Z,:,:,1]
@@ -521,7 +521,7 @@ class NEATDynamicSegFree(object):
                                                  img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
                                                  cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
                                                      
-                                                 cv2.putText(img, str('%.2f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
+                                                 cv2.putText(img, str('%.4f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
                                                  if scores[j] >= 1.0 - 1.0E-7:
                                                    self.Colorimage[Z,:,:,2] = img[:,:,0]
                                                  else:
