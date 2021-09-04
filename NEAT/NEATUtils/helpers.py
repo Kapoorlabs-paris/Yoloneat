@@ -588,7 +588,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
 
 
     
-
+    thresh = 5
     if len(boxes) == 0:
         return []
 
@@ -621,7 +621,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
         i = idxs[last]
         pick.append(i)
         suppress = [last]
-
+        count = 0
         # loop over all indexes in the indexes list
         for pos in range(0, last):
             # grab the current index
@@ -632,8 +632,9 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
             
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
-                
-                suppress.append(pos)
+                count = count + 1
+                if count >=thresh:            
+                     suppress.append(pos)
                                             
         # delete all indexes from the index list that are in the suppression list
         idxs = np.delete(idxs, suppress)
@@ -645,7 +646,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
 
     
-    thresh = 10
+    thresh = 5
     if len(boxes) == 0:
         return []
 
