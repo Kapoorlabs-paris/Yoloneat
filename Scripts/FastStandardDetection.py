@@ -37,8 +37,8 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (8,8)
-event_threshold = 0.9
-iou_threshold = 0.3
+event_threshold = 0.999
+iou_threshold = 0.1
 yolo_v2 = False
 
 

@@ -352,7 +352,7 @@ class NEATDynamic(object):
         f.close()
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
          
-        self.first_pass_predict()
+        #self.first_pass_predict()
         self.second_pass_predict()                        
                    
           
@@ -414,12 +414,12 @@ class NEATDynamic(object):
                                             self.eventboxes =  eventboxes
                                             #nms over time
                                            
-                                            if count%(self.imaget//2) == 0:
-                                                    self.nms()
-                                                    self.to_csv()
-                                                    eventboxes = []
-                                                    classedboxes = {}    
-                                                    count = 0
+                                            
+                                            self.nms()
+                                            self.to_csv()
+                                            eventboxes = []
+                                            classedboxes = {}    
+                                            count = 0
                     
             
     
