@@ -645,7 +645,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
 
     
-    thresh = 5
+    thresh = 10
     if len(boxes) == 0:
         return []
 
@@ -693,34 +693,34 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                 count = count + 1
                 if event_type == 'static':
                         boxAscore = boxes[i][event_name]
-                        boxAXstart = boxAscore * boxes[i]['xstart']
-                        boxAYstart = boxAscore * boxes[i]['ystart']
-                        boxAXcenter = boxAscore * boxes[i]['xcenter']
-                        boxAYcenter = boxAscore * boxes[i]['ycenter']
+                        boxAXstart =  boxes[i]['xstart']
+                        boxAYstart =  boxes[i]['ystart']
+                        boxAXcenter =  boxes[i]['xcenter']
+                        boxAYcenter =  boxes[i]['ycenter']
                         boxArealtime = boxes[i]['real_time_event']
                         boxAboxtime = boxes[i]['box_time_event']
-                        boxAheight = boxAscore * boxes[i]['height']
-                        boxAwidth = boxAscore * boxes[i]['width']
-                        boxAconfidence = boxAscore * boxes[i]['confidence']
+                        boxAheight =  boxes[i]['height']
+                        boxAwidth =  boxes[i]['width']
+                        boxAconfidence =  boxes[i]['confidence']
                        
                         boxBscore = boxes[j][event_name]
-                        boxBXstart = boxBscore * boxes[j]['xstart']
-                        boxBYstart = boxBscore * boxes[j]['ystart']
-                        boxBXcenter = boxBscore * boxes[j]['xcenter']
-                        boxBYcenter = boxBscore * boxes[j]['ycenter']
+                        boxBXstart =  boxes[j]['xstart']
+                        boxBYstart =  boxes[j]['ystart']
+                        boxBXcenter = boxes[j]['xcenter']
+                        boxBYcenter = boxes[j]['ycenter']
                         boxBrealtime = boxes[j]['real_time_event']
                         boxBboxtime = boxes[j]['box_time_event']
-                        boxBheight = boxBscore * boxes[j]['height']
-                        boxBwidth = boxBscore * boxes[j]['width']
-                        boxBconfidence = boxBscore * boxes[j]['confidence']
+                        boxBheight =  boxes[j]['height']
+                        boxBwidth =  boxes[j]['width']
+                        boxBconfidence =  boxes[j]['confidence']
                 
                         meanboxscore = (boxAscore + boxBscore)/2
                         meanboxXstart = (boxAXstart + boxBXstart)/2
                         meanboxYstart = (boxAYstart + boxBYstart)/2
                         meanboxXcenter = (boxAXcenter + boxBXcenter)/2
                         meanboxYcenter = (boxAYcenter + boxBYcenter)/2
-                        meanboxrealtime = min(boxArealtime, boxBrealtime)
-                        meanboxtime = min(boxAboxtime, boxBboxtime)
+                        meanboxrealtime = int(min(boxArealtime, boxBrealtime))
+                        meanboxtime = int(min(boxAboxtime, boxBboxtime))
                         meanboxheight = (boxAheight + boxBheight)/2
                         meanboxwidth = (boxAwidth + boxBwidth)/2
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2
@@ -732,38 +732,38 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                 if event_type == 'dynamic':
                     
                         boxAscore = boxes[i][event_name]
-                        boxAXstart = boxAscore * boxes[i]['xstart']
-                        boxAYstart = boxAscore * boxes[i]['ystart']
-                        boxAXcenter = boxAscore * boxes[i]['xcenter']
-                        boxAYcenter = boxAscore * boxes[i]['ycenter']
+                        boxAXstart =  boxes[i]['xstart']
+                        boxAYstart =  boxes[i]['ystart']
+                        boxAXcenter =  boxes[i]['xcenter']
+                        boxAYcenter =  boxes[i]['ycenter']
                         boxArealtime =  boxes[i]['real_time_event']
                         boxAboxtime =  boxes[i]['box_time_event']
-                        boxAheight = boxAscore * boxes[i]['height']
-                        boxAwidth = boxAscore * boxes[i]['width']
-                        boxAconfidence = boxAscore * boxes[i]['confidence']
-                        boxArealangle = boxAscore * boxes[i]['realangle']
-                        boxArawangle = boxAscore * boxes[i]['rawangle']
+                        boxAheight =  boxes[i]['height']
+                        boxAwidth =  boxes[i]['width']
+                        boxAconfidence = boxes[i]['confidence']
+                        boxArealangle =  boxes[i]['realangle']
+                        boxArawangle =  boxes[i]['rawangle']
                         
                         boxBscore = boxes[j][event_name]
-                        boxBXstart = boxBscore * boxes[j]['xstart']
-                        boxBYstart = boxBscore * boxes[j]['ystart']
-                        boxBXcenter = boxBscore * boxes[j]['xcenter']
-                        boxBYcenter = boxBscore * boxes[j]['ycenter']
+                        boxBXstart =  boxes[j]['xstart']
+                        boxBYstart =  boxes[j]['ystart']
+                        boxBXcenter = boxes[j]['xcenter']
+                        boxBYcenter =  boxes[j]['ycenter']
                         boxBrealtime = boxes[j]['real_time_event']
                         boxBboxtime = boxes[j]['box_time_event']
-                        boxBheight = boxBscore * boxes[j]['height']
-                        boxBwidth = boxBscore * boxes[j]['width']
-                        boxBconfidence = boxBscore * boxes[j]['confidence']
-                        boxBrealangle = boxBscore * boxes[j]['realangle']
-                        boxBrawangle = boxBscore * boxes[j]['rawangle']
+                        boxBheight =  boxes[j]['height']
+                        boxBwidth =  boxes[j]['width']
+                        boxBconfidence =  boxes[j]['confidence']
+                        boxBrealangle =  boxes[j]['realangle']
+                        boxBrawangle =  boxes[j]['rawangle']
                 
                         meanboxscore = (boxAscore + boxBscore)/2
                         meanboxXstart = (boxAXstart + boxBXstart)/2
                         meanboxYstart = (boxAYstart + boxBYstart)/2
                         meanboxXcenter = (boxAXcenter + boxBXcenter)/2
                         meanboxYcenter = (boxAYcenter + boxBYcenter)/2
-                        meanboxrealtime = min(boxArealtime, boxBrealtime)
-                        meanboxtime = min(boxAboxtime, boxBboxtime)
+                        meanboxrealtime = int(min(boxArealtime, boxBrealtime))
+                        meanboxtime = int(min(boxAboxtime, boxBboxtime))
                         meanboxheight = (boxAheight + boxBheight)/2
                         meanboxwidth = (boxAwidth + boxBwidth)/2
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2
@@ -852,7 +852,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
                         boxBrealz = boxes[j]['real_z_event']
                         boxBheight = boxes[j]['height']
                         boxBwidth = boxes[j]['width']
-                        boxBconfidence = boxBscore * boxes[j]['confidence']
+                        boxBconfidence =  boxes[j]['confidence']
                 
                         meanboxscore = (boxAscore + boxBscore)/2
                         meanboxXstart = (boxAXstart + boxBXstart)/2
@@ -1005,7 +1005,7 @@ def focyoloprediction(sy, sx, z_prediction, stride, inputz, config, key_categori
                                       Classybox = focpredictionloop(j, k, sx, sy, nboxes, stride, z_prediction, config, key_categories,key_cord, inputz)
                                       #Append the box and the maximum likelehood detected class
                                       if Classybox is not None:
-                                        if Classybox['confidence'] > 0.1:
+                                        
                                             LocationBoxes.append(Classybox)         
                              return LocationBoxes
                             
@@ -1018,7 +1018,7 @@ def nonfcn_yoloprediction(sy, sx, time_prediction, stride, inputtime, config, ke
                                 Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories,key_cord, inputtime, mode, event_type, marker_tree)
                                 #Append the box and the maximum likelehood detected class
                                 if Classybox is not None:
-                                        if Classybox['confidence'] > 0.5:
+                                       
                                             LocationBoxes.append(Classybox)         
                                 return LocationBoxes                         
                             

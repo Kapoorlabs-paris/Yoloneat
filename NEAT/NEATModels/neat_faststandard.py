@@ -459,14 +459,14 @@ class NEATDynamicSegFree(object):
                                                       score = iou_current_event_box[event_name]
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
-                                                      
-                                                      xlocations.append(xcenter)
-                                                      ylocations.append(ycenter)
-                                                      scores.append(score)
-                                                      confidences.append(confidence)
-                                                      tlocations.append(tcenter)
-                                                      radiuses.append(radius)
-                                                      angles.append(angle)
+                                                      if xcenter < self.image.shape[2] -self.imagex or ycenter < self.image.shape[1] -self.imagey:                                                  
+                                                           xlocations.append(xcenter) 
+                                                           ylocations.append(ycenter)
+                                                           scores.append(score)
+                                                           confidences.append(confidence)
+                                                           tlocations.append(tcenter)
+                                                           radiuses.append(radius)
+                                                           angles.append(angle)
                                                                
                                             
                                               event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
@@ -515,14 +515,14 @@ class NEATDynamicSegFree(object):
                                                  
                                                  image = self.Colorimage[Z,:,:,1]
                                                  color = (0,255,0)
-                                                 if scores[j] >= 1.0 - 1.0E-7:
+                                                 if scores[j] >= 1.0 - 1.0E-5:
                                                      color = (0,0,255)
                                                      image = self.Colorimage[Z,:,:,2]
                                                  img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
                                                  cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
                                                      
                                                  cv2.putText(img, str('%.4f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
-                                                 if scores[j] >= 1.0 - 1.0E-7:
+                                                 if scores[j] >= 1.0 - 1.0E-5:
                                                    self.Colorimage[Z,:,:,2] = img[:,:,0]
                                                  else:
                                                    self.Colorimage[Z,:,:,1] = img[:,:,0]
@@ -634,9 +634,9 @@ class NEATDynamicSegFree(object):
                           pairs = []  
                           #row is y, col is x
                           
-                          while rowstart < sliceregion.shape[1] -patchy:
+                          while rowstart < sliceregion.shape[1]:
                              colstart = 0
-                             while colstart < sliceregion.shape[2] -patchx:
+                             while colstart < sliceregion.shape[2]:
                                 
                                  # Start iterating over the tile with jumps = stride of the fully convolutional network.
                                  pairs.append([rowstart, colstart])

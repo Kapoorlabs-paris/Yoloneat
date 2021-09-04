@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -24,9 +24,9 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/EasyTest/'
+imagedir =  '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/EasyTest/SaveDynamicd29resf32/'
+savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/SaveDynamicd29resf32/'
 
 model_name = 'wtdivd29resf32'
 
@@ -37,7 +37,7 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (8,8)
-event_threshold = 0.999
+event_threshold = 0.8
 iou_threshold = 0.1
 yolo_v2 = False
 

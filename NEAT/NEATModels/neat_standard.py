@@ -508,14 +508,15 @@ class NEATDynamicSeg(object):
                                                       score = iou_current_event_box[event_name]
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
-                                                     
-                                                      xlocations.append(xcenter)
-                                                      ylocations.append(ycenter)
-                                                      scores.append(score)
-                                                      confidences.append(confidence)
-                                                      tlocations.append(tcenter)
-                                                      radiuses.append(radius)
-                                                      angles.append(angle)
+                                                      if xcenter < self.image.shape[2] -self.imagex or ycenter < self.image.shape[1] -self.imagey:
+       
+                                                           xlocations.append(xcenter)
+                                                           ylocations.append(ycenter)
+                                                           scores.append(score)
+                                                           confidences.append(confidence)
+                                                           tlocations.append(tcenter)
+                                                           radiuses.append(radius)
+                                                           angles.append(angle)
                                                                
                                             
                                               event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
