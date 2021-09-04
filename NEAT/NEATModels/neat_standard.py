@@ -426,12 +426,12 @@ class NEATDynamicSeg(object):
                                 self.classedboxes = classedboxes    
                                 self.eventboxes =  eventboxes
                                 #nms over time
-                               
-                                self.nms()
-                                self.to_csv()
-                                eventboxes = []
-                                classedboxes = {}    
-                                count = 0
+                                if inputtime%(self.imaget//2) == 0:                             
+                                     self.nms()
+                                     self.to_csv()
+                                     eventboxes = []
+                                     classedboxes = {}    
+                                     count = 0
                                                             
                                                             
                           
