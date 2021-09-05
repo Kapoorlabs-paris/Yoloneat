@@ -618,7 +618,139 @@ class NEATDynamic(object):
         self.viewer.window.add_dock_widget(eventidbox, name="Event", area='left')
         self.viewer.window.add_dock_widget(imageidbox, name="Image", area='left')
 
+    def overlaptiles(self, sliceregion):
 
+        if self.n_tiles == (1, 1):
+            patch = []
+            rowout = []
+            column = []
+            patchx = sliceregion.shape[2] // self.n_tiles[0]
+            patchy = sliceregion.shape[1] // self.n_tiles[1]
+            patchshape = (patchy, patchx)
+            smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, [0, 0])
+            patch.append(smallpatch)
+            rowout.append(smallrowout)
+            column.append(smallcolumn)
+
+        else:
+            patchx = sliceregion.shape[2] // self.n_tiles[0]
+            patchy = sliceregion.shape[1] // self.n_tiles[1]
+
+            if patchx > self.imagex and patchy > self.imagey:
+                if self.overlap_percent > 1 or self.overlap_percent < 0:
+                    self.overlap_percent = 0.8
+
+                jumpx = int(self.overlap_percent * patchx)
+                jumpy = int(self.overlap_percent * patchy)
+
+                patchshape = (patchy, patchx)
+                rowstart = 0;
+                colstart = 0
+                pairs = []
+                # row is y, col is x
+
+                while rowstart < sliceregion.shape[1]:
+                    colstart = 0
+                    while colstart < sliceregion.shape[2]:
+                        # Start iterating over the tile with jumps = stride of the fully convolutional network.
+                        pairs.append([rowstart, colstart])
+                        colstart += jumpx
+                    rowstart += jumpy
+
+                    # Include the last patch
+                rowstart = sliceregion.shape[1] - patchy
+                colstart = 0
+                while colstart < sliceregion.shape[2] - patchx:
+                    pairs.append([rowstart, colstart])
+                    colstart += jumpx
+                rowstart = 0
+                colstart = sliceregion.shape[2] - patchx
+                while rowstart < sliceregion.shape[1] - patchy:
+                    pairs.append([rowstart, colstart])
+                    rowstart += jumpy
+
+                if sliceregion.shape[1] >= self.imagey and sliceregion.shape[2] >= self.imagex:
+
+                    patch = []
+                    rowout = []
+                    column = []
+                    for pair in pairs:
+                        smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, pair)
+                        if smallpatch.shape[1] >= self.imagey and smallpatch.shape[2] >= self.imagex:
+                            patch.append(smallpatch)
+                            rowout.append(smallrowout)
+                            column.append(smallcolumn)
+
+            else:
+
+                patch = []
+                rowout = []
+                column = []
+                patchx = sliceregion.shape[2] // self.n_tiles[0]
+                patchy = sliceregion.shape[1] // self.n_tiles[1]
+                patchshape = (patchy, patchx)
+                smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, [0, 0])
+                patch.append(smallpatch)
+                rowout.append(smallrowout)
+                column.append(smallcolumn)
+        self.patch = patch
+        self.sy = rowout
+        self.sx = column
+
+    def chunk_list(image, patchshape, stride, pair):
+        rowstart = pair[0]
+        colstart = pair[1]
+
+        endrow = rowstart + patchshape[0]
+        endcol = colstart + patchshape[1]
+
+        if endrow > image.shape[1]:
+            endrow = image.shape[1]
+        if endcol > image.shape[2]:
+            endcol = image.shape[2]
+
+        region = (slice(0, image.shape[0]), slice(rowstart, endrow),
+                  slice(colstart, endcol))
+
+        # The actual pixels in that region.
+        patch = image[region]
+
+        # Always normalize patch that goes into the netowrk for getting a prediction score
+
+        return patch, rowstart, colstart
+
+    def predict_main(self, sliceregion):
+        try:
+            self.overlaptiles(sliceregion)
+            predictions = []
+            allx = []
+            ally = []
+            if len(self.patch) > 0:
+                for i in range(0, len(self.patch)):
+                    sum_time_prediction = self.make_patches(self.patch[i])
+                    predictions.append(sum_time_prediction)
+                    allx.append(self.sx[i])
+                    ally.append(self.sy[i])
+
+
+            else:
+
+                sum_time_prediction = self.make_patches(self.patch)
+                predictions.append(sum_time_prediction)
+                allx.append(self.sx)
+                ally.append(self.sy)
+
+        except tf.errors.ResourceExhaustedError:
+
+            print('Out of memory, increasing overlapping tiles for prediction')
+            self.list_n_tiles = list(self.n_tiles)
+            self.list_n_tiles[0] = self.n_tiles[0] + 1
+            self.list_n_tiles[1] = self.n_tiles[1] + 1
+            self.n_tiles = tuple(self.list_n_tiles)
+
+            self.predict_main(sliceregion)
+
+        return predictions, allx, ally
     def make_patches(self, sliceregion):
 
         predict_im = np.expand_dims(sliceregion, 0)

@@ -673,7 +673,9 @@ class NEATDynamicSegFree(object):
                                patch = []
                                rowout = []
                                column = []
-                               
+                               patchx = sliceregion.shape[2] // self.n_tiles[0]
+                               patchy = sliceregion.shape[1] // self.n_tiles[1]
+                               patchshape = (patchy, patchx)
                                smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, [0,0])
                                patch.append(smallpatch)
                                rowout.append(smallrowout)
