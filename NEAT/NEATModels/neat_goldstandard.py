@@ -360,7 +360,7 @@ class NEATDynamic(object):
         classedboxes = {}
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
-            if  inputtime < self.image.shape[0] - self.imaget:
+            if inputtime >= self.size_tminus + 1 and  inputtime < self.image.shape[0] - self.imaget:
 
                 smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex,
                                           self.imagey)
