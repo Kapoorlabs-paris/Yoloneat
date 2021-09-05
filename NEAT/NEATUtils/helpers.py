@@ -1081,11 +1081,13 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                   if event_type == 'static':
                                                       
                                                       tcenter = int(inputtime)
+                                                      tcenterraw = 1
+                                                      boxtstart = inputtime
                                                       if config['yolo_v0'] == False:
                                                            confidence = prediction_vector[total_classes + config['c'] + b * total_coords]
                                                       if config['yolo_v0']:
                                                            confidence = 1
-                                                          
+
                                                   xcentermean = xcentermean + xcenter
                                                   ycentermean = ycentermean + ycenter
                                                   heightmean = heightmean + height

@@ -420,7 +420,7 @@ class NEATStatic(object):
                #Get all events
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'static')
+               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'static', self.imagex, self.imagey)
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box] 
                
