@@ -360,7 +360,7 @@ class NEATDynamic(object):
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if  inputtime < self.image.shape[0] - self.imaget:
-                smallimage = CreateVolume(self.image, inputtime, self.imagex, self.imagey)
+                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex, self.imagey)
                 
                 count = count + 1
                 location = self.marker_tree[str(int(inputtime))]
