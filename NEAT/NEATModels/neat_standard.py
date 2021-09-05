@@ -368,7 +368,7 @@ class NEATDynamicSeg(object):
         count = 0 
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
-                    if inputtime > self.size_tminus and inputtime < self.image.shape[0] - self.size_tplus:
+                    if inputtime > self.size_tminus + 1 and inputtime < self.image.shape[0] - self.size_tplus:
                                 
                                 eventboxes = []
                                 tree, indices = self.marker_tree[str(int(inputtime))]
@@ -819,7 +819,7 @@ def chunk_list(image, patchshape, stride, pair):
         
 def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
     
-               starttime = timepoint - imagetminus
+               starttime = timepoint - imagetminus - 1
                endtime = timepoint + imagetplus
                smallimg = patch[starttime:endtime, :]
        

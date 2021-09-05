@@ -359,7 +359,7 @@ class NEATDynamic(object):
         classedboxes = {}
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
-            if inputtime > self.size_tminus and inputtime < self.image.shape[0] - self.size_tplus:
+            if inputtime > self.size_tminus + 1 and inputtime < self.image.shape[0] - self.size_tplus:
                 smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex, self.imagey)
                 
                 count = count + 1
@@ -811,7 +811,7 @@ def chunk_list(image, patchshape, stride, pair):
 
 
 def CreateVolume(patch, imagetminus,imagetplus, timepoint, imagey, imagex):
-    starttime = timepoint - imagetminus
+    starttime = timepoint - imagetminus - 1
     endtime = timepoint + imagetplus
     smallimg = patch[starttime:endtime, :]
 
