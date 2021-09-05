@@ -633,15 +633,10 @@ class NEATDynamic(object):
         return prediction_vector
 
 
-
-
-
-def CreateVolume(patch, imaget, timepoint, imagey, imagex):
-    starttime = timepoint
-    endtime = timepoint + imaget
+def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
+    starttime = timepoint - imagetminus - 1
+    endtime = timepoint + imagetplus
     smallimg = patch[starttime:endtime, :]
-
-    return smallimg
 
 
 class EventViewer(object):
