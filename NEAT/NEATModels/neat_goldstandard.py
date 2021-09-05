@@ -401,7 +401,7 @@ class NEATDynamic(object):
                                 crop_xminus = int(X) - int(self.imagex / 2)
                                 crop_xplus = int(X) + int(self.imagex / 2)
                                 crop_yminus = int(Y) - int(self.imagey / 2)
-                                crop_yplus = int(T) + int(self.imagey / 2)
+                                crop_yplus = int(Y) + int(self.imagey / 2)
                                 region = (slice(int(T - self.size_tminus - 1), int(T + self.size_tplus)), slice(int(crop_yminus), int(crop_yplus)),
                                           slice(int(crop_xminus), int(crop_xplus)))
 
@@ -442,6 +442,7 @@ class NEATDynamic(object):
                         self.nms()
                         self.to_csv()
                         eventboxes = []
+                        refinedeventboxes = []
                         classedboxes = {}
                         count = 0
 
