@@ -363,16 +363,16 @@ class NEATDynamic(object):
                 smallimage = CreateVolume(self.image, inputtime, self.imagex, self.imagey)
                 
                 count = count + 1
-                tree, location = self.marker_tree[str(int(inputtime))]
+                location = self.marker_tree[str(int(inputtime))]
                 if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
                     imwrite((savename + '.tif'), self.Colorimage)
 
                 for i in range(len(location)):
 
-                    crop_xminus = location[i][1] - int(self.imagex / 2)
-                    crop_xplus = location[i][1] + int(self.imagex / 2)
-                    crop_yminus = location[i][0] - int(self.imagey / 2)
-                    crop_yplus = location[i][0] + int(self.imagey / 2)
+                    crop_xminus = int(location[i][1]) - int(self.imagex / 2)
+                    crop_xplus = int(location[i][1]) + int(self.imagex / 2)
+                    crop_yminus = int(location[i][0]) - int(self.imagey / 2)
+                    crop_yplus = int(location[i][0]) + int(self.imagey / 2)
                     region = (slice(0, int(smallimage.shape[0])), slice(int(crop_yminus), int(crop_yplus)),
                               slice(int(crop_xminus), int(crop_xplus)))
 
