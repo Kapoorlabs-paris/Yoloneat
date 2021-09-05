@@ -522,7 +522,7 @@ def MakeTrees(segimage):
                 currentimage = segimage[i, :].astype('uint16')
                 waterproperties = measure.regionprops(currentimage, currentimage)
                 centroid = [prop.centroid for prop in waterproperties]
-                AllTrees[str(i)] =  [centroid]
+                AllTrees[str(i)] =  centroid
                     
                     
                            
