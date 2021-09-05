@@ -613,7 +613,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
     # return only the indicies of the bounding boxes that were picked
     return pick
 
-def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type ):
+def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget = 0 ):
 
 
     
@@ -706,6 +706,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         boxAscore = boxes[i][event_name]
                         boxAXstart =  boxes[i]['xstart']
                         boxAYstart =  boxes[i]['ystart']
+                        boxATstart =  boxes[i]['tstart']
                         boxAXcenter =  boxes[i]['xcenter']
                         boxAYcenter =  boxes[i]['ycenter']
                         boxArealtime =  boxes[i]['real_time_event']
@@ -715,7 +716,12 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         boxAconfidence = boxes[i]['confidence']
                         boxArealangle =  boxes[i]['realangle']
                         boxArawangle =  boxes[i]['rawangle']
-                        
+
+                        boxAXcenterraw = boxAscore * boxes[i]['xcenterraw']
+                        boxAYcenterraw = boxAscore * boxes[i]['ycenterraw']
+                        boxATcenterraw = boxAscore + boxes[i]['tcenterraw']
+
+
                         boxBscore = boxes[j][event_name]
                         boxBXstart =  boxes[j]['xstart']
                         boxBYstart =  boxes[j]['ystart']
@@ -728,13 +734,20 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         boxBconfidence =  boxes[j]['confidence']
                         boxBrealangle =  boxes[j]['realangle']
                         boxBrawangle =  boxes[j]['rawangle']
+
+                        boxBXcenterraw = boxBscore * boxes[j]['xcenterraw']
+                        boxBYcenterraw = boxBscore * boxes[j]['ycenterraw']
+                        boxBTcenterraw = boxBscore + boxes[j]['tcenterraw']
+
                 
-                        meanboxscore = (boxAscore + boxBscore)/2
-                        meanboxXstart = (boxAXstart + boxBXstart)/2
-                        meanboxYstart = (boxAYstart + boxBYstart)/2
-                        meanboxXcenter = (boxAXcenter + boxBXcenter)/2
-                        meanboxYcenter = (boxAYcenter + boxBYcenter)/2
-                        meanboxrealtime = int((boxArealtime + boxBrealtime)/2)
+                        meanboxscore = (boxAscore + boxBscore)
+
+                        meanboxXstart = boxAXstart
+                        meanboxYstart = boxAYstart
+                        meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw)/meanboxscore ) * imagex
+                        meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw)/meanboxscore ) * imagey
+
+                        meanboxrealtime = boxATstart + ((boxATcenterraw + boxBTcenterraw)/meanboxscore ) * imaget
                         meanboxtime = int((boxAboxtime +  boxBboxtime)/2)
                         meanboxheight = (boxAheight + boxBheight)/2
                         meanboxwidth = (boxAwidth + boxBwidth)/2
@@ -815,7 +828,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
                         boxAheight = boxes[i]['height']
                         boxAwidth = boxes[i]['width']
                         boxAconfidence = boxes[i]['confidence']
-                        
+
                         boxBscore = boxes[j][event_name]
                         boxBXstart = boxes[j]['xstart']
                         boxBYstart = boxes[j]['ystart']
@@ -825,7 +838,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
                         boxBheight = boxes[j]['height']
                         boxBwidth = boxes[j]['width']
                         boxBconfidence =  boxes[j]['confidence']
-                
+
                         meanboxscore = (boxAscore + boxBscore)/2
                         meanboxXstart = (boxAXstart + boxBXstart)/2
                         meanboxYstart = (boxAYstart + boxBYstart)/2
@@ -838,7 +851,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name )
                        
                         
                             
-                        newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_z_event':meanboxrealz, 
+                        newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_z_event':meanboxrealz,
                                   'height':meanboxheight, 'width':meanboxwidth , 'confidence':meanboxconfidence,  event_name:meanboxscore}
                 
         
@@ -1016,10 +1029,16 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           xcentermean = 0
                                           ycentermean = 0
                                           tcentermean = 0
+
+                                          xcenterrawmean = 0
+                                          ycenterrawmean = 0
+                                          tcenterrawmean = 0
+
                                           boxtcentermean = 0
                                           widthmean = 0
                                           heightmean = 0
                                           anglemean = 0
+                                          boxtstartmean = 0
                                           angle = 0
                                           tcenter = 0
                                           boxtcenter = 0
@@ -1031,6 +1050,8 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           for b in range(0,nboxes):
                                                   xcenter = xstart + prediction_vector[total_classes + config['x'] + b * total_coords ] * trainshapex
                                                   ycenter = ystart + prediction_vector[total_classes + config['y'] + b * total_coords ] * trainshapey
+                                                  xcenterraw = prediction_vector[total_classes + config['x'] + b * total_coords ]
+                                                  ycenterraw = prediction_vector[total_classes + config['y'] + b * total_coords ]
                                                   
                                                   try:
                                                       height = prediction_vector[total_classes + config['h'] + b * total_coords] * trainshapex  
@@ -1042,7 +1063,9 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                   if event_type == 'dynamic' and mode == 'detection':
                                                       time_frames = config['size_tminus'] + config['size_tplus'] + 1
                                                       tcenter = int(inputtime + prediction_vector[total_classes + config['t'] + b * total_coords] * time_frames)
+                                                      tcenterraw = prediction_vector[total_classes + config['t'] + b * total_coords]
                                                       boxtcenter = int(prediction_vector[total_classes + config['t'] + b * total_coords] )
+                                                      boxtstart = inputtime
                                                       if config['yolo_v2']:
                                                           angle = prediction_vector[total_classes + config['angle'] + b * total_coords]
                                                           confidence = prediction_vector[total_classes + config['c'] + b * total_coords]    
@@ -1070,9 +1093,12 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                   widthmean = widthmean + width
                                                   confidencemean = confidencemean + confidence
                                                   tcentermean = tcentermean + tcenter
+                                                  boxtstartmean = boxtstartmean + boxtstart
                                                   boxtcentermean = boxtcentermean + boxtcenter
                                                   anglemean = anglemean + angle
-                                                  
+                                                  xcenterrawmean = xcenterrawmean + xcenterraw
+                                                  ycenterrawmean = ycenterrawmean + ycenterraw
+                                                  tcenterrawmean = tcenterrawmean + tcenterraw
                                           xcentermean = xcentermean/nboxes
                                           ycentermean = ycentermean/nboxes
                                           heightmean = heightmean/nboxes
@@ -1080,8 +1106,13 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                           confidencemean = confidencemean/nboxes
                                           tcentermean = tcentermean/nboxes
                                           anglemean = anglemean/nboxes
-                                          boxtcentermean = boxtcentermean/nboxes                                          
-                                          
+                                          boxtcentermean = boxtcentermean/nboxes
+                                          xcenterrawmean = xcenterrawmean/nboxes
+                                          ycenterrawmean = ycenterrawmean/nboxes
+                                          tcenterrawmean = tcenterrawmean/nboxes
+                                          boxtstartmean = boxtstartmean/nboxes
+
+
                                           max_prob_label = np.argmax(prediction_vector[:total_classes])
                                           max_prob_class = prediction_vector[max_prob_label]
                                           
@@ -1107,7 +1138,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                           if marker_tree is not None:
                                                                 ycentermean , xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)      
                                                           #Compute the box vectors 
-                                                          box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
+                                                          box = {'xstart' : xstart, 'ystart' : ystart, 'tstart' : boxtstartmean, 'xcenterraw' : xcenterrawmean, 'ycenterraw' : ycenterrawmean, 'tcenterraw' : tcenterrawmean, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
                                                             'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean, 'realangle' : realangle, 'rawangle' : rawangle}
                                                   if event_type == 'static':
                                                                   real_time_event = int(inputtime)
@@ -1118,7 +1149,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                                   if marker_tree is not None:
                                                                         ycentermean , xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
                                                                   
-                                                                  box = {'xstart' : xstart, 'ystart' : ystart, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
+                                                                  box = {'xstart' : xstart, 'ystart' : ystart, 'xcenterraw' : xcenterrawmean, 'ycenterraw' : ycenterrawmean, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
                                                             'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean}
                                                   
                                                   
