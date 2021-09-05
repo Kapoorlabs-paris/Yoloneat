@@ -748,7 +748,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw)/meanboxscore ) * imagey
 
                         meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw)/meanboxscore ) * imaget)
-                        
+
                         meanboxtime = int((boxAboxtime +  boxBboxtime)/2)
                         meanboxheight = (boxAheight + boxBheight)/2
                         meanboxwidth = (boxAwidth + boxBwidth)/2
