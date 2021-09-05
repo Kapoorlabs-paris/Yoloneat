@@ -605,7 +605,6 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
                 count = count + 1
-                if count >=thresh:            
                      suppress.append(pos)
                                             
         # delete all indexes from the index list that are in the suppression list
