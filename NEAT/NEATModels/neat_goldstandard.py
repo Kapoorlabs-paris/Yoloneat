@@ -360,7 +360,7 @@ class NEATDynamic(object):
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime <= self.image.shape[0] - self.imaget:
                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex, self.imagey)
-
+                smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
                 count = count + 1
                 tree, location = self.marker_tree[str(int(inputtime))]
                 if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
@@ -380,7 +380,7 @@ class NEATDynamic(object):
                     if crop_image.shape[0] >= self.imaget and crop_image.shape[1] >= self.imagey and crop_image.shape[
                         2] >= self.imagex:
 
-                        crop_image = normalizeFloatZeroOne(crop_image, 1, 99.8)
+
                         # Now apply the prediction for counting real events
                         ycenter = location[i][0]
                         xcenter = location[i][1]

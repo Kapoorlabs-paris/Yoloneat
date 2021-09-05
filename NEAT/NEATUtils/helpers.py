@@ -481,41 +481,13 @@ def dilate_label_holes(lbl_img, iterations):
         mask_filled = binary_dilation(mask,iterations = iterations)
         lbl_img_filled[mask_filled] = l
     return lbl_img_filled
-def GenerateMarkers(Image, model, n_tiles, star):
+def GenerateMarkers(Image, model, n_tiles):
     
     Markers = np.zeros([Image.shape[0], Image.shape[1], Image.shape[2]])
     for i in tqdm(range(0, Image.shape[0])):
         
-            smallimage = Image[i,:]
-            if star == False:
-                        Segmented = model.predict(smallimage, 'YX', n_tiles = n_tiles)
-                
-                        try:
-                           thresh = threshold_otsu(Segmented)
-                           Binary = Segmented > thresh
-                        except:
-                            Binary = Segmented > 0
-                        #Postprocessing steps
-                        Filled = binary_fill_holes(Binary)
-                        Finalimage = label(Filled)
-                        Finalimage = fill_label_holes(Finalimage)
-                        starimage = relabel_sequential(Finalimage)[0]
-                        properties = measure.regionprops(starimage, starimage)
-                        Coordinates = [prop.centroid for prop in properties]
-                        
-                        Coordinates = sorted(Coordinates , key=lambda k: [k[1], k[0]])
-                        Coordinates.append((0,0))
-                        Coordinates = np.asarray(Coordinates)
-                    
-                        coordinates_int = np.round(Coordinates).astype(int)
-                        markers_raw = np.zeros_like(smallimage)  
-                        markers_raw[tuple(coordinates_int.T)] = 1 + np.arange(len(Coordinates))
-                        
-                        markers = dilation(markers_raw, disk(2))
-                        
-                        Markers[i,:] = markers
-            if star:
-                
+                smallimage = Image[i,:]
+
                 smallimage = normalize(smallimage, 1, 99.8, axis = (0,1))
                 shape = [smallimage.shape[0], smallimage.shape[1]]
                 resize_smallimage = twod_zero_pad(smallimage, 64, 64)
