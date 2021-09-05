@@ -387,7 +387,7 @@ class NEATDynamic(object):
 
                         prediction_vector = self.make_patches(crop_image)
 
-                        boxprediction = yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime,
+                        boxprediction = yoloprediction(crop_yminus, crop_xminus, prediction_vector[0], self.stride, inputtime,
                                                               self.config, self.key_categories, self.key_cord,
                                                               self.nboxes, 'detection', 'dynamic', self.marker_tree)
                         
@@ -596,7 +596,7 @@ class NEATDynamic(object):
 
         predict_im = np.expand_dims(sliceregion, 0)
 
-        prediction_vector = self.model.predict(np.expand_dims(predict_im, -1), verbose=1)
+        prediction_vector = self.model.predict(np.expand_dims(predict_im, -1), verbose=0)
 
         return prediction_vector
 
