@@ -381,7 +381,6 @@ class NEATDynamic(object):
                         2] >= self.imagex:
 
                         crop_image = normalizeFloatZeroOne(crop_image, 1, 99.8)
-                        print(crop_image.shape, 'location', location[i])
                         # Now apply the prediction for counting real events
                         ycenter = location[i][0]
                         xcenter = location[i][1]
@@ -399,6 +398,7 @@ class NEATDynamic(object):
 
                         if boxprediction is not None:
                             eventboxes = eventboxes + boxprediction
+                print('Total predictions:',len(eventboxes))            
                 for (event_name, event_label) in self.key_categories.items():
 
                     if event_label > 0:
@@ -406,11 +406,11 @@ class NEATDynamic(object):
                         for box in eventboxes:
 
                             event_prob = box[event_name]
-                            event_confidence = box['confidence']
+                           
                             if event_prob >= self.event_threshold:
                                 current_event_box.append(box)
                         classedboxes[event_name] = [current_event_box]
-
+                        print('Valid events:', event_name,  len(current_event_box))  
                 self.classedboxes = classedboxes
                 self.eventboxes = eventboxes
                 # nms over time
@@ -596,8 +596,8 @@ class NEATDynamic(object):
                 y1 = ylocations[j]
                 x2 = x1 + radius[j] * math.cos(angles[j])
                 y2 = y1 + radius[j] * math.sin(angles[j])
-                cv2.line(self.Colorimage[tlocation, :], (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255), 1)
-        imwrite((csvimagename + '.tif'), self.Colorimage.astype('uint8'))
+                #cv2.line(self.Colorimage[tlocation, :], (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255), 1)
+        #imwrite((csvimagename + '.tif'), self.Colorimage.astype('uint8'))
 
     def showNapari(self, imagedir, savedir, yolo_v2=False):
 
