@@ -387,7 +387,7 @@ class NEATDynamic(object):
 
                         prediction_vector = self.make_patches(crop_image)
 
-                        boxprediction = nonfcn_yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime - self.size_tminus - 1,
+                        boxprediction = nonfcn_yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime,
                                                               self.config, self.key_categories, self.key_cord,
                                                               self.nboxes, 'detection', 'dynamic')
                         
@@ -500,8 +500,8 @@ class NEATDynamic(object):
 
                 sorted_event_box = self.classedboxes[event_name][0]
                 sorted_event_box = sorted(sorted_event_box, key=lambda x: x[event_name], reverse=True)
-                #scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-                #best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
+                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
                 best_iou_classedboxes[event_name] = [sorted_event_box]
 
         self.iou_classedboxes = best_iou_classedboxes
