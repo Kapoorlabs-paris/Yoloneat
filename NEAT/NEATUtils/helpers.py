@@ -706,7 +706,8 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         boxAscore = boxes[i][event_name]
                         boxAXstart =  boxes[i]['xstart']
                         boxAYstart =  boxes[i]['ystart']
-                        boxATstart =  boxes[i]['boxtstart']
+                        boxATstart =  boxes[i]['tstart']
+                        print(boxATstart)
                         boxAXcenter =  boxes[i]['xcenter']
                         boxAYcenter =  boxes[i]['ycenter']
                         boxArealtime =  boxes[i]['real_time_event']
