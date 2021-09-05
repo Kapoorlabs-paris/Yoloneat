@@ -356,50 +356,77 @@ class NEATDynamic(object):
         print('Detecting event locations')
         count = 0
         eventboxes = []
+        refinedeventboxes = []
         classedboxes = {}
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if  inputtime < self.image.shape[0] - self.imaget:
-                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex, self.imagey)
-                
-                count = count + 1
-                tree, location = self.marker_tree[str(int(inputtime))]
-                if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
-                    imwrite((savename + '.tif'), self.Colorimage)
 
-                for i in range(len(location)):
+                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex,
+                                          self.imagey)
+                smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
+                # Cut off the region for training movie creation
+                # Break image into tiles if neccessary
+                predictions, allx, ally = self.predict_main(smallimage)
+                # Iterate over tiles
+                for p in range(0, len(predictions)):
 
-                    crop_xminus = int(location[i][1]) - int(self.imagex / 2)
-                    crop_xplus = int(location[i][1]) + int(self.imagex / 2)
-                    crop_yminus = int(location[i][0]) - int(self.imagey / 2)
-                    crop_yplus = int(location[i][0]) + int(self.imagey / 2)
-                    region = (slice(0, int(smallimage.shape[0])), slice(int(crop_yminus), int(crop_yplus)),
-                              slice(int(crop_xminus), int(crop_xplus)))
+                    sum_time_prediction = predictions[p]
 
-                    crop_image = smallimage[region]
+                    if sum_time_prediction is not None:
+                        # For each tile the prediction vector has shape N H W Categories + Training Vector labels
+                        for i in range(0, sum_time_prediction.shape[0]):
+                            time_prediction = sum_time_prediction[i]
+                            boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride,
+                                                           inputtime - self.size_tminus - 1, self.config,
+                                                           self.key_categories, self.key_cord, self.nboxes, 'detection',
+                                                           'dynamic')
 
-                    if crop_image.shape[0] >= self.imaget and crop_image.shape[1] >= self.imagey and crop_image.shape[
-                        2] >= self.imagex:
-                   
-                        crop_image = normalizeFloatZeroOne(crop_image, 1, 99.8) 
-                        # Now apply the prediction for counting real events
-                        
+                            if boxprediction is not None:
+                                eventboxes = eventboxes + boxprediction
+                print('Total initial predictions:', len(eventboxes))
+                for box in eventboxes:
 
-                        prediction_vector = self.make_patches(crop_image)
+                            event_prob = box[event_name]
+                            if event_prob >= self.event_threshold:
 
-                        boxprediction = yoloprediction(crop_yminus, crop_xminus, prediction_vector[0], self.stride, inputtime,
-                                                              self.config, self.key_categories, self.key_cord,
-                                                              self.nboxes, 'detection', 'dynamic', self.marker_tree)
-                        
 
-                        if boxprediction is not None:
-                            eventboxes = eventboxes + boxprediction
-                print('Total predictions:',len(eventboxes))            
+                                X = box['xcenter']
+                                Y = box['ycenter']
+                                T = box['real_time_event']
+
+                                crop_xminus = X - int(self.imagex / 2)
+                                crop_xplus = X + int(self.imagex / 2)
+                                crop_yminus = Y - int(self.imagey / 2)
+                                crop_yplus = T + int(self.imagey / 2)
+                                region = (slice(T - self.size_tminus - 1, T + self.size_tplus), slice(int(crop_yminus), int(crop_yplus)),
+                                          slice(int(crop_xminus), int(crop_xplus)))
+
+                                crop_image = smallimage[region]
+
+                                if crop_image.shape[0] >= self.imaget and crop_image.shape[1] >= self.imagey and \
+                                        crop_image.shape[
+                                            2] >= self.imagex:
+
+                                    # Now apply the prediction for counting real events
+
+                                    prediction_vector = self.make_patches(crop_image)
+
+                                    boxprediction = yoloprediction(crop_yminus, crop_xminus, prediction_vector[0],
+                                                                   self.stride, inputtime,
+                                                                   self.config, self.key_categories, self.key_cord,
+                                                                   self.nboxes, 'detection', 'dynamic',
+                                                                   self.marker_tree)
+
+                                    if boxprediction is not None:
+                                        refinedeventboxes = refinedeventboxes + boxprediction
+
+                print('Total refined predictions:',len(refinedeventboxes))
                 for (event_name, event_label) in self.key_categories.items():
 
                     if event_label > 0:
                         current_event_box = []
-                        for box in eventboxes:
+                        for box in refinedeventboxes:
 
                             event_prob = box[event_name]
                            
@@ -410,12 +437,12 @@ class NEATDynamic(object):
                 self.classedboxes = classedboxes
                 self.eventboxes = eventboxes
                 # nms over time
-
-                self.nms()
-                self.to_csv()
-                eventboxes = []
-                classedboxes = {}
-                count = 0
+                if inputtime%(self.imaget//2) == 0:
+                        self.nms()
+                        self.to_csv()
+                        eventboxes = []
+                        classedboxes = {}
+                        count = 0
 
 
 

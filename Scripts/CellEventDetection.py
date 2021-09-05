@@ -32,7 +32,7 @@ cordconfig = load_json(division_cord_json)
 model = NEATStatic(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
-event_threshold = 0.99
+event_threshold = 0.999
 iou_threshold = 0.1
 
 
