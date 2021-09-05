@@ -638,6 +638,8 @@ def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
     endtime = timepoint + imagetplus
     smallimg = patch[starttime:endtime, :]
 
+    return smallimg
+
 
 class EventViewer(object):
 
