@@ -697,27 +697,7 @@ class NEATDynamic(object):
         self.sy = rowout
         self.sx = column
 
-    def chunk_list(image, patchshape, stride, pair):
-        rowstart = pair[0]
-        colstart = pair[1]
 
-        endrow = rowstart + patchshape[0]
-        endcol = colstart + patchshape[1]
-
-        if endrow > image.shape[1]:
-            endrow = image.shape[1]
-        if endcol > image.shape[2]:
-            endcol = image.shape[2]
-
-        region = (slice(0, image.shape[0]), slice(rowstart, endrow),
-                  slice(colstart, endcol))
-
-        # The actual pixels in that region.
-        patch = image[region]
-
-        # Always normalize patch that goes into the netowrk for getting a prediction score
-
-        return patch, rowstart, colstart
 
     def predict_main(self, sliceregion):
         try:
@@ -772,7 +752,27 @@ def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
 
     return smallimg
 
+def chunk_list(image, patchshape, stride, pair):
+        rowstart = pair[0]
+        colstart = pair[1]
 
+        endrow = rowstart + patchshape[0]
+        endcol = colstart + patchshape[1]
+
+        if endrow > image.shape[1]:
+            endrow = image.shape[1]
+        if endcol > image.shape[2]:
+            endcol = image.shape[2]
+
+        region = (slice(0, image.shape[0]), slice(rowstart, endrow),
+                  slice(colstart, endcol))
+
+        # The actual pixels in that region.
+        patch = image[region]
+
+        # Always normalize patch that goes into the netowrk for getting a prediction score
+
+        return patch, rowstart, colstart
 class EventViewer(object):
 
     def __init__(self, viewer, image, event_name, key_categories, imagename, savedir, canvas, ax, figure, yolo_v2):
