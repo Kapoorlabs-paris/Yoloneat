@@ -385,7 +385,10 @@ class NEATDynamic(object):
                             if boxprediction is not None:
                                 eventboxes = eventboxes + boxprediction
                 print('Total initial predictions:', len(eventboxes))
-                for box in eventboxes:
+                for (event_name, event_label) in self.key_categories.items():
+
+                    if event_label > 0:
+                        for box in eventboxes:
 
                             event_prob = box[event_name]
                             if event_prob >= self.event_threshold:
@@ -422,18 +425,16 @@ class NEATDynamic(object):
                                         refinedeventboxes = refinedeventboxes + boxprediction
 
                 print('Total refined predictions:',len(refinedeventboxes))
-                for (event_name, event_label) in self.key_categories.items():
 
-                    if event_label > 0:
-                        current_event_box = []
-                        for box in refinedeventboxes:
+                current_event_box = []
+                for box in refinedeventboxes:
 
-                            event_prob = box[event_name]
-                           
-                            if event_prob >= self.event_threshold:
-                                current_event_box.append(box)
-                        classedboxes[event_name] = [current_event_box]
-                        print('Valid events:', event_name,  len(current_event_box))  
+                    event_prob = box[event_name]
+
+                    if event_prob >= self.event_threshold:
+                        current_event_box.append(box)
+                classedboxes[event_name] = [current_event_box]
+                print('Valid events:', event_name,  len(current_event_box))
                 self.classedboxes = classedboxes
                 self.eventboxes = eventboxes
                 # nms over time
