@@ -398,10 +398,10 @@ class NEATDynamic(object):
                                 Y = box['ycenter']
                                 T = box['real_time_event']
 
-                                crop_xminus = X - int(self.imagex / 2)
-                                crop_xplus = X + int(self.imagex / 2)
-                                crop_yminus = Y - int(self.imagey / 2)
-                                crop_yplus = T + int(self.imagey / 2)
+                                crop_xminus = int(X) - int(self.imagex / 2)
+                                crop_xplus = int(X) + int(self.imagex / 2)
+                                crop_yminus = int(Y) - int(self.imagey / 2)
+                                crop_yplus = int(T) + int(self.imagey / 2)
                                 region = (slice(T - self.size_tminus - 1, T + self.size_tplus), slice(int(crop_yminus), int(crop_yplus)),
                                           slice(int(crop_xminus), int(crop_xplus)))
 
