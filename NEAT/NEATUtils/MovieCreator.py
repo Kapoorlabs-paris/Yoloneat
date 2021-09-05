@@ -140,7 +140,7 @@ def SimpleMovieMaker(z, y, x, image, crop_size, total_categories, trainlabel, na
                                            writer.writerows(Event_data)
                                                                     
     
-def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = False, yolo_v1 = True, yolo_v2 = False):
+def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = False, yolo_v1 = True, yolo_v2 = False, defXY = False):
     
     
             raw_path = os.path.join(image_dir, '*tif')
@@ -193,7 +193,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                                                     #Categories + XYHW + Confidence 
                                                     for (key, t) in time.items():
                                                        try: 
-                                                          MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2)
+                                                          MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2, defXY)
                                                           count = count + 1
                                                         
                                                        except:
@@ -207,7 +207,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                
 
             
-def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name, save_dir, yolo_v0, yolo_v1, yolo_v2):
+def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name, save_dir, yolo_v0, yolo_v1, yolo_v2, defXY):
     
        sizex, sizey, size_tminus, size_tplus = crop_size
        
@@ -234,7 +234,7 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offs
        time = time - 1
        if time > 0:
                currentsegimage = segimage[int(time),:].astype('uint16')
-               height, width, center, seg_label = getHW(x, y, trainlabel, currentsegimage)
+               height, width, center, seg_label = getHW(x, y, trainlabel, currentsegimage, imagesizex, imagesizey,defXY)
                for shift in AllShifts:
 
                         newname = name + 'shift' + str(shift)
@@ -311,7 +311,7 @@ def Readname(fname):
     return os.path.basename(os.path.splitext(fname)[0])
 
 
-def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, static_label, csv_name_diff,crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = True):
+def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, static_label, csv_name_diff,crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = True, defXY = False):
     
     
             raw_path = os.path.join(image_dir, '*tif')
@@ -354,7 +354,7 @@ def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, s
                                             
                                             #Categories + XYHW + Confidence 
                                             for (key, t) in time.items():
-                                               ImageMaker(t, y[key], x[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0)    
+                                               ImageMaker(t, y[key], x[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, defXY)    
                                                count = count + 1
     
 
@@ -446,7 +446,7 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
 
 def _raise(e):
     raise e
-def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, total_categories, trainlabel, name, save_dir, yolo_v0):
+def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, total_categories, trainlabel, name, save_dir, yolo_v0, defXY):
 
                sizeX, sizeY = crop_size
 
@@ -473,7 +473,7 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, to
                if time < segimage.shape[0] - 1 and time > 0:
                  currentsegimage = segimage[int(time),:].astype('uint16')
                 
-                 height, width, center, SegLabel  = getHW(x, y,trainlabel, currentsegimage)
+                 height, width, center, SegLabel  = getHW(x, y,trainlabel, currentsegimage, ImagesizeX, ImagesizeY, defXY)
                  for shift in AllShifts:
                    
                         newname = name + 'shift' + str(shift)
@@ -493,41 +493,44 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, to
                                     crop_Yminus = y  - int(ImagesizeY/2)
                                     crop_Yplus = y   + int(ImagesizeY/2)
                                  
-                                    
-                                    region =(slice(int(time - 1),int(time)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
-                                           slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
-                                    
-                                    crop_image = image[region]      
-                                    seglocationX = (newcenter[1] - crop_Xminus)
-                                    seglocationY = (newcenter[0] - crop_Yminus)
-                                      
-                                    Label[total_categories] =  seglocationX/sizeX
-                                    Label[total_categories + 1] = seglocationY/sizeY
-                                    
-                                    if height >= ImagesizeY:
-                                        height = 0.5 * ImagesizeY
-                                    if width >= ImagesizeX:
-                                        width = 0.5 * ImagesizeX
-                                    
-                                    Label[total_categories + 2] = height/ImagesizeY
-                                    Label[total_categories + 3] = width/ImagesizeX
-                                    
-                                        
-                                    
-                                   
-                                    if yolo_v0==False:
-                                            if SegLabel > 0:
-                                              Label[total_categories + 4] = 1 
-                                            else:
-                                              Label[total_categories + 4] = 0  
-                                 
-                                    if(crop_image.shape[1]== ImagesizeY and crop_image.shape[2]== ImagesizeX):
-                                             imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))  
-                                             Event_data.append([Label[i] for i in range(0,len(Label))])
-                                             if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
-                                                os.remove(save_dir + '/' + (newname) + ".csv")
-                                             writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
-                                             writer.writerows(Event_data)
+                                    for tex in range(int(time) -2, int(time) + 2):
+                                            newname = newname + str(tex)
+                                            region =(slice(int(tex - 1),int(tex)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
+                                                   slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
+
+                                            crop_image = image[region]      
+
+
+                                            seglocationX = (newcenter[1] - crop_Xminus)
+                                            seglocationY = (newcenter[0] - crop_Yminus)
+
+                                            Label[total_categories] =  seglocationX/sizeX
+                                            Label[total_categories + 1] = seglocationY/sizeY
+
+                                            if height >= ImagesizeY:
+                                                height = 0.5 * ImagesizeY
+                                            if width >= ImagesizeX:
+                                                width = 0.5 * ImagesizeX
+
+                                            Label[total_categories + 2] = height/ImagesizeY
+                                            Label[total_categories + 3] = width/ImagesizeX
+
+
+
+
+                                            if yolo_v0==False:
+                                                    if SegLabel > 0:
+                                                      Label[total_categories + 4] = 1 
+                                                    else:
+                                                      Label[total_categories + 4] = 0  
+
+                                            if(crop_image.shape[1]== ImagesizeY and crop_image.shape[2]== ImagesizeX):
+                                                     imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))  
+                                                     Event_data.append([Label[i] for i in range(0,len(Label))])
+                                                     if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
+                                                        os.remove(save_dir + '/' + (newname) + ".csv")
+                                                     writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
+                                                     writer.writerows(Event_data)
 
 def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, offset, total_categories, trainlabel, name, save_dir):
 
@@ -591,7 +594,7 @@ def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, offset, total
                                              writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
                                              writer.writerows(Event_data)
        
-def getHW(defaultX, defaultY, trainlabel, currentsegimage):
+def getHW(defaultX, defaultY, trainlabel, currentsegimage, imagesizex, imagesizey, defXY = False):
     
     properties = measure.regionprops(currentsegimage, currentsegimage)
     TwoDLocation = (defaultY,defaultX)
@@ -599,17 +602,17 @@ def getHW(defaultX, defaultY, trainlabel, currentsegimage):
     SegLabel = currentsegimage[int(TwoDLocation[0]), int(TwoDLocation[1])]
     for prop in properties:
                                                
-                  if SegLabel > 0 and prop.label == SegLabel:
+                  if SegLabel > 0 and prop.label == SegLabel and defXY == False:
                                     minr, minc, maxr, maxc = prop.bbox
                                     center = prop.centroid
                                     height =  abs(maxc - minc)
                                     width =  abs(maxr - minr)
                                 
-                  if SegLabel == 0:
+                  if SegLabel == 0 or defXY:
                     
                              center = (defaultY, defaultX)
-                             height = 10
-                             width = 10
+                             height = 0.5 * imagesizex
+                             width = 0.5 * imagesizey
                                
                     
                                 
@@ -660,7 +663,7 @@ def  AngleAppender(AngleCSV, ONTCSV, save_dir, ColumnA = 'Y'):
      clickedtime = clickeddataset[clickeddataset.keys()[0]][1:]
      clickedy = clickeddataset[clickeddataset.keys()[1]][1:]
      clickedx = clickeddataset[clickeddataset.keys()[2]][1:]
-     print(angle)                          
+                              
      Event_data = []
      
      Name = os.path.basename(os.path.splitext(ONTCSV)[0])
