@@ -339,13 +339,13 @@ class NEATDynamicSegFree(object):
         
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
-                    if inputtime < self.image.shape[0] - self.imaget:
+                    if inputtime > self.size_tminus or inputtime < self.image.shape[0] - self.size_tplus:
                                 count = count + 1
                                 if inputtime%10==0 or inputtime >= self.image.shape[0] - self.imaget - 1:
                                       
                                                                               
                                       imwrite((savename + '.tif' ), self.Colorimage)
-                                smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
+                                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex, self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 # Cut off the region for training movie creation
                                 #Break image into tiles if neccessary
@@ -759,10 +759,10 @@ def chunk_list(image, patchshape, stride, pair):
             return patch, rowstart, colstart
         
         
-def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
     
-               starttime = timepoint
-               endtime = timepoint + imaget
+               starttime = timepoint - imagetminus
+               endtime = timepoint + imagetplus
                smallimg = patch[starttime:endtime, :]
        
                return smallimg         

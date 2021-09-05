@@ -368,7 +368,7 @@ class NEATDynamicSeg(object):
         count = 0 
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
-                    if inputtime < self.image.shape[0] - self.imaget:
+                    if inputtime > self.size_tminus or inputtime < self.image.shape[0] - self.size_tplus:
                                 
                                 eventboxes = []
                                 tree, indices = self.marker_tree[str(int(inputtime))]
@@ -379,7 +379,7 @@ class NEATDynamicSeg(object):
                                 #density = all_density_location[0]
                                 #locations = all_density_location[1]
                                 
-                                smallimage = CreateVolume(self.image, self.imaget, inputtime,self.imagex, self.imagey)
+                                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex, self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 # Cut off the region for training movie creation
                                 #for i in range(len(density)):
@@ -561,17 +561,17 @@ class NEATDynamicSeg(object):
                                       for j in range(len(xlocations)):
                                                  startlocation = (int(xlocations[j] - radius[j]//2), int(ylocations[j]-radius[j]//2))
                                                  endlocation =  (int(xlocations[j] + radius[j]//2), int(ylocations[j]+ radius[j]//2))
-                                                 T = int(tlocations[j])  
+                                                 Z = int(tlocations[j])  
                                                  image = self.Colorimage[Z,:,:,1]
                                                  color = (0,255,0)
-                                                 if score[j] >= 1.0 - 1.0E-7:
+                                                 if scores[j] >= 1.0 - 1.0E-7:
                                                      color = (0,0,255)
                                                      image = self.Colorimage[Z,:,:,2]
                                                  img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
                                                  cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
                                                      
                                                  cv2.putText(img, str('%.2f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
-                                                 if score[j] >= 1.0 - 1.0E-7:
+                                                 if scores[j] >= 1.0 - 1.0E-7:
                                                    self.Colorimage[Z,:,:,2] = img[:,:,0]
                                                  else:
                                                    self.Colorimage[Z,:,:,1] = img[:,:,0]
@@ -817,10 +817,10 @@ def chunk_list(image, patchshape, stride, pair):
             return patch, rowstart, colstart
         
         
-def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
     
-               starttime = timepoint
-               endtime = timepoint + imaget
+               starttime = timepoint - imagetminus
+               endtime = timepoint + imagetplus
                smallimg = patch[starttime:endtime, :]
        
                return smallimg         

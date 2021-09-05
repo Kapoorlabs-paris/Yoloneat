@@ -104,6 +104,7 @@ class NEATDynamic(object):
             self.imaget = config.size_tminus + config.size_tplus + 1
             self.size_tminus = config.size_tminus
             self.size_tplus = config.size_tplus
+            
             self.nboxes = config.nboxes
             self.gridx = 1
             self.gridy = 1
@@ -358,9 +359,9 @@ class NEATDynamic(object):
         classedboxes = {}
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
-            if inputtime <= self.image.shape[0] - self.imaget:
-                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex, self.imagey)
-                smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
+            if inputtime > self.size_tminus or inputtime < self.image.shape[0] - self.size_tplus:
+                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex, self.imagey)
+                
                 count = count + 1
                 tree, location = self.marker_tree[str(int(inputtime))]
                 if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
@@ -379,22 +380,17 @@ class NEATDynamic(object):
 
                     if crop_image.shape[0] >= self.imaget and crop_image.shape[1] >= self.imagey and crop_image.shape[
                         2] >= self.imagex:
-
-
+                   
+                        crop_image = normalizeFloatZeroOne(crop_image, 1, 99.8) 
                         # Now apply the prediction for counting real events
-                        ycenter = location[i][0]
-                        xcenter = location[i][1]
+                        
 
                         prediction_vector = self.make_patches(crop_image)
 
                         boxprediction = nonfcn_yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime,
                                                               self.config, self.key_categories, self.key_cord,
                                                               self.nboxes, 'detection', 'dynamic')
-                        if len(boxprediction) > 0:
-                             boxprediction[0]['xcenter'] = xcenter
-                             boxprediction[0]['ycenter'] = ycenter
-                             boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
-                             boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)
+                        
 
                         if boxprediction is not None:
                             eventboxes = eventboxes + boxprediction
@@ -504,7 +500,9 @@ class NEATDynamic(object):
 
                 sorted_event_box = self.classedboxes[event_name][0]
                 sorted_event_box = sorted(sorted_event_box, key=lambda x: x[event_name], reverse=True)
-                best_iou_classedboxes[event_name] = [sorted_event_box]
+                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
+                best_iou_classedboxes[event_name] = [best_sorted_event_box]
 
         self.iou_classedboxes = best_iou_classedboxes
 
@@ -812,9 +810,9 @@ def chunk_list(image, patchshape, stride, pair):
     return patch, rowstart, colstart
 
 
-def CreateVolume(patch, imaget, timepoint, imagey, imagex):
-    starttime = timepoint
-    endtime = timepoint + imaget
+def CreateVolume(patch, imagetminus,imagetplus, timepoint, imagey, imagex):
+    starttime = timepoint - imagetminus
+    endtime = timepoint + imagetplus
     smallimg = patch[starttime:endtime, :]
 
     return smallimg
