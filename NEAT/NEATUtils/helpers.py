@@ -560,7 +560,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
 
 
     
-    thresh = 5
+    thresh = 10
     if len(boxes) == 0:
         return []
 
@@ -618,7 +618,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
 
     
-    thresh = 5
+    thresh = 10
     if len(boxes) == 0:
         return []
 
