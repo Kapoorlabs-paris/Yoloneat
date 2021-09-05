@@ -359,8 +359,8 @@ class NEATDynamic(object):
         classedboxes = {}
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
-            if inputtime >= self.size_tminus + 1 and inputtime < self.image.shape[0] - self.size_tplus:
-                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex, self.imagey)
+            if  inputtime < self.image.shape[0] - self.imaget:
+                smallimage = CreateVolume(self.image, inputtime, self.imagex, self.imagey)
                 
                 count = count + 1
                 tree, location = self.marker_tree[str(int(inputtime))]
@@ -387,7 +387,7 @@ class NEATDynamic(object):
 
                         prediction_vector = self.make_patches(crop_image)
 
-                        boxprediction = nonfcn_yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime - self.size_tminus - 1,
+                        boxprediction = nonfcn_yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime,
                                                               self.config, self.key_categories, self.key_cord,
                                                               self.nboxes, 'detection', 'dynamic')
                         
@@ -417,78 +417,7 @@ class NEATDynamic(object):
                 classedboxes = {}
                 count = 0
 
-    def first_pass_predict(self):
 
-        print('Detecting normal event locations for removal of markers')
-        for inputtime in tqdm(range(0, self.image.shape[0])):
-            if inputtime < self.image.shape[0] - self.imaget:
-
-                eventboxes = []
-                tree, indices = self.marker_tree[str(int(inputtime))]
-
-                down_region = []
-                up_region = []
-                # all_density_location = self.density_location[str(inputtime)]
-                # density = all_density_location[0]
-                # locations = all_density_location[1]
-
-                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex, self.imagey)
-                smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
-                # Cut off the region for training movie creation
-                # for i in range(len(density)):
-
-                # if density[i] <= self.density_veto:
-                # down_region.append(location)
-                # self.remove_marker_locations(inputtime, location)
-                # if density[i] >= 5 * self.density_veto:
-                # up_region.append(location)
-                # self.remove_marker_locations(inputtime, location)
-
-                self.downsample_regions[str(inputtime)] = down_region
-                self.upsample_regions[str(inputtime)] = up_region
-                # Cut off the region for training movie creation
-                # Break image into tiles if neccessary
-                predictions, allx, ally = self.predict_main(smallimage)
-                # Iterate over tiles
-                for p in range(0, len(predictions)):
-
-                    sum_time_prediction = predictions[p]
-
-                    if sum_time_prediction is not None:
-                        # For each tile the prediction vector has shape N H W Categories + Training Vector labels
-                        for i in range(0, sum_time_prediction.shape[0]):
-                            time_prediction = sum_time_prediction[i]
-                            boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime,
-                                                           self.config, self.key_categories, self.key_cord, self.nboxes,
-                                                           'detection', 'dynamic')
-
-                            if boxprediction is not None:
-                                eventboxes = eventboxes + boxprediction
-
-                for (event_name, event_label) in self.key_categories.items():
-
-                    if event_label == 0:
-                        for box in eventboxes:
-
-                            event_prob = box[event_name]
-                            if event_prob >= 0.8:
-                                ycentermean, xcentermean = get_nearest(self.marker_tree, box['ycenter'], box['xcenter'],
-                                                                       box['real_time_event'])
-                                location = (int(ycentermean), int(xcentermean))
-                                self.remove_marker_locations(box['real_time_event'], location)
-
-    def remove_marker_locations(self, tcenter, location):
-
-        tree, indices = self.marker_tree[str(int(round(tcenter)))]
-
-        # if location in indices:
-        if location in indices:
-            indices.remove(location)
-
-        tree = spatial.cKDTree(indices)
-
-        # Update the tree
-        self.marker_tree[str(int(tcenter))] = [tree, indices]
 
     def nms(self):
 
@@ -662,116 +591,6 @@ class NEATDynamic(object):
         self.viewer.window.add_dock_widget(eventidbox, name="Event", area='left')
         self.viewer.window.add_dock_widget(imageidbox, name="Image", area='left')
 
-    def overlaptiles(self, sliceregion):
-
-        if self.n_tiles == (1, 1):
-            patch = []
-            rowout = []
-            column = []
-            patchx = sliceregion.shape[2] // self.n_tiles[0]
-            patchy = sliceregion.shape[1] // self.n_tiles[1]
-            patchshape = (patchy, patchx)
-            smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, [0, 0])
-            patch.append(smallpatch)
-            rowout.append(smallrowout)
-            column.append(smallcolumn)
-
-        else:
-            patchx = sliceregion.shape[2] // self.n_tiles[0]
-            patchy = sliceregion.shape[1] // self.n_tiles[1]
-
-            if patchx > self.imagex and patchy > self.imagey:
-                if self.overlap_percent > 1 or self.overlap_percent < 0:
-                    self.overlap_percent = 0.8
-
-                jumpx = int(self.overlap_percent * patchx)
-                jumpy = int(self.overlap_percent * patchy)
-
-                patchshape = (patchy, patchx)
-                rowstart = 0;
-                colstart = 0
-                pairs = []
-                # row is y, col is x
-
-                while rowstart < sliceregion.shape[1] - patchy:
-                    colstart = 0
-                    while colstart < sliceregion.shape[2] - patchx:
-                        # Start iterating over the tile with jumps = stride of the fully convolutional network.
-                        pairs.append([rowstart, colstart])
-                        colstart += jumpx
-                    rowstart += jumpy
-
-                    # Include the last patch
-                rowstart = sliceregion.shape[1] - patchy
-                colstart = 0
-                while colstart < sliceregion.shape[2]:
-                    pairs.append([rowstart, colstart])
-                    colstart += jumpx
-                rowstart = 0
-                colstart = sliceregion.shape[2] - patchx
-                while rowstart < sliceregion.shape[1]:
-                    pairs.append([rowstart, colstart])
-                    rowstart += jumpy
-
-                if sliceregion.shape[1] >= self.imagey and sliceregion.shape[2] >= self.imagex:
-
-                    patch = []
-                    rowout = []
-                    column = []
-                    for pair in pairs:
-                        smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, pair)
-                        if smallpatch.shape[1] >= self.imagey and smallpatch.shape[2] >= self.imagex:
-                            patch.append(smallpatch)
-                            rowout.append(smallrowout)
-                            column.append(smallcolumn)
-
-            else:
-
-                patch = []
-                rowout = []
-                column = []
-
-                smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, [0, 0])
-                patch.append(smallpatch)
-                rowout.append(smallrowout)
-                column.append(smallcolumn)
-        self.patch = patch
-        self.sy = rowout
-        self.sx = column
-
-    def predict_main(self, sliceregion):
-        try:
-            self.overlaptiles(sliceregion)
-            predictions = []
-            allx = []
-            ally = []
-            if len(self.patch) > 0:
-                for i in range(0, len(self.patch)):
-                    sum_time_prediction = self.make_patches(self.patch[i])
-                    predictions.append(sum_time_prediction)
-                    allx.append(self.sx[i])
-                    ally.append(self.sy[i])
-
-
-            else:
-
-                sum_time_prediction = self.make_patches(self.patch)
-                predictions.append(sum_time_prediction)
-                allx.append(self.sx)
-                ally.append(self.sy)
-
-        except tf.errors.ResourceExhaustedError:
-
-            print('Out of memory, increasing overlapping tiles for prediction')
-
-            self.list_n_tiles = list(self.n_tiles)
-            self.list_n_tiles[0] = self.n_tiles[0] + 1
-            self.list_n_tiles[1] = self.n_tiles[1] + 1
-            self.n_tiles = tuple(self.list_n_tiles)
-
-            self.predict_main(sliceregion)
-
-        return predictions, allx, ally
 
     def make_patches(self, sliceregion):
 
@@ -787,32 +606,12 @@ class NEATDynamic(object):
         return prediction_vector
 
 
-def chunk_list(image, patchshape, stride, pair):
-    rowstart = pair[0]
-    colstart = pair[1]
-
-    endrow = rowstart + patchshape[0]
-    endcol = colstart + patchshape[1]
-
-    if endrow > image.shape[1]:
-        endrow = image.shape[1]
-    if endcol > image.shape[2]:
-        endcol = image.shape[2]
-
-    region = (slice(0, image.shape[0]), slice(rowstart, endrow),
-              slice(colstart, endcol))
-
-    # The actual pixels in that region.
-    patch = image[region]
-
-    # Always normalize patch that goes into the netowrk for getting a prediction score
-
-    return patch, rowstart, colstart
 
 
-def CreateVolume(patch, imagetminus,imagetplus, timepoint, imagey, imagex):
-    starttime = timepoint - imagetminus - 1
-    endtime = timepoint + imagetplus
+
+def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+    starttime = timepoint
+    endtime = timepoint + imaget
     smallimg = patch[starttime:endtime, :]
 
     return smallimg
