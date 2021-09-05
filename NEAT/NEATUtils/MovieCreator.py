@@ -408,39 +408,47 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
             
             names = [Readname(fname)  for fname in files_raw]
             #Normalize everything before it goes inside the training
-            NormalizeImages = [normalizeFloatZeroOne( image.astype('float32'),1,99.8) for image in tqdm(Images)]
+            NormalizeImages = []
+            for image in tqdm(Images):
+                  try:                 
+                     normimage =    normalizeFloatZeroOne( image.astype('float32'),1,99.8)
+                     NormalizeImages.append(normimage)
+                  except:
+                    pass
+                        
+                  
 
 
-            for i in range(0,len(NormalizeImages)):
-               
-               n = NormalizeImages[i]
-               blankX = n
-               csvfname = save_dir + '/' + names[i] + '.csv'   
-               arr = [] 
-               with open(csvfname) as csvfile:
-                     reader = csv.reader(csvfile, delimiter = ',')
-                     for train_vec in reader:
+                  for i in range(0,len(NormalizeImages)):
 
-                             arr =  [float(s) for s in train_vec[0:]]
-               blankY = arr
+                       n = NormalizeImages[i]
+                       blankX = n
+                       csvfname = save_dir + '/' + names[i] + '.csv'   
+                       arr = [] 
+                       with open(csvfname) as csvfile:
+                             reader = csv.reader(csvfile, delimiter = ',')
+                             for train_vec in reader:
 
-               blankY = np.expand_dims(blankY, -1)
-               blankX = np.expand_dims(blankX, -1)
+                                     arr =  [float(s) for s in train_vec[0:]]
+                       blankY = arr
 
-               data.append(blankX)
-               label.append(blankY)
+                       blankY = np.expand_dims(blankY, -1)
+                       blankX = np.expand_dims(blankX, -1)
+
+                       data.append(blankX)
+                       label.append(blankY)
 
 
 
-            dataarr = np.asarray(data)
-            labelarr = np.asarray(label)
-            if static:
-                dataarr = dataarr[:,0,:,:,:]
-            print(dataarr.shape, labelarr.shape)
-            traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
-            save_full_training_data(save_dir, save_name, traindata, trainlabel, axes)
-            save_full_training_data(save_dir, save_name_val, validdata, validlabel, axes)
-    
+                  dataarr = np.asarray(data)
+                  labelarr = np.asarray(label)
+                  if static:
+                        dataarr = dataarr[:,0,:,:,:]
+                  print(dataarr.shape, labelarr.shape)
+                  traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
+                  save_full_training_data(save_dir, save_name, traindata, trainlabel, axes)
+                  save_full_training_data(save_dir, save_name_val, validdata, validlabel, axes)
+         
 
 def _raise(e):
     raise e
@@ -490,45 +498,85 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, to
                                     crop_Xplus = x   + int(ImagesizeX/2)
                                     crop_Yminus = y  - int(ImagesizeY/2)
                                     crop_Yplus = y   + int(ImagesizeY/2)
-                                 
-                                    for tex in range(int(time) -2, int(time) + 2):
-                                            newname = newname + str(tex)
-                                            region =(slice(int(tex - 1),int(tex)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
-                                                   slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
+                                    
+                                    if trainlabel == 0:
+                                                    region =(slice(int(time - 1),int(time)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
+                                                           slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
 
-                                            crop_image = image[region]      
+                                                    crop_image = image[region]      
 
 
-                                            seglocationX = (newcenter[1] - crop_Xminus)
-                                            seglocationY = (newcenter[0] - crop_Yminus)
+                                                    seglocationX = (newcenter[1] - crop_Xminus)
+                                                    seglocationY = (newcenter[0] - crop_Yminus)
 
-                                            Label[total_categories] =  seglocationX/sizeX
-                                            Label[total_categories + 1] = seglocationY/sizeY
+                                                    Label[total_categories] =  seglocationX/sizeX
+                                                    Label[total_categories + 1] = seglocationY/sizeY
 
-                                            if height >= ImagesizeY:
-                                                height = 0.5 * ImagesizeY
-                                            if width >= ImagesizeX:
-                                                width = 0.5 * ImagesizeX
+                                                    if height >= ImagesizeY:
+                                                        height = 0.5 * ImagesizeY
+                                                    if width >= ImagesizeX:
+                                                        width = 0.5 * ImagesizeX
 
-                                            Label[total_categories + 2] = height/ImagesizeY
-                                            Label[total_categories + 3] = width/ImagesizeX
-
+                                                    Label[total_categories + 2] = height/ImagesizeY
+                                                    Label[total_categories + 3] = width/ImagesizeX
 
 
 
-                                            if yolo_v0==False:
-                                                    if SegLabel > 0:
-                                                      Label[total_categories + 4] = 1 
-                                                    else:
-                                                      Label[total_categories + 4] = 0  
 
-                                            if(crop_image.shape[1]== ImagesizeY and crop_image.shape[2]== ImagesizeX):
-                                                     imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))  
-                                                     Event_data.append([Label[i] for i in range(0,len(Label))])
-                                                     if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
-                                                        os.remove(save_dir + '/' + (newname) + ".csv")
-                                                     writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
-                                                     writer.writerows(Event_data)
+                                                    if yolo_v0==False:
+                                                            if SegLabel > 0:
+                                                              Label[total_categories + 4] = 1 
+                                                            else:
+                                                              Label[total_categories + 4] = 0  
+
+                                                    if(crop_image.shape[1]== ImagesizeY and crop_image.shape[2]== ImagesizeX):
+                                                             imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))  
+                                                             Event_data.append([Label[i] for i in range(0,len(Label))])
+                                                             if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
+                                                                os.remove(save_dir + '/' + (newname) + ".csv")
+                                                             writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
+                                                             writer.writerows(Event_data)
+                                        
+                                    
+                                    if trainlabel > 0:
+                                            for tex in range(int(time) -2, int(time) + 2):
+                                                    newname = newname + str(tex)
+                                                    region =(slice(int(tex - 1),int(tex)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
+                                                           slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
+
+                                                    crop_image = image[region]      
+
+
+                                                    seglocationX = (newcenter[1] - crop_Xminus)
+                                                    seglocationY = (newcenter[0] - crop_Yminus)
+
+                                                    Label[total_categories] =  seglocationX/sizeX
+                                                    Label[total_categories + 1] = seglocationY/sizeY
+
+                                                    if height >= ImagesizeY:
+                                                        height = 0.5 * ImagesizeY
+                                                    if width >= ImagesizeX:
+                                                        width = 0.5 * ImagesizeX
+
+                                                    Label[total_categories + 2] = height/ImagesizeY
+                                                    Label[total_categories + 3] = width/ImagesizeX
+
+
+
+
+                                                    if yolo_v0==False:
+                                                            if SegLabel > 0:
+                                                              Label[total_categories + 4] = 1 
+                                                            else:
+                                                              Label[total_categories + 4] = 0  
+
+                                                    if(crop_image.shape[1]== ImagesizeY and crop_image.shape[2]== ImagesizeX):
+                                                             imwrite((save_dir + '/' + newname + '.tif'  ) , crop_image.astype('float32'))  
+                                                             Event_data.append([Label[i] for i in range(0,len(Label))])
+                                                             if(os.path.exists(save_dir + '/' + (newname) + ".csv")):
+                                                                os.remove(save_dir + '/' + (newname) + ".csv")
+                                                             writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
+                                                             writer.writerows(Event_data)
 
 def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, offset, total_categories, trainlabel, name, save_dir):
 

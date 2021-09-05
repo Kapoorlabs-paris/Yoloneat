@@ -511,22 +511,25 @@ def GenerateMarkers(Image, model, n_tiles):
     return Markers        
 """
 This method takes the integer labelled segmentation image as input and creates a dictionary of markers at all timepoints for easy search
-"""    
+"""
+
+
 def MakeTrees(segimage):
-    
-        AllTrees = {}
-        print("Creating Dictionary of marker location for fast search")
-        for i in tqdm(range(0, segimage.shape[0])):
-            
-                indices = []
-                currentimage = segimage[i, :].astype('uint16')
-                waterproperties = measure.regionprops(currentimage, currentimage)
-                centroid = [prop.centroid for prop in waterproperties]
-                AllTrees[str(i)] =  centroid
-                    
-                    
-                           
-        return AllTrees
+    AllTrees = {}
+    print("Creating Dictionary of marker location for fast search")
+    for i in tqdm(range(0, segimage.shape[0])):
+
+        indices = []
+        currentimage = segimage[i, :].astype('uint16')
+        waterproperties = measure.regionprops(currentimage, currentimage)
+        for prop in waterproperties:
+            indices.append((int(prop.centroid[0]), int(prop.centroid[1])))
+        if len(indices) > 0:
+            tree = spatial.cKDTree(indices)
+
+            AllTrees[str(i)] = [tree, indices]
+
+    return AllTrees
     
 def compare_function(box1, box2, event_name):
         

@@ -363,7 +363,7 @@ class NEATDynamic(object):
                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex, self.imagey)
                 
                 count = count + 1
-                location = self.marker_tree[str(int(inputtime))]
+                tree, location = self.marker_tree[str(int(inputtime))]
                 if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
                     imwrite((savename + '.tif'), self.Colorimage)
 
@@ -387,9 +387,9 @@ class NEATDynamic(object):
 
                         prediction_vector = self.make_patches(crop_image)
 
-                        boxprediction = nonfcn_yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime,
+                        boxprediction = yoloprediction(0, 0, prediction_vector[0], self.stride, inputtime,
                                                               self.config, self.key_categories, self.key_cord,
-                                                              self.nboxes, 'detection', 'dynamic')
+                                                              self.nboxes, 'detection', 'dynamic', self.marker_tree)
                         
 
                         if boxprediction is not None:
@@ -596,7 +596,7 @@ class NEATDynamic(object):
 
         predict_im = np.expand_dims(sliceregion, 0)
 
-        prediction_vector = self.model.predict(np.expand_dims(predict_im, -1), verbose=0)
+        prediction_vector = self.model.predict(np.expand_dims(predict_im, -1), verbose=1)
 
         return prediction_vector
 
