@@ -339,7 +339,7 @@ class NEATDynamicSegFree(object):
         
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
-                    if inputtime > self.size_tminus + 1 and inputtime < self.image.shape[0] - self.size_tplus:
+                    if inputtime >= self.size_tminus + 1 and inputtime < self.image.shape[0] - self.size_tplus:
                                 count = count + 1
                                 if inputtime%10==0 or inputtime >= self.image.shape[0] - self.imaget - 1:
                                       
@@ -359,7 +359,7 @@ class NEATDynamicSegFree(object):
                                      #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                                      for i in range(0, sum_time_prediction.shape[0]):
                                           time_prediction =  sum_time_prediction[i]
-                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime - self.size_tminus - 1, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
                                           
                                           if boxprediction is not None:
                                                   eventboxes = eventboxes + boxprediction

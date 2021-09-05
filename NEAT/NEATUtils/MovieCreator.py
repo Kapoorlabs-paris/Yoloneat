@@ -404,10 +404,8 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
             raw_path = os.path.join(save_dir, '*tif')
             files_raw = glob.glob(raw_path)
             files_raw.sort
-            if static:
-                  Images= [imread(fname) for fname in files_raw]
-            else:      
-                  Images= [imread(fname) for fname in files_raw]
+            Images= [imread(fname) for fname in files_raw]
+            
             names = [Readname(fname)  for fname in files_raw]
             #Normalize everything before it goes inside the training
             NormalizeImages = [normalizeFloatZeroOne( image.astype('float32'),1,99.8) for image in tqdm(Images)]
