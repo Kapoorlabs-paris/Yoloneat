@@ -720,8 +720,8 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         meanboxYstart = (boxAYstart + boxBYstart)/2
                         meanboxXcenter = (boxAXcenter + boxBXcenter)/2
                         meanboxYcenter = (boxAYcenter + boxBYcenter)/2
-                        meanboxrealtime = int(min(boxArealtime, boxBrealtime))
-                        meanboxtime = int(min(boxAboxtime, boxBboxtime))
+                        meanboxrealtime = int((boxArealtime +  boxBrealtime)/2)
+                        meanboxtime = int((boxAboxtime +  boxBboxtime)/2)
                         meanboxheight = (boxAheight + boxBheight)/2
                         meanboxwidth = (boxAwidth + boxBwidth)/2
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2
@@ -763,8 +763,8 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         meanboxYstart = (boxAYstart + boxBYstart)/2
                         meanboxXcenter = (boxAXcenter + boxBXcenter)/2
                         meanboxYcenter = (boxAYcenter + boxBYcenter)/2
-                        meanboxrealtime = int(min(boxArealtime, boxBrealtime))
-                        meanboxtime = int(min(boxAboxtime, boxBboxtime))
+                        meanboxrealtime = int((boxArealtime + boxBrealtime)/2)
+                        meanboxtime = int((boxAboxtime +  boxBboxtime)/2)
                         meanboxheight = (boxAheight + boxBheight)/2
                         meanboxwidth = (boxAwidth + boxBwidth)/2
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2

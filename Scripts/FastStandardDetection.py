@@ -36,8 +36,8 @@ division_cord_json = model_dir + 'DivisionCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
-n_tiles = (8,8)
-event_threshold = 0.9
+n_tiles = (4,4)
+event_threshold = 0.99
 iou_threshold = 0.1
 yolo_v2 = False
 
