@@ -360,9 +360,11 @@ class NEATDynamic(object):
         classedboxes = {}
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
-            if inputtime >= self.size_tminus + 1 and  inputtime < self.image.shape[0] - self.imaget:
+            if inputtime < self.image.shape[0] - self.imaget:
 
-                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex,
+                if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
+                    imwrite((savename + '.tif'), self.Colorimage)
+                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
                                           self.imagey)
                 smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
                 # Cut off the region for training movie creation
@@ -378,16 +380,22 @@ class NEATDynamic(object):
                         for i in range(0, sum_time_prediction.shape[0]):
                             time_prediction = sum_time_prediction[i]
                             boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride,
-                                                           inputtime - self.size_tminus - 1, self.config,
+                                                           inputtime, self.config,
                                                            self.key_categories, self.key_cord, self.nboxes, 'detection',
                                                            'dynamic')
 
                             if boxprediction is not None:
                                 eventboxes = eventboxes + boxprediction
+
                 print('Total initial predictions:', len(eventboxes))
                 for (event_name, event_label) in self.key_categories.items():
 
                     if event_label > 0:
+                        sorted_event_box = sorted(eventboxes, key=lambda x: x[event_name], reverse=True)
+                        scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
+                        eventboxes = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold,
+                                                event_name, 'dynamic', self.imagex, self.imagey, self.imaget)
+
                         for box in eventboxes:
 
                             event_prob = box[event_name]
@@ -396,7 +404,7 @@ class NEATDynamic(object):
 
                                 X = box['xcenter']
                                 Y = box['ycenter']
-                                T = box['real_time_event']
+                                T = int(box['real_time_event'])
 
                                 crop_xminus = int(X) - int(self.imagex / 2)
                                 crop_xplus = int(X) + int(self.imagex / 2)
@@ -405,21 +413,18 @@ class NEATDynamic(object):
                                 region = (slice(int(T - self.size_tminus - 1), int(T + self.size_tplus)), slice(int(crop_yminus), int(crop_yplus)),
                                           slice(int(crop_xminus), int(crop_xplus)))
 
-                                crop_image = smallimage[region]
+                                crop_image = self.image[region]
 
-                                if crop_image.shape[0] >= self.imaget and crop_image.shape[1] >= self.imagey and \
-                                        crop_image.shape[
-                                            2] >= self.imagex:
+                                if crop_image.shape[0] >= self.imaget and crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex:
 
                                     # Now apply the prediction for counting real events
 
                                     prediction_vector = self.make_patches(crop_image)
 
                                     boxprediction = yoloprediction(crop_yminus, crop_xminus, prediction_vector[0],
-                                                                   self.stride, inputtime,
+                                                                   self.stride, T,
                                                                    self.config, self.key_categories, self.key_cord,
-                                                                   self.nboxes, 'detection', 'dynamic',
-                                                                   self.marker_tree)
+                                                                   self.nboxes, 'detection', 'dynamic')
 
                                     if boxprediction is not None:
                                         refinedeventboxes = refinedeventboxes + boxprediction
@@ -438,20 +443,19 @@ class NEATDynamic(object):
                 self.classedboxes = classedboxes
                 self.eventboxes = eventboxes
                 # nms over time
-                if inputtime%(self.imaget//2) == 0:
-                        self.nms()
-                        self.to_csv()
-                        eventboxes = []
-                        refinedeventboxes = []
-                        classedboxes = {}
-                        count = 0
+                #if inputtime%(self.imaget//2) == 0:
+                self.nms()
+                self.to_csv()
+                eventboxes = []
+                refinedeventboxes = []
+                classedboxes = {}
+                
 
 
 
     def nms(self):
 
         best_iou_classedboxes = {}
-        self.iou_classedboxes = {}
         for (event_name, event_label) in self.key_categories.items():
             if event_label > 0:
                 # Get all events
@@ -460,7 +464,7 @@ class NEATDynamic(object):
                 sorted_event_box = sorted(sorted_event_box, key=lambda x: x[event_name], reverse=True)
                 scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                 best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic',self.imagex, self.imagey, self.imaget)
-                best_iou_classedboxes[event_name] = [sorted_event_box]
+                best_iou_classedboxes[event_name] = [best_sorted_event_box]
 
         self.iou_classedboxes = best_iou_classedboxes
 
@@ -747,9 +751,9 @@ class NEATDynamic(object):
         return prediction_vector
 
 
-def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
-    starttime = timepoint - imagetminus - 1
-    endtime = timepoint + imagetplus
+def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+    starttime = timepoint
+    endtime = timepoint + imaget
     smallimg = patch[starttime:endtime, :]
 
     return smallimg

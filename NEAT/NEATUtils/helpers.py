@@ -753,8 +753,11 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         meanboxconfidence = (boxAconfidence + boxBconfidence)/2
                         meanboxrealangle = (boxArealangle + boxBrealangle)/2
                         meanboxrawangle = (boxArawangle + boxBrawangle)/2
+                        xcenterrawmean = (boxAXcenterraw + boxBXcenterraw)/meanboxscore
+                        ycenterrawmean = (boxAYcenterraw + boxBYcenterraw) / meanboxscore
+                        tcenterrawmean = (boxATcenterraw + boxBTcenterraw)/meanboxscore
                         if count >= thresh:
-                           newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_time_event':meanboxrealtime, 'box_time_event':meanboxtime,
+                           newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart , 'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean, 'tcenterraw' : tcenterrawmean,  'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_time_event':meanboxrealtime, 'box_time_event':meanboxtime,
                                   'height':meanboxheight, 'width':meanboxwidth , 'confidence':meanboxconfidence, 'realangle':meanboxrealangle, 'rawangle':meanboxrawangle, event_name:meanboxscore}
                 
         
@@ -1137,7 +1140,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                                realangle = 2
                                                                rawangle = 2
                                                           if marker_tree is not None:
-                                                                ycentermean , xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)      
+                                                                ycentermean , xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
                                                           #Compute the box vectors 
                                                           box = {'xstart' : xstart, 'ystart' : ystart, 'tstart' : boxtstartmean, 'xcenterraw' : xcenterrawmean, 'ycenterraw' : ycenterrawmean, 'tcenterraw' : tcenterrawmean, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
                                                             'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean, 'realangle' : realangle, 'rawangle' : rawangle}

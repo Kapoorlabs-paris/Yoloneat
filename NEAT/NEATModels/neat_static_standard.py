@@ -270,7 +270,7 @@ class NEATStatic(object):
         
         
 
-    def predict(self, imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.01, fcn = True, height = None, width = None, RGB = False):
+    def predict(self, imagename, savedir,event_threshold, n_tiles = (1,1), overlap_percent = 0.8, iou_threshold = 0.01, fcn = True, height = None, width = None, RGB = False):
         
         
         self.imagename = imagename
@@ -340,7 +340,7 @@ class NEATStatic(object):
                              for box in eventboxes:
                                 
                                 event_prob = box[event_name]
-                                if event_prob >= self.event_threshold:
+                                if event_prob >= self.event_threshold[event_label]:
                                     
                                     current_event_box.append(box)
                              classedboxes[event_name] = [current_event_box]
@@ -420,7 +420,7 @@ class NEATStatic(object):
                #Get all events
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'static', self.imagex, self.imagey)
+               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold[event_label], event_name, 'static', self.imagex, self.imagey)
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box] 
                
