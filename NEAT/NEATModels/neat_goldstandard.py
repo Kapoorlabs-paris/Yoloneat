@@ -382,7 +382,7 @@ class NEATDynamic(object):
                             boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride,
                                                            inputtime, self.config,
                                                            self.key_categories, self.key_cord, self.nboxes, 'detection',
-                                                           'dynamic')
+                                                           'dynamic', self.marker_tree)
 
                             if boxprediction is not None:
                                 eventboxes = eventboxes + boxprediction
@@ -393,7 +393,7 @@ class NEATDynamic(object):
                     if event_label > 0:
                         sorted_event_box = sorted(eventboxes, key=lambda x: x[event_name], reverse=True)
                         scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
-                        eventboxes = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold,
+                        eventboxes = averagenms(sorted_event_box, scores, 0.9, self.event_threshold,
                                                 event_name, 'dynamic', self.imagex, self.imagey, self.imaget)
 
                         for box in eventboxes:
@@ -421,10 +421,15 @@ class NEATDynamic(object):
 
                                     prediction_vector = self.make_patches(crop_image)
 
-                                    boxprediction = yoloprediction(crop_yminus, crop_xminus, prediction_vector[0],
+                                    boxprediction = yoloprediction(0, 0, prediction_vector[0],
                                                                    self.stride, T,
                                                                    self.config, self.key_categories, self.key_cord,
                                                                    self.nboxes, 'detection', 'dynamic')
+                                    if len(boxprediction) > 0:
+                                       boxprediction[0]['xcenter'] = X
+                                       boxprediction[0]['ycenter'] = Y
+                                       boxprediction[0]['xstart'] = X - int(self.imagex/2)
+                                       boxprediction[0]['ystart'] = Y - int(self.imagey/2)
 
                                     if boxprediction is not None:
                                         refinedeventboxes = refinedeventboxes + boxprediction
@@ -443,12 +448,12 @@ class NEATDynamic(object):
                 self.classedboxes = classedboxes
                 self.eventboxes = eventboxes
                 # nms over time
-                #if inputtime%(self.imaget//2) == 0:
-                self.nms()
-                self.to_csv()
-                eventboxes = []
-                refinedeventboxes = []
-                classedboxes = {}
+                if inputtime%(self.imaget//2) == 0:
+                   self.nms()
+                   self.to_csv()
+                   eventboxes = []
+                   refinedeventboxes = []
+                   classedboxes = {}
                 
 
 

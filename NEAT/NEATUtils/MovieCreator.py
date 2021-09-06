@@ -71,6 +71,7 @@ def SegFreeMovieLabelDataSet(image_dir, csv_dir, save_dir, static_name, static_l
                                      if classfound:
                                                     print(Csvname)
                                                     image = imread(fname)
+                                                    image = normalizeFloatZeroOne( image.astype('float32'),1,99.8)
                                                     dataset = pd.read_csv(csvfname)
                                                     z = dataset[dataset.keys()[0]][1:]
                                                     y = dataset[dataset.keys()[1]][1:]
@@ -168,7 +169,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                           
                           
                          image = imread(fname)
-                         
+                         image = normalizeFloatZeroOne( image.astype('float32'),1,99.8)
                          segimage = imread(Segfname)
                         
                          for csvfname in filesCsv:
@@ -342,6 +343,7 @@ def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, s
                           
                           
                          image = imread(fname)
+                         image = normalizeFloatZeroOne( image.astype('float32'),1,99.8)   
                          segimage = imread(Segfname)
                          for i in  range(0, len(static_name)):
                              event_name = static_name[i]
@@ -382,6 +384,7 @@ def SegFreeImageLabelDataSet(image_dir, csv_dir,save_dir, static_name, static_la
                          name = os.path.basename(os.path.splitext(fname)[0])   
                          image = imread(fname)
                          image = image[:,:,0]
+                         image = normalizeFloatZeroOne( image.astype('float32'),1,99.8)   
                          for i in  range(0, len(static_name)):
                              event_name = static_name[i]
                              trainlabel = static_label[i]
@@ -404,22 +407,11 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
             raw_path = os.path.join(save_dir, '*tif')
             files_raw = glob.glob(raw_path)
             files_raw.sort
-            Images= [imread(fname) for fname in files_raw]
+            NormalizeImages= [imread(fname) for fname in files_raw]
             
             names = [Readname(fname)  for fname in files_raw]
             #Normalize everything before it goes inside the training
-            NormalizeImages = []
-            for image in tqdm(Images):
-                  try:                 
-                     normimage =    normalizeFloatZeroOne( image.astype('float32'),1,99.8)
-                     NormalizeImages.append(normimage)
-                  except:
-                    pass
-                        
-                  
-
-
-                  for i in range(0,len(NormalizeImages)):
+            for i in range(0,len(NormalizeImages)):
 
                        n = NormalizeImages[i]
                        blankX = n
@@ -440,15 +432,15 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
 
 
 
-                  dataarr = np.asarray(data)
-                  labelarr = np.asarray(label)
-                  if static:
-                        dataarr = dataarr[:,0,:,:,:]
-                  print(dataarr.shape, labelarr.shape)
-                  traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
-                  save_full_training_data(save_dir, save_name, traindata, trainlabel, axes)
-                  save_full_training_data(save_dir, save_name_val, validdata, validlabel, axes)
-         
+            dataarr = np.asarray(data)
+            labelarr = np.asarray(label)
+            if static:
+                dataarr = dataarr[:,0,:,:,:]
+            print(dataarr.shape, labelarr.shape)
+            traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
+            save_full_training_data(save_dir, save_name, traindata, trainlabel, axes)
+            save_full_training_data(save_dir, save_name_val, validdata, validlabel, axes)
+
 
 def _raise(e):
     raise e

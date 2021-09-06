@@ -26,7 +26,7 @@ npz_val_name = 'Staticbin2V1Val.npz'
 
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
 #Model name based on wether it is residual or sequntial ONEAT network
-model_name = 'CellNetbin2d38resf16.h5'
+model_name = 'CellNetbin2d38resf16multi.h5'
 
 
 # In[14]:
@@ -51,7 +51,7 @@ learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients
 batch_size = 100
 # use softmax for single event per box, sigmoid for multi event per box
-multievent = False
+multievent = True
 # Trainng image size
 yolo_v0 = False
 show = False
