@@ -32,7 +32,7 @@ cordconfig = load_json(division_cord_json)
 model = NEATStatic(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
-event_threshold = 0.99999
+event_threshold = [1,1,0.9999,0.9,0.8,0.8]
 iou_threshold = 0.1
 
 
@@ -42,7 +42,7 @@ iou_threshold = 0.1
 Raw_path = os.path.join(imagedir, '*tif')
 X = glob.glob(Raw_path)
 for imagename in X:
-     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold)
+     model.predict(imagename, savedir, event_threshold, n_tiles = n_tiles, iou_threshold = iou_threshold)
 
 
 # In[3]:
