@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Wed Sep  8 10:02:56 2021
+
+@author: aimachine
+"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Sun Apr 25 13:32:04 2021
 
 @author: vkapoor
@@ -32,7 +39,7 @@ import cv2
 import imageio
 from PIL import Image
 import matplotlib.pyplot as plt
-class NEATPredict(object):
+class NEATStaticPredict(object):
     
 
     """
@@ -372,11 +379,11 @@ class NEATPredict(object):
                                                        
                               self.movie_input_list.append(v)
               total_movies = len(self.movie_input_list)
-              if total_movies > self.size_tminus + self.start:
-                                                                  current_movies = imread(self.movie_input_list[self.start:self.start + self.size_tminus + 1])
+              if total_movies > self.start:
+                                                                  current_movies = imread(self.movie_input_list[self.start:self.start +  1])
                                                                   
-                                                                  sizey = current_movies.shape[1]
-                                                                  sizex = current_movies.shape[2]
+                                                                  sizey = current_movies.shape[0]
+                                                                  sizex = current_movies.shape[1]
                                                                   if self.downsample:
                                                                                 scale_percent = 50
                                                                                 width=int(sizey * scale_percent / 100)
@@ -385,20 +392,19 @@ class NEATPredict(object):
                                                                                 sizex = height
                                                                                 sizey = width
                                                                                 
-                                                                                current_movies_down = np.zeros([current_movies.shape[0], sizey, sizex])
+                                                                                current_movies_down = np.zeros([sizey, sizex])
                                                                                 # resize image
-                                                                                for j in range(current_movies.shape[0]):
-                                                                                        current_movies_down[j,:] = cv2.resize(current_movies[j,:], dim, interpolation = cv2.INTER_AREA)
+                                                                                current_movies_down = cv2.resize(current_movies, dim, interpolation = cv2.INTER_AREA)
                                                                   else:                             
                                                                         current_movies_down = current_movies
                                                                   #print(current_movies_down.shape) 
-                                                                  print('Predicting on Movies:',self.movie_input_list[self.start:self.start + self.size_tminus + 1]) 
-                                                                  inputtime = self.start + self.size_tminus
+                                                                  print('Predicting on Movie:',self.movie_input_list[self.start:self.start + 1]) 
+                                                                  inputtime = self.start
                                                                   
                                                                       
                                                                   eventboxes = []
                                                                   classedboxes = {}
-                                                                  smallimage = CreateVolume(current_movies_down, self.size_tminus + 1, 0,sizex, sizey)
+                                                                  smallimage = current_movies_down
                                                                   
                                                                   smallimage = normalizeFloatZeroOne(smallimage,1,99.8)          
                                                                   #Break image into tiles if neccessary
@@ -417,7 +423,7 @@ class NEATPredict(object):
                                                                              for i in range(0, sum_time_prediction.shape[0]):
                                                                                   time_prediction =  sum_time_prediction[i]
                                                                                   
-                                                                                  boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'prediction', 'dynamic')
+                                                                                  boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'prediction', 'static')
                                                                                   
                                                                                   if boxprediction is not None:
                                                                                           eventboxes = eventboxes + boxprediction
@@ -502,10 +508,8 @@ class NEATPredict(object):
                                               tlocations.append(tcenter)
                                               radiuses.append(radius)
                                               confidences.append(confidence)
-                                   if len(xlocations) == 0:
-                                       self.start = self.start + 1
-                                   else:
-                                       self.start = self.start + self.size_tminus + 2
+                                   
+                                   self.start = self.start + 1
                                        
                                    event_count = np.column_stack([xlocations,ylocations]) 
                                    total_event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences])

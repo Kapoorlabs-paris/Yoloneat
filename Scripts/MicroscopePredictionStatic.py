@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Sep  8 10:15:14 2021
+
+@author: aimachine
+"""
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -8,7 +15,7 @@ import sys
 import os
 from glob import glob
 sys.path.append("../NEAT")
-from NEATModels import NEATPredict, nets
+from NEATModels import NEATStaticPredict, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
@@ -20,19 +27,18 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 # In[2]:
 
 
-
 Z_imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Z_ONEAT_fly_test/'
 imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/ONEAT_fly_test/'
-model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-model_name = 'micronetbin2d29f32'
+model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
+model_name = 'CellNetbin2d29resf16'
 projection_model_name = 'projectionmodelbin2'
-division_categories_json = model_dir + 'MicroscopeCategories.json'
+division_categories_json = model_dir + 'StaticCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'MicroscopeCord.json'
+division_cord_json = model_dir + 'StaticCord.json'
 cordconfig = load_json(division_cord_json)
 fileextension = '*TIF'
 
-model = NEATPredict(None, model_dir , model_name,catconfig, cordconfig)
+model = NEATStaticPredict(None, model_dir , model_name,catconfig, cordconfig)
 projection_model = ProjectionCARE(config = None, name = projection_model_name, basedir = model_dir)
 
 
