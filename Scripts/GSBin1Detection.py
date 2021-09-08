@@ -24,12 +24,12 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/home/sancere/VKepler/oneatgolddust/Test/SmallTest/'
-model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
-savedir= '/home/sancere/VKepler/oneatgolddust/Test/SmallTest/GSSaveDynamicd29resf32/'
-markerdir = '/home/sancere/VKepler/oneatgolddust/Test/SmallTest/GSSaveDynamicd29resf32/Markers/'
+imagedir =  '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
+savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/GSSaveDynamicd29resf32/'
+markerdir = '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/GSSaveDynamicd29resf32/Markers/'
 marker_model_name = '/home/sancere/VKepler/FinalONEATTraining/EverydayneatmodelV1/bin2stardist/'
-model_name = 'wtdivd29resf32'
+model_name = 'bin2divmodeld38resf32'
 
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
@@ -38,7 +38,7 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamic(None, model_dir , model_name,catconfig, cordconfig)
 marker_model = StarDist2D(config = None, name = marker_model_name, basedir = model_dir)
 Path(savedir).mkdir(exist_ok=True)
-n_tiles = (4,4)
+n_tiles = (2,2)
 event_threshold = 0.9999
 iou_threshold = 0.1
 yolo_v2 = False
