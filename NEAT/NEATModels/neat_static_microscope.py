@@ -298,7 +298,7 @@ class NEATStaticPredict(object):
                                                        
                               self.movie_input_list.append(v)
               total_movies = len(self.movie_input_list)
-              print(total_movies, self.start)
+              
               if total_movies > self.start:
                                                                   current_movies = imread(self.movie_input_list[self.start:self.start +  1])
                                                                   

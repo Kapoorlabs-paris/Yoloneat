@@ -387,7 +387,11 @@ class NEATPredict(object):
                best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
-               
+               if len(best_sorted_event_box) > 0:
+                      self.start = self.start + self.size_tminus + 2
+               else:
+                     self.start = self.start + 1 
+         
         self.iou_classedboxes = best_iou_classedboxes                  
         
     def to_csv(self):
@@ -423,11 +427,7 @@ class NEATPredict(object):
                                               tlocations.append(tcenter)
                                               radiuses.append(radius)
                                               confidences.append(confidence)
-                                   if len(xlocations) == 0:
-                                       self.start = self.start + 1
-                                   else:
-                                       self.start = self.start + self.size_tminus + 2
-                                       
+                                   
                                    event_count = np.column_stack([xlocations,ylocations]) 
                                    total_event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences])
                                    csvname = self.basedirResults + "/" + event_name
