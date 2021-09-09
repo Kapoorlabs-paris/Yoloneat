@@ -24,11 +24,11 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/SaveDynamicd29resf32/'
+imagedir =  '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
+savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/SaveDynamicd38resf32/'
 
-model_name = 'wtdivd29resf32'
+model_name = 'bin2divmodeld38resf32'
 
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
@@ -37,7 +37,7 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 0.99
+event_threshold = 0.9999
 iou_threshold = 0.1
 yolo_v2 = False
 
@@ -49,7 +49,7 @@ yolo_v2 = False
 
 Raw_path = os.path.join(imagedir, '*tif')
 X = glob.glob(Raw_path)
-
+X = sorted(X)
 marker_dict = {}
 for imagename in X:
    

@@ -240,7 +240,8 @@ class NEATDynamicSegFree(object):
                                       
                                                                               
                                       imwrite((savename + '.tif' ), self.Colorimage)
-                                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex, self.imagey)
+                                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
+                                                          self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 # Cut off the region for training movie creation
                                 #Break image into tiles if neccessary
@@ -314,9 +315,9 @@ class NEATDynamicSegFree(object):
                
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic',self.imagex, self.imagey, self.imaget)
-               #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-               #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
+               #best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic',self.imagex, self.imagey, self.imaget)
+               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
+               best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                
@@ -656,13 +657,12 @@ def chunk_list(image, patchshape, stride, pair):
             return patch, rowstart, colstart
         
         
-def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
-    
-               starttime = timepoint - imagetminus - 1
-               endtime = timepoint + imagetplus
-               smallimg = patch[starttime:endtime, :]
-       
-               return smallimg         
+def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+    starttime = timepoint
+    endtime = timepoint + imaget
+    smallimg = patch[starttime:endtime, :]
+
+    return smallimg
 class EventViewer(object):
     
     def __init__(self, viewer, image, event_name, key_categories, imagename, savedir, canvas, ax, figure, yolo_v2):

@@ -378,8 +378,9 @@ class NEATDynamicSeg(object):
                                 #all_density_location = self.density_location[str(inputtime)]
                                 #density = all_density_location[0]
                                 #locations = all_density_location[1]
-                                
-                                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex, self.imagey)
+
+                                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
+                                                          self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 # Cut off the region for training movie creation
                                 #for i in range(len(density)):
@@ -817,13 +818,12 @@ def chunk_list(image, patchshape, stride, pair):
             return patch, rowstart, colstart
         
         
-def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
-    
-               starttime = timepoint - imagetminus - 1
-               endtime = timepoint + imagetplus
-               smallimg = patch[starttime:endtime, :]
-       
-               return smallimg         
+def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+    starttime = timepoint
+    endtime = timepoint + imaget
+    smallimg = patch[starttime:endtime, :]
+
+    return smallimg
 class EventViewer(object):
     
     def __init__(self, viewer, image, event_name, key_categories, imagename, savedir, canvas, ax, figure, yolo_v2):
