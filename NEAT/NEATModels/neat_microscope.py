@@ -390,7 +390,7 @@ class NEATPredict(object):
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                if event_label == self.event_label_interest:
                    if len(best_sorted_event_box) > 0:
-                       self.start = self.start + self.size_tminus + 2
+                       self.start = self.start + self.size_tminus + 1
                    else:
                        self.start = self.start + 1 
          
