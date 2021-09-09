@@ -181,7 +181,7 @@ class NEATPredict(object):
         
 
         
-    def predict(self, imagedir,  movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start, Z_start, downsample = False, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), Z_n_tiles = (1,2,2), overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01, projection_model = None, delay_projection = 4):
+    def predict(self, imagedir,  movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start, Z_start, downsample = False, event_label_interest = 1, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), Z_n_tiles = (1,2,2), overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01, projection_model = None, delay_projection = 4):
         
         self.imagedir = imagedir
         self.basedirResults = self.imagedir + '/' + "live_results"
@@ -194,6 +194,7 @@ class NEATPredict(object):
         self.Z_movie_input = Z_movie_input
         self.Z_imagedir = Z_imagedir
         self.start = start
+        self.event_label_interest = event_label_interest
         self.Z_start = Z_start
         self.projection_model = projection_model
         self.nb_prediction = nb_prediction
@@ -387,10 +388,11 @@ class NEATPredict(object):
                best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
-               if len(best_sorted_event_box) > 0:
-                      self.start = self.start + self.size_tminus + 2
-               else:
-                     self.start = self.start + 1 
+               if event_label == self.event_label_interest:
+                   if len(best_sorted_event_box) > 0:
+                       self.start = self.start + self.size_tminus + 2
+                   else:
+                       self.start = self.start + 1 
          
         self.iou_classedboxes = best_iou_classedboxes                  
         
@@ -459,7 +461,7 @@ class NEATPredict(object):
                                    #self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
                                    
                                    event_data = []
-                                   csvname = self.basedirResults + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                   #csvname = self.basedirResults + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                    writer = csv.writer(open(csvname  +".csv", "a"))
                                    filesize = os.stat(csvname + ".csv").st_size
                                    if filesize < 1:

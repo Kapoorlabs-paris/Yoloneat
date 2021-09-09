@@ -13,7 +13,7 @@ from NEATModels import NEATStatic, nets
 from NEATModels.Staticconfig import static_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="3"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -32,7 +32,7 @@ cordconfig = load_json(division_cord_json)
 model = NEATStatic(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
-event_threshold = [1,0.9,0.9,0.8,0.8,0.8]
+event_threshold = [1,0.9,0.9,1,1,1]
 iou_threshold = 0.1
 
 
