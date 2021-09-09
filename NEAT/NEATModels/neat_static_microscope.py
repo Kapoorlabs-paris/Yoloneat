@@ -22,7 +22,7 @@ import tensorflow as tf
 import time
 from NEATModels import nets
 from NEATModels.nets import Concat
-from NEATModels.loss import dynamic_yolo_loss
+from NEATModels.loss import static_yolo_loss_segfree
 from tqdm import tqdm
 #from IPython.display import clear_output
 from keras import optimizers
@@ -136,8 +136,7 @@ class NEATStaticPredict(object):
                 self.depth = self.config['depth']
                 self.start_kernel = self.config['start_kernel']
                 self.mid_kernel = self.config['mid_kernel']
-                self.lstm_kernel = self.config['lstm_kernel']
-                self.lstm_hidden_unit = self.config['lstm_hidden_unit']
+                
                 self.learning_rate = self.config['learning_rate']
                 self.epochs = self.config['epochs']
                 self.residual = self.config['residual']
@@ -146,18 +145,17 @@ class NEATStaticPredict(object):
                 self.multievent = self.config['multievent']
                 self.imagex = self.config['imagex']
                 self.imagey = self.config['imagey']
-                self.imaget = self.config['size_tminus']
-                self.size_tminus = self.config['size_tminus']
-                self.size_tplus = self.config['size_tplus']
+                
+                
                 self.nboxes = self.config['nboxes']
                 self.gridx = 1
                 self.gridy = 1
                 self.gridt = 1
                 self.yolo_v0 = self.config['yolo_v0']
-                self.yolo_v1 = self.config['yolo_v1']
-                self.yolo_v2 = self.config['yolo_v2']
+                
+                
                 self.stride = self.config['stride']   
-                self.lstm_hidden_unit = self.config['lstm_hidden_unit']
+                
                 
                 
 
@@ -184,8 +182,8 @@ class NEATStaticPredict(object):
            self.last_activation = 'softmax'              
            self.entropy = 'notbinary' 
         
-        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
         
+        self.yolo_loss = static_yolo_loss_segfree(self.categories, self.gridx, self.gridy, self.nboxes, self.box_vector, self.entropy, self.yolo_v0)
 
         
     def predict(self, imagedir,  movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start, Z_start, downsample = False, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), Z_n_tiles = (1,2,2), overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01, projection_model = None, delay_projection = 4):
@@ -216,7 +214,7 @@ class NEATStaticPredict(object):
         data_p = data_p.decode().replace("learning_rate","lr").encode()
         f.attrs['training_config'] = data_p
         f.close()
-        self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
+        self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yolo_loss, 'Concat':Concat})
 
         #Z slice folder listener   
         while 1:
@@ -300,6 +298,7 @@ class NEATStaticPredict(object):
                                                        
                               self.movie_input_list.append(v)
               total_movies = len(self.movie_input_list)
+              print(total_movies, self.start)
               if total_movies > self.start:
                                                                   current_movies = imread(self.movie_input_list[self.start:self.start +  1])
                                                                   
@@ -370,6 +369,7 @@ class NEATStaticPredict(object):
                                                                   print("____ NMS took %s seconds ____ ", (time.time() - start_time  ) )
                                                                   print('Generating ini file')
                                                                   self.to_csv()
+                                                                  self.start = self.start + 1
                                                                   self.predict(self.imagedir,  self.movie_name_list, self.movie_input, self.Z_imagedir, self.Z_movie_name_list, self.Z_movie_input, self.start, Z_start, fileextension = self.fileextension, downsample = self.downsample, nb_prediction = self.nb_prediction, n_tiles = self.n_tiles, Z_n_tiles = self.Z_n_tiles, overlap_percent =self.overlap_percent, event_threshold = self.event_threshold, iou_threshold = self.iou_threshold, projection_model = self.projection_model)
                                
                                  
@@ -411,7 +411,7 @@ class NEATStaticPredict(object):
                                    
                                    iou_current_event_boxes = self.iou_classedboxes[event_name][0]
                                    
-                                   iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:np.sqrt( (x['xcenter'] - self.image.shape[2]//2) * (x['xcenter'] - self.image.shape[2]//2) ) + np.sqrt((x['ycenter'] - self.image.shape[1]//2) * (x['ycenter'] - self.image.shape[1]//2) ) , reverse = False) 
+                                   #iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:np.sqrt( (x['xcenter'] - self.image.shape[1]//2) * (x['xcenter'] - self.image.shape[1]//2) ) + np.sqrt((x['ycenter'] - self.image.shape[0]//2) * (x['ycenter'] - self.image.shape[0]//2) ) , reverse = False) 
                                                                            
                                    for iou_current_event_box in iou_current_event_boxes:
                                               
@@ -422,7 +422,7 @@ class NEATStaticPredict(object):
                                               score = iou_current_event_box[event_name]
                                               radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                               confidence = iou_current_event_box['confidence']
-                                              print(round(xcenter), round(ycenter), score)
+                                              #print(round(xcenter), round(ycenter), score)
                                               xlocations.append(round(xcenter))
                                               ylocations.append(round(ycenter))
                                               scores.append(score)
@@ -430,7 +430,7 @@ class NEATStaticPredict(object):
                                               radiuses.append(radius)
                                               confidences.append(confidence)
                                    
-                                   self.start = self.start + 1
+                                   
                                        
                                    event_count = np.column_stack([xlocations,ylocations]) 
                                    total_event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences])
@@ -460,10 +460,10 @@ class NEATStaticPredict(object):
 
                                    csvimagename = ImageResults + "/" + event_name + 'LocationData'
                                    name = str(self.start)
-                                   self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
+                                   #self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
                                    
                                    event_data = []
-                                   csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                   #:csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                    writer = csv.writer(open(csvname  +".csv", "a"))
                                    filesize = os.stat(csvname + ".csv").st_size
                                    if filesize < 1:
@@ -504,8 +504,8 @@ class NEATStaticPredict(object):
                                patch = []
                                rowout = []
                                column = []
-                               patchx = sliceregion.shape[2] // self.n_tiles[0]
-                               patchy = sliceregion.shape[1] // self.n_tiles[1]
+                               patchx = sliceregion.shape[1] // self.n_tiles[0]
+                               patchy = sliceregion.shape[0] // self.n_tiles[1]
                                patchshape = (patchy, patchx) 
                                smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, [0,0])
                                patch.append(smallpatch)
@@ -513,8 +513,8 @@ class NEATStaticPredict(object):
                                column.append(smallcolumn)
                  
              else:     
-                     patchx = sliceregion.shape[2] // self.n_tiles[0]
-                     patchy = sliceregion.shape[1] // self.n_tiles[1]
+                     patchx = sliceregion.shape[1] // self.n_tiles[0]
+                     patchy = sliceregion.shape[0] // self.n_tiles[1]
                 
                      if patchx > self.imagex and patchy > self.imagey:
                           if self.overlap_percent > 1 or self.overlap_percent < 0:
@@ -528,9 +528,9 @@ class NEATStaticPredict(object):
                           pairs = []  
                           #row is y, col is x
                           
-                          while rowstart < sliceregion.shape[1] :
+                          while rowstart < sliceregion.shape[0] :
                              colstart = 0
-                             while colstart < sliceregion.shape[2]:
+                             while colstart < sliceregion.shape[1]:
                                 
                                  # Start iterating over the tile with jumps = stride of the fully convolutional network.
                                  pairs.append([rowstart, colstart])
@@ -538,25 +538,25 @@ class NEATStaticPredict(object):
                              rowstart+=jumpy 
                             
                           #Include the last patch   
-                          rowstart = sliceregion.shape[1]
+                          rowstart = sliceregion.shape[0]
                           colstart = 0
-                          while colstart < sliceregion.shape[2]:
+                          while colstart < sliceregion.shape[1]:
                                         pairs.append([rowstart, colstart])
                                         colstart+=jumpx
                           rowstart = 0
-                          colstart = sliceregion.shape[2] - patchx
-                          while rowstart < sliceregion.shape[1] - patchy:
+                          colstart = sliceregion.shape[1] - patchx
+                          while rowstart < sliceregion.shape[0] - patchy:
                                         pairs.append([rowstart, colstart])
                                         rowstart+=jumpy              
                                         
-                          if sliceregion.shape[1] >= self.imagey and sliceregion.shape[2]>= self.imagex :          
+                          if sliceregion.shape[0] >= self.imagey and sliceregion.shape[1]>= self.imagex :          
                               
                                 patch = []
                                 rowout = []
                                 column = []
                                 for pair in pairs: 
                                    smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, pair)
-                                   if smallpatch.shape[1] >= self.imagey and smallpatch.shape[2] >= self.imagex:
+                                   if smallpatch.shape[0] >= self.imagey and smallpatch.shape[1] >= self.imagex:
                                            patch.append(smallpatch)
                                            rowout.append(smallrowout)
                                            column.append(smallcolumn) 
@@ -628,17 +628,17 @@ class NEATStaticPredict(object):
     
 
         
-def chunk_list(image, patchshape, stride, pair):
+def chunk_list_d(image, patchshape, stride, pair):
             rowstart = pair[0]
             colstart = pair[1]
 
             endrow = rowstart + patchshape[0]
             endcol = colstart + patchshape[1]
 
-            if endrow > image.shape[1]:
-                endrow = image.shape[1]
-            if endcol > image.shape[2]:
-                endcol = image.shape[2]
+            if endrow > image.shape[0]:
+                endrow = image.shape[0]
+            if endcol > image.shape[1]:
+                endcol = image.shape[1]
 
 
             region = (slice(0,image.shape[0]),slice(rowstart, endrow),
@@ -652,7 +652,28 @@ def chunk_list(image, patchshape, stride, pair):
 
 
             return patch, rowstart, colstart
-        
+def chunk_list(image, patchshape,stride, pair):
+            rowstart = pair[0]
+            colstart = pair[1]
+
+            endrow = rowstart + patchshape[0]
+            endcol = colstart + patchshape[1]
+
+            if endrow > image.shape[0]:
+                endrow = image.shape[0]
+            if endcol > image.shape[1]:
+                endcol = image.shape[1]
+
+
+            region = (slice(rowstart, endrow),
+                      slice(colstart, endcol))
+
+            # The actual pixels in that region.
+            patch = image[region]
+            # Always normalize patch that goes into the netowrk for getting a prediction score 
+
+
+            return patch, rowstart, colstart        
         
 def CreateVolume(patch, imaget, timepoint, imagey, imagex):
     

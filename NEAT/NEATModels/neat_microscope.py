@@ -456,10 +456,10 @@ class NEATPredict(object):
 
                                    csvimagename = ImageResults + "/" + event_name + 'LocationData'
                                    name = str(self.start)
-                                   self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
+                                   #self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
                                    
                                    event_data = []
-                                   csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
+                                   csvname = self.basedirResults + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
                                    writer = csv.writer(open(csvname  +".csv", "a"))
                                    filesize = os.stat(csvname + ".csv").st_size
                                    if filesize < 1:
