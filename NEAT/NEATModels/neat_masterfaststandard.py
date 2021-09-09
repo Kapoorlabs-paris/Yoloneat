@@ -255,7 +255,7 @@ class NEATMasterDynamicSegFree(object):
                                      #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                                      for i in range(0, sum_time_prediction.shape[0]):
                                           time_prediction =  sum_time_prediction[i]
-                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime - self.size_tminus - 1, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
                                           
                                           if boxprediction is not None:
                                                   eventboxes = eventboxes + boxprediction
