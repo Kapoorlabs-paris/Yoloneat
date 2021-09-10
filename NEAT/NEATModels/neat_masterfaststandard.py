@@ -197,7 +197,7 @@ class NEATMasterDynamicSegFree(object):
         
 
         
-    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1):
+    def predict(self,imagename, savedir, event_threshold, n_tiles = (1,1), overlap_percent = 0.8, iou_threshold = 0.1):
         
         self.imagename = imagename
         self.image = imread(imagename)
@@ -241,7 +241,8 @@ class NEATMasterDynamicSegFree(object):
                                                                               
                                       imwrite((savename + '.tif' ), self.ColorimageDynamic)
                                       imwrite((savename + '.tif' ), self.ColorimageStatic)
-                                smallimage = CreateVolume(self.image, self.size_tminus, self.size_tplus, inputtime, self.imagex, self.imagey)
+                                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
+                                                          self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 # Cut off the region for training movie creation
                                 #Break image into tiles if neccessary
@@ -267,7 +268,7 @@ class NEATMasterDynamicSegFree(object):
                                                      for box in eventboxes:
                                                 
                                                         event_prob = box[event_name]
-                                                        if event_prob >= self.event_threshold:
+                                                        if event_prob >= self.event_threshold[event_label]:
                                                            
                                                             current_event_box.append(box)
                                                      classedboxes[event_name] = [current_event_box]
@@ -674,13 +675,12 @@ def chunk_list(image, patchshape, stride, pair):
             return patch, rowstart, colstart
         
         
-def CreateVolume(patch, imagetminus, imagetplus, timepoint, imagey, imagex):
-    
-               starttime = timepoint - imagetminus - 1
-               endtime = timepoint + imagetplus
-               smallimg = patch[starttime:endtime, :]
-       
-               return smallimg         
+def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+    starttime = timepoint
+    endtime = timepoint + imaget
+    smallimg = patch[starttime:endtime, :]
+
+    return smallimg
 class EventViewer(object):
     
     def __init__(self, viewer, image, event_name, key_categories, imagename, savedir, canvas, ax, figure, yolo_v2):
