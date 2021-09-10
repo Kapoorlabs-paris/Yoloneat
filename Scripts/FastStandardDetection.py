@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -26,9 +26,9 @@ from pathlib import Path
 
 imagedir =  '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/'
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
-savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/SaveDynamicd29resf32/'
+savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/SaveDynamicd38resf32/'
 
-model_name = 'bin2divmodeld29resf32'
+model_name = 'bin2divmodeld38resf32'
 
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)

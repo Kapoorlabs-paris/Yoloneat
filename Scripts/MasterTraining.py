@@ -19,13 +19,13 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 # In[2]:
 
 
-npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
+npz_directory = '/home/sancere/VKepler/CurieTrainingDatasets/oneatnpz/'
 npz_name = 'masterbin2.npz'
 npz_val_name = 'masterbin2val.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MasterBinning2V1Models/'
-model_name = 'bin2masterd29f32res.h5'
+model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MasterBinning2V1Models/'
+model_name = 'bin2masterd38f32res.h5'
 #Neural network parameters
 division_categories_json = model_dir + 'DynamicCategories.json'
 key_categories = load_json(division_categories_json)
@@ -41,7 +41,7 @@ start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 29
+depth = 38
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients

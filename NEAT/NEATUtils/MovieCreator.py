@@ -41,7 +41,7 @@ Total categories for cell classification part of vanilla ONEAT are:
 csv file containing time, ylocation, xlocation of that event/cell type
 """    
    
-def SegFreeMovieLabelDataSet(image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size):
+def SegFreeMovieLabelDataSet(image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, normPatch = False):
     
     
             raw_path = os.path.join(image_dir, '*tif')
@@ -71,7 +71,8 @@ def SegFreeMovieLabelDataSet(image_dir, csv_dir, save_dir, static_name, static_l
                                      if classfound:
                                                     print(Csvname)
                                                     image = imread(fname)
-                                                    image = normalizeFloatZeroOne( image.astype('float32'),1,99.8)
+                                                    if normPatch == False:
+                                                        image = normalizeFloatZeroOne( image.astype('float32'),1,99.8)
                                                     dataset = pd.read_csv(csvfname)
                                                     z = dataset[dataset.keys()[0]][1:]
                                                     y = dataset[dataset.keys()[1]][1:]
@@ -81,7 +82,7 @@ def SegFreeMovieLabelDataSet(image_dir, csv_dir, save_dir, static_name, static_l
                                                     #Categories + XYHW + Confidence 
                                                     for (key, t) in z.items():
                                                        try: 
-                                                          SimpleMovieMaker(t, y[key], x[key], image, crop_size, total_categories, trainlabel, name+ event_name + str(count), save_dir) 
+                                                          SimpleMovieMaker(t, y[key], x[key], image, crop_size, total_categories, trainlabel, name+ event_name + str(count), save_dir, normPatch)
                                                           count = count + 1
                                                         
                                                        except:
@@ -89,7 +90,7 @@ def SegFreeMovieLabelDataSet(image_dir, csv_dir, save_dir, static_name, static_l
                                                            pass
                                                         
 
-def SimpleMovieMaker(z, y, x, image, crop_size, total_categories, trainlabel, name, save_dir):
+def SimpleMovieMaker(z, y, x, image, crop_size, total_categories, trainlabel, name, save_dir, normPatch):
     
        sizex, sizey, size_tminus, size_tplus = crop_size
        
@@ -121,7 +122,8 @@ def SimpleMovieMaker(z, y, x, image, crop_size, total_categories, trainlabel, na
                                       slice(int(crop_xminus) + shift[0], int(crop_xplus) + shift[0]))
                                 #Define the movie region volume that was cut
                                 crop_image = image[region]   
-
+                                if normPatch:
+                                    crop_image = normalizeFloatZeroOne(crop_image.astype('float32'), 1, 99.8)
                                 Label[total_categories] = 0.5
                                 Label[total_categories + 1] = 0.5
                                 Label[total_categories + 2] = 0.5          
@@ -422,8 +424,8 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
                              for train_vec in reader:
 
                                      arr =  [float(s) for s in train_vec[0:]]
-                       blankY = arr
-
+                       blankY = arr[0]
+                       print(blankY)
                        blankY = np.expand_dims(blankY, -1)
                        blankX = np.expand_dims(blankX, -1)
 
