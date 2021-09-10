@@ -419,9 +419,9 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
                        arr = [] 
                        with open(csvfname) as csvfile:
                              reader = csv.reader(csvfile, delimiter = ',')
-                             for train_vec in reader:
-
-                                     arr =  [float(s) for s in train_vec[0:]]
+                             train_vec = reader[0]
+                                     
+                             arr =  [float(s) for s in train_vec[0:]]
                        blankY = arr
                        
                        blankY = np.expand_dims(blankY, -1)
