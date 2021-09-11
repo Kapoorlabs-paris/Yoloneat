@@ -1173,7 +1173,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                                                                   if marker_tree is not None:
                                                                         ycentermean , xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
                                                                   
-                                                                  box = {'xstart' : xstart, 'ystart' : ystart, 'xcenterraw' : xcenterrawmean, 'ycenterraw' : ycenterrawmean, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
+                                                                  box = {'xstart' : xstart, 'ystart' : ystart, 'tstart' : boxtstartmean,  'xcenterraw' : xcenterrawmean, 'ycenterraw' : ycenterrawmean, 'xcenter' : xcentermean, 'ycenter' : ycentermean, 'real_time_event' : real_time_event, 'box_time_event' : box_time_event,
                                                             'height' : heightmean, 'width' : widthmean, 'confidence' : confidencemean}
                                                   
                                                   
