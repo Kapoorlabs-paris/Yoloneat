@@ -421,8 +421,8 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
                              reader = csv.reader(csvfile, delimiter = ',')
                              for train_vec in reader:
                                      
-                                     arr =  [float(s) for s in train_vec[0:]]
-                                     break
+                                     arr =  [float(s) for s in train_vec[0:11]]
+                                     
                        blankY = arr
                        
                        blankY = np.expand_dims(blankY, -1)
@@ -436,7 +436,11 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
             dataarr = np.asarray(data)
             labelarr = np.asarray(label)
             if static:
-                dataarr = dataarr[:,0,:,:,:]
+                try:
+                   dataarr = dataarr[:,0,:,:,:]
+                except:
+                    
+                    pass
             print(dataarr.shape, labelarr.shape)
             traindata, validdata, trainlabel, validlabel = train_test_split(dataarr, labelarr, train_size=0.95,test_size=0.05, shuffle= True)
             save_full_training_data(save_dir, save_name, traindata, trainlabel, axes)
