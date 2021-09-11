@@ -1,9 +1,10 @@
-ils import plotters
+from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
 from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, focyoloprediction, fastnms, simpleaveragenms
 from keras import callbacks
 import os
+from matplotlib import cm
 import time
 import pandas as pd
 from scipy.ndimage.filters import median_filter, gaussian_filter, maximum_filter
@@ -21,6 +22,7 @@ from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite
 import csv
+
 import napari
 import glob
 from scipy import spatial
@@ -177,8 +179,8 @@ class NEATFocusPredict(object):
                                           self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
 
     def predict(self, imagedir, Z_imagedir, Z_movie_name_list, Z_movie_input, start,
-                Z_start, downsample=False, fileextension='*TIF', nb_prediction=3, n_tiles=(1, 1), Z_n_tiles=(1, 2, 2),
-                overlap_percent=0.6, event_threshold=0.5, iou_threshold=0.01):
+                Z_start, downsample=False, fileextension='*TIF', nb_prediction=3, Z_n_tiles=(1, 2, 2),
+                overlap_percent=0.6):
 
         self.imagedir = imagedir
         self.basedirResults = self.imagedir + '/' + "live_results"
@@ -191,11 +193,8 @@ class NEATFocusPredict(object):
         self.Z_start = Z_start
         self.nb_prediction = nb_prediction
         self.fileextension = fileextension
-        self.n_tiles = n_tiles
         self.Z_n_tiles = Z_n_tiles
         self.overlap_percent = overlap_percent
-        self.iou_threshold = iou_threshold
-        self.event_threshold = event_threshold
         self.downsample = downsample
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
@@ -293,7 +292,7 @@ class NEATFocusPredict(object):
                                 for box in eventboxes:
 
                                     event_prob = box[event_name]
-                                    if event_prob >= self.event_threshold:
+                                    if event_prob > 0 :
                                         current_event_box.append(box)
                                 classedboxes[event_name] = [current_event_box]
 
@@ -311,9 +310,8 @@ class NEATFocusPredict(object):
                 self.predict(self.imagedir,  self.Z_imagedir,
                              self.Z_movie_name_list, self.Z_movie_input, self.start, Z_start,
                              fileextension=self.fileextension, downsample=self.downsample,
-                             nb_prediction=self.nb_prediction, n_tiles=self.n_tiles, Z_n_tiles=self.Z_n_tiles,
-                             overlap_percent=self.overlap_percent, event_threshold=self.event_threshold,
-                             iou_threshold=self.iou_threshold)
+                             nb_prediction=self.nb_prediction,  Z_n_tiles=self.Z_n_tiles,
+                             overlap_percent=self.overlap_percent)
 
     def nms(self):
 

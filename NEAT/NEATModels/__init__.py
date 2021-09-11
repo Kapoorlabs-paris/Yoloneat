@@ -14,4 +14,4 @@ from NEATModels.neat_static_microscope import NEATStaticPredict
 from NEATModels.neat_static_standard import NEATStatic
 from NEATModels.nets import Concat
 from NEATModels import nets
-
+from NEATModels.neat_focus_microscope import NEATFocusPredict
