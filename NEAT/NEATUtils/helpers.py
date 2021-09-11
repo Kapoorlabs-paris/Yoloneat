@@ -688,8 +688,6 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                     boxBheight = boxes[j]['height']
                     boxBwidth = boxes[j]['width']
                     boxBconfidence = boxes[j]['confidence']
-                    boxBrealangle = boxes[j]['realangle']
-                    boxBrawangle = boxes[j]['rawangle']
 
                     boxBXcenterraw = boxBscore * boxes[j]['xcenterraw']
                     boxBYcenterraw = boxBscore * boxes[j]['ycenterraw']
