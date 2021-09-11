@@ -25,7 +25,7 @@ npz_val_name = 'masterbin2val.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MasterBinning2V1Models/'
-model_name = 'bin2masterd38f16res.h5'
+model_name = 'bin2masterd29f32res.h5'
 #Neural network parameters
 division_categories_json = model_dir + 'DynamicCategories.json'
 key_categories = load_json(division_categories_json)
@@ -35,13 +35,13 @@ key_cord = load_json(division_cord_json)
 #For ORNET use residual = True and for OSNET use residual = False
 residual = True
 #NUmber of starting convolutional filters, is doubled down with increasing depth
-startfilter = 16
+startfilter = 32
 #CNN network start layer, mid layers and lstm layer kernel size
 start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 38
+depth = 29
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients

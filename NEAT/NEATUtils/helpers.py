@@ -662,43 +662,62 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
             if overlap > nms_threshold:
                 count = count + 1
                 if event_type == 'static':
-                        boxAscore = boxes[i][event_name]
-                        boxAXstart =  boxes[i]['xstart']
-                        boxAYstart =  boxes[i]['ystart']
-                        boxAXcenter =  boxes[i]['xcenter']
-                        boxAYcenter =  boxes[i]['ycenter']
-                        boxArealtime = boxes[i]['real_time_event']
-                        boxAboxtime = boxes[i]['box_time_event']
-                        boxAheight =  boxes[i]['height']
-                        boxAwidth =  boxes[i]['width']
-                        boxAconfidence =  boxes[i]['confidence']
-                       
-                        boxBscore = boxes[j][event_name]
-                        boxBXstart =  boxes[j]['xstart']
-                        boxBYstart =  boxes[j]['ystart']
-                        boxBXcenter = boxes[j]['xcenter']
-                        boxBYcenter = boxes[j]['ycenter']
-                        boxBrealtime = boxes[j]['real_time_event']
-                        boxBboxtime = boxes[j]['box_time_event']
-                        boxBheight =  boxes[j]['height']
-                        boxBwidth =  boxes[j]['width']
-                        boxBconfidence =  boxes[j]['confidence']
-                
-                        meanboxscore = (boxAscore + boxBscore)/2
-                        meanboxXstart = (boxAXstart + boxBXstart)/2
-                        meanboxYstart = (boxAYstart + boxBYstart)/2
-                        meanboxXcenter = (boxAXcenter + boxBXcenter)/2
-                        meanboxYcenter = (boxAYcenter + boxBYcenter)/2
-                        meanboxrealtime = int((boxArealtime +  boxBrealtime)/2)
-                        meanboxtime = int((boxAboxtime +  boxBboxtime)/2)
-                        meanboxheight = (boxAheight + boxBheight)/2
-                        meanboxwidth = (boxAwidth + boxBwidth)/2
-                        meanboxconfidence = (boxAconfidence + boxBconfidence)/2
-                        if count >=thresh:
-                          newbox = { 'xstart': meanboxXstart, 'ystart': meanboxYstart, 'xcenter':meanboxXcenter, 'ycenter':meanboxYcenter, 'real_time_event':meanboxrealtime, 'box_time_event':meanboxtime,
-                                  'height':meanboxheight, 'width':meanboxwidth , 'confidence':meanboxconfidence, event_name:meanboxscore}
-                       
-                
+                    boxAscore = boxes[i][event_name]
+                    boxAXstart = boxes[i]['xstart']
+                    boxAYstart = boxes[i]['ystart']
+                    boxATstart = boxes[i]['tstart']
+                    boxAXcenter = boxes[i]['xcenter']
+                    boxAYcenter = boxes[i]['ycenter']
+                    boxArealtime = boxes[i]['real_time_event']
+                    boxAboxtime = boxes[i]['box_time_event']
+                    boxAheight = boxes[i]['height']
+                    boxAwidth = boxes[i]['width']
+                    boxAconfidence = boxes[i]['confidence']
+
+                    boxAXcenterraw = boxAscore * boxes[i]['xcenterraw']
+                    boxAYcenterraw = boxAscore * boxes[i]['ycenterraw']
+                    boxATcenterraw = boxAscore * boxes[i]['tcenterraw']
+
+                    boxBscore = boxes[j][event_name]
+                    boxBXstart = boxes[j]['xstart']
+                    boxBYstart = boxes[j]['ystart']
+                    boxBXcenter = boxes[j]['xcenter']
+                    boxBYcenter = boxes[j]['ycenter']
+                    boxBrealtime = boxes[j]['real_time_event']
+                    boxBboxtime = boxes[j]['box_time_event']
+                    boxBheight = boxes[j]['height']
+                    boxBwidth = boxes[j]['width']
+                    boxBconfidence = boxes[j]['confidence']
+                    boxBrealangle = boxes[j]['realangle']
+                    boxBrawangle = boxes[j]['rawangle']
+
+                    boxBXcenterraw = boxBscore * boxes[j]['xcenterraw']
+                    boxBYcenterraw = boxBscore * boxes[j]['ycenterraw']
+                    boxBTcenterraw = boxBscore * boxes[j]['tcenterraw']
+
+                    boxscore = (boxAscore + boxBscore)
+                    meanboxscore = boxscore / 2
+                    meanboxXstart = boxAXstart
+                    meanboxYstart = boxAYstart
+                    meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * imagex
+                    meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * imagey
+
+                    meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw) / boxscore) * imaget)
+
+                    meanboxtime = int((boxAboxtime + boxBboxtime) / 2)
+                    meanboxheight = (boxAheight + boxBheight) / 2
+                    meanboxwidth = (boxAwidth + boxBwidth) / 2
+                    meanboxconfidence = (boxAconfidence + boxBconfidence) / 2
+                    xcenterrawmean = (boxAXcenterraw + boxBXcenterraw) / meanboxscore
+                    ycenterrawmean = (boxAYcenterraw + boxBYcenterraw) / meanboxscore
+                    tcenterrawmean = (boxATcenterraw + boxBTcenterraw) / meanboxscore
+                    if count >= thresh:
+                        newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
+                                  'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean,
+                                  'tcenterraw': tcenterrawmean, 'xcenter': meanboxXcenter, 'ycenter': meanboxYcenter,
+                                  'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
+                                  'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence, event_name: meanboxscore}
+
                 if event_type == 'dynamic':
                     
                         boxAscore = boxes[i][event_name]
