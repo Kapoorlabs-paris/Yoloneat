@@ -738,14 +738,14 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         boxBTcenterraw = boxBscore * boxes[j]['tcenterraw']
 
                 
-                        meanboxscore = (boxAscore + boxBscore)
-                        boxscore = meanboxscore/2
+                        boxscore = (boxAscore + boxBscore)
+                        meanboxscore = boxscore/2
                         meanboxXstart = boxAXstart
                         meanboxYstart = boxAYstart
                         meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw)/boxscore ) * imagex
                         meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw)/boxscore ) * imagey
 
-                        meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw)/meanboxscore ) * imaget)
+                        meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw)/boxscore ) * imaget)
 
                         meanboxtime = int((boxAboxtime +  boxBboxtime)/2)
                         meanboxheight = (boxAheight + boxBheight)/2
