@@ -405,7 +405,7 @@ class NEATFocus(object):
 
                 Sum_signal_second = normalizeZeroOne(Sum_signal_second)
 
-                Zmap = np.zeros(Sum_signal_first.shape, 2)
+                Zmap = np.zeros([Sum_signal_first.shape[0],Sum_signal_first.shape[1],  2])
                 Zmap[:, :, 0] = Sum_signal_first
                 Zmap[:, :, 1] = Sum_signal_second
 
