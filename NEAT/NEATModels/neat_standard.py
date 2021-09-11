@@ -368,7 +368,7 @@ class NEATDynamicSeg(object):
         count = 0 
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
-                    if inputtime < self.image.shape[0] - self.size_tplus - 1:
+                    if inputtime < self.image.shape[0] - self.imaget:
                                 
                                 eventboxes = []
                                 tree, indices = self.marker_tree[str(int(inputtime))]

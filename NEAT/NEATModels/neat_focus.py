@@ -6,6 +6,7 @@ from keras import callbacks
 import os
 import math
 import pandas as pd
+from scipy.ndimage.filters import median_filter, gaussian_filter, maximum_filter
 import tensorflow as tf
 from tqdm import tqdm
 from NEATModels import nets
@@ -266,7 +267,7 @@ class NEATFocus(object):
     
         
         
-    def predict(self,imagename, savedir, interest_event, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0, iou_threshold = 0.01):
+    def predict(self,imagename, savedir, interest_event, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0, iou_threshold = 0.01, radius = 10):
         
         self.imagename = imagename
         self.image = imread(imagename)
@@ -274,7 +275,7 @@ class NEATFocus(object):
         self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2],3], dtype = 'uint16')
         self.Colorimage[:,:,:,0] = self.image
         self.Maskimage[:,:,:,0] = self.image
-        
+        self.radius = radius
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.interest_event = interest_event
@@ -315,10 +316,10 @@ class NEATFocus(object):
 
                                         imwrite((savename + '.tif' ), self.Colorimage)
                                         
-                                        savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Mask'                       
+                                        self.savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Mask'
 
 
-                                        imwrite((savename + '.tif' ), self.Maskimage)
+                                        imwrite((self.savename + '.tif' ), self.Maskimage)
                                         
                                 smallimage = CreateVolume(self.image, self.imagez, inputz,self.imagex, self.imagey)
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
@@ -362,7 +363,8 @@ class NEATFocus(object):
                                 eventboxes = []
                                 classedboxes = {}    
                                                             
-        self.print_planes()                                                    
+        self.print_planes()
+        self.genmap()
                           
         
     def nms(self):
@@ -390,49 +392,28 @@ class NEATFocus(object):
                #print("nms",best_iou_classedboxes[event_name])
         self.iou_classedboxes = best_iou_classedboxes      
         self.all_iou_classedboxes = all_best_iou_classedboxes
-    
 
-   
+    def genmap(self):
 
-    
+                image = imread(self.savename)
+                Name = os.path.basename(os.path.splitext(self.savename)[0])
+                Signal_first = image[:, :, :, 1]
+                Signal_second = image[:, :, :, 2]
+                Sum_signal_first = gaussian_filter(np.sum(Signal_first, axis=0), self.radius)
+                Sum_signal_first = normalizeZeroOne(Sum_signal_first)
+                Sum_signal_second = gaussian_filter(np.sum(Signal_second, axis=0), self.radius)
+
+                Sum_signal_second = normalizeZeroOne(Sum_signal_second)
+
+                Zmap = np.zeros(Sum_signal_first.shape, 2)
+                Zmap[:, :, 0] = Sum_signal_first
+                Zmap[:, :, 1] = Sum_signal_second
+
+
+                imwrite(self.savedir + Name + '_Zmap' + '.tif', Zmap)
     def to_csv(self):
         
-        
-        
-        #if len(self.interest_event) > 1:
-                #zlocations = []
-                #scores = []
-                #event = self.interest_event[0]
-                #iou_current_event_box = self.iou_classedboxes[event][0]
-                #zcenter = iou_current_event_box['real_z_event']
-                
-                
-                #score = iou_current_event_box[event]
-                #for sec_event in self.interest_event:
-                    
-                     #sec_iou_current_event_box = self.iou_classedboxes[sec_event][0]
-                     #sec_zcenter = sec_iou_current_event_box['real_z_event']
-                     #if event is not sec_event and zcenter == sec_zcenter:
-                         
-                              #sec_score = sec_iou_current_event_box[sec_event]
-                              #score = score + sec_score
-                              
-                #zlocations.append(zcenter)
-                #scores.append(score/len(self.interest_event))
-                
-                #event_count = np.column_stack([zlocations,scores]) 
-                #event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
-                #event_data = []
-                #csvname = self.savedir+ "/"   + (os.path.splitext(os.path.basename(self.imagename))[0])+ "_ComboFocusQuality"
-                #writer = csv.writer(open(csvname  +".csv", "a"))
-                #filesize = os.stat(csvname + ".csv").st_size
-                #if filesize < 1:
-                   #writer.writerow(['Z','Score'])
-                #for line in event_count:
-                   #if line not in event_data:  
-                      #event_data.append(line)
-                   #writer.writerows(event_data)
-                   #event_data = []
+
         
         for (event_name,event_label) in self.key_categories.items():
                    
@@ -751,7 +732,9 @@ class NEATFocus(object):
                                patch = []
                                rowout = []
                                column = []
-                               
+                               patchx = sliceregion.shape[2] // self.n_tiles[0]
+                               patchy = sliceregion.shape[1] // self.n_tiles[1]
+                               patchshape = (patchy, patchx)
                                smallpatch, smallrowout, smallcolumn =  chunk_list(sliceregion, patchshape, self.stride, [0,0])
                                patch.append(smallpatch)
                                rowout.append(smallrowout)
@@ -939,4 +922,28 @@ class EventViewer(object):
              angle_locations.append(angle)
              
             
-         return event_locations, size_locations, angle_locations, line_locations, timelist, eventlist                         
+         return event_locations, size_locations, angle_locations, line_locations, timelist, eventlist
+
+
+def normalizeZeroOne(x):
+    x = x.astype('float32')
+
+    minVal = np.min(x)
+    maxVal = np.max(x)
+
+    x = ((x - minVal) / (maxVal - minVal + 1.0e-20))
+
+    return x
+
+
+def doubleplot(imageA, imageB, titleA, titleB):
+    fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+    ax = axes.ravel()
+    ax[0].imshow(imageA, cmap=cm.Spectral)
+    ax[0].set_title(titleA)
+
+    ax[1].imshow(imageB, cmap=cm.Spectral)
+    ax[1].set_title(titleB)
+
+    plt.tight_layout()
+    plt.show()

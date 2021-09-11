@@ -234,7 +234,7 @@ class NEATDynamicSegFree(object):
         
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
-                    if inputtime < self.image.shape[0] - self.size_tplus - 1:
+                    if inputtime < self.image.shape[0] - self.imaget:
                                 count = count + 1
                                 if inputtime%10==0 or inputtime >= self.image.shape[0] - self.imaget - 1:
                                       
@@ -242,6 +242,7 @@ class NEATDynamicSegFree(object):
                                       imwrite((savename + '.tif' ), self.Colorimage)
                                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
                                                           self.imagey)
+
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 # Cut off the region for training movie creation
                                 #Break image into tiles if neccessary

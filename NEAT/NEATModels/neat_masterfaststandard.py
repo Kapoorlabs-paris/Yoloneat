@@ -234,7 +234,7 @@ class NEATMasterDynamicSegFree(object):
         
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
-                    if inputtime < self.image.shape[0] - self.size_tplus - 1:
+                    if inputtime < self.image.shape[0] - self.imaget:
                                 count = count + 1
                                 if inputtime%10==0 or inputtime >= self.image.shape[0] - self.imaget - 1:
                                       
