@@ -405,9 +405,10 @@ class NEATFocus(object):
 
                 Sum_signal_second = normalizeZeroOne(Sum_signal_second)
 
-                Zmap = np.zeros([Sum_signal_first.shape[0],Sum_signal_first.shape[1],  2])
+                Zmap = np.zeros([Sum_signal_first.shape[0], Sum_signal_first.shape[1], 3])
                 Zmap[:, :, 0] = Sum_signal_first
                 Zmap[:, :, 1] = Sum_signal_second
+                Zmap[:, :, 2] = np.sum(Sum_signal_first, Sum_signal_second)
 
 
                 imwrite(self.savedir + Name + '_Zmap' + '.tif', Zmap)
