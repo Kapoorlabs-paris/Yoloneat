@@ -496,7 +496,7 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, to
                                     crop_Yminus = y  - int(ImagesizeY/2)
                                     crop_Yplus = y   + int(ImagesizeY/2)
                                     
-                                    if trainlabel < 2:
+                                    if trainlabel <= 2:
                                                     region =(slice(int(time - 1),int(time)),slice(int(crop_Yminus)+ shift[1], int(crop_Yplus)+ shift[1]),
                                                            slice(int(crop_Xminus) + shift[0], int(crop_Xplus) + shift[0]))
 
