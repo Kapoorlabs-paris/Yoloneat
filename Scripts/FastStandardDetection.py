@@ -25,19 +25,19 @@ from pathlib import Path
 
 
 imagedir =  '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/'
-model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
-savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/SaveDynamicd38resf32/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
+savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/Microd38f32/'
 
-model_name = 'bin2divmodeld38resf32'
+model_name = 'micronetbin2d38f32'
 
-division_categories_json = model_dir + 'DivisionCategories.json'
+division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'DivisionCord.json'
+division_cord_json = model_dir + 'MicroscopeCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 0.99999
+event_threshold = 0.999 #[1,0.999,0.999,0.9,0.9,0.9]
 iou_threshold = 0.1
 yolo_v2 = False
 
