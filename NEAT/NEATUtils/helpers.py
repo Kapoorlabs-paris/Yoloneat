@@ -615,7 +615,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
 
     
-    thresh = 15
+
     if len(boxes) == 0:
         return []
 
@@ -662,6 +662,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
             if overlap > nms_threshold:
                 count = count + 1
                 if event_type == 'static':
+                    thresh = 3
                     boxAscore = boxes[i][event_name]
                     boxAXstart = boxes[i]['xstart']
                     boxAYstart = boxes[i]['ystart']
@@ -717,7 +718,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                                   'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence, event_name: meanboxscore}
 
                 if event_type == 'dynamic':
-                    
+                        thresh = 15
                         boxAscore = boxes[i][event_name]
                         boxAXstart =  boxes[i]['xstart']
                         boxAYstart =  boxes[i]['ystart']
