@@ -384,8 +384,7 @@ class NEATFocus(object):
                
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                best_sorted_event_box, all_boxes = simpleaveragenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-               #nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-               #best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
+
                
                all_best_iou_classedboxes[event_name] = [all_boxes]
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
@@ -501,7 +500,21 @@ class NEATFocus(object):
                                               xcenter = iou_current_event_box['xcenter']
                                               ycenter = iou_current_event_box['ycenter']
                                               zcenter = iou_current_event_box['real_z_event']
+                                              xstart = iou_current_event_box['xstart']
+                                              ystart = iou_current_event_box['ystart']
+                                              xend = xstart + iou_current_event_box['width']
+                                              yend = ystart + iou_current_event_box['height']
+
                                               score = iou_current_event_box[event_name]
+
+                                              if event_label == 1:
+                                                  image_mask = self.Maskimage[int(zcenter), :, :, 1]
+                                              else:
+                                                  image_mask = self.Maskimage[int(zcenter), :, :, 2]
+                                              for x in range(int(xstart),int(xend)):
+                                                  for y in range(int(ystart), int(yend)):
+                                                            image_mask[y,x] = image_mask[y,x] + score
+
                                               if score > 0.9:
                                                   
                                                  xlocations.append(round(xcenter))
@@ -526,24 +539,24 @@ class NEATFocus(object):
                                      
                                      if event_label == 1:                            
                                        image = self.Colorimage[Z,:,:,1]
-                                       image_mask = self.Maskimage[Z,:,:,1]
+
                                        color = (0,255,0)
                                      else:
                                        color = (0,0,255)
                                        image = self.Colorimage[Z,:,:,2]
-                                       image_mask = self.Maskimage[Z,:,:,2]
+
                                      img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                                     img_mask = cv2.cvtColor(image_mask, cv2.COLOR_BGR2RGB)     
+
                                      cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
                                      cv2.rectangle(img_mask, startlocation, endlocation, textcolor, -1)
     
                                      cv2.putText(img, str('%.4f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
                                      if event_label == 1:
                                        self.Colorimage[Z,:,:,1] = img[:,:,0]
-                                       self.Maskimage[Z,:,:,1] = binary_fill_holes(img_mask[:,:,0]) 
+                                       self.Maskimage[Z,:,:,1] = img_mask[:,:,0]
                                      else:
                                        self.Colorimage[Z,:,:,2] = img[:,:,0]
-                                       self.Maskimage[Z,:,:,2] = binary_fill_holes(img_mask[:,:,0])
+                                       self.Maskimage[Z,:,:,2] = img_mask[:,:,0]
 
 
                   self.maskboxes[event_name] = [event_maskboxes]
