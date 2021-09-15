@@ -260,7 +260,7 @@ class NEATStatic(object):
         self.Trainingmodel.save(self.model_dir + self.model_name)
 
     def predict(self, imagename, savedir, event_threshold, n_tiles=(1, 1), overlap_percent=0.8, iou_threshold=0.01,
-                fcn=True, height=None, width=None, RGB=False):
+                fcn=True, height=None, width=None, RGB=False, thresh = 5):
 
         self.imagename = imagename
         self.image = imread(imagename)
@@ -275,7 +275,7 @@ class NEATStatic(object):
         self.RGB = RGB
         self.height = height
         self.width = width
-
+        self.thresh = thresh
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
@@ -414,7 +414,7 @@ class NEATStatic(object):
                 scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
                 best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold,
                                                    self.event_threshold[event_label], event_name, 'static', self.imagex,
-                                                   self.imagey)
+                                                   self.imagey, self.thresh)
 
                 best_iou_classedboxes[event_name] = [best_sorted_event_box]
 
