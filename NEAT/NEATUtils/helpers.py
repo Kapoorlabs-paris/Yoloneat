@@ -611,7 +611,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name ):
     # return only the indicies of the bounding boxes that were picked
     return pick
 
-def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget = 0, thresh = 5 ):
+def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget = 0, thresh = 1 ):
 
 
     

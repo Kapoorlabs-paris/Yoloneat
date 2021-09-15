@@ -321,7 +321,7 @@ class NEATDynamic(object):
         return self.markers, self.marker_tree, self.density_location
 
     def predict(self, imagename, markers, marker_tree, density_location, savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1, density_veto=5):
+                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh = 5):
 
         self.imagename = imagename
         self.image = imread(imagename)
@@ -333,6 +333,7 @@ class NEATDynamic(object):
         self.density_location = density_location
         self.savedir = savedir
         self.n_tiles = n_tiles
+        self.thresh = thresh
         self.density_veto = density_veto
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
@@ -394,7 +395,7 @@ class NEATDynamic(object):
                         sorted_event_box = sorted(eventboxes, key=lambda x: x[event_name], reverse=True)
                         scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
                         eventboxes = averagenms(sorted_event_box, scores, 0.9, self.event_threshold,
-                                                event_name, 'dynamic', self.imagex, self.imagey, self.imaget)
+                                                event_name, 'dynamic', self.imagex, self.imagey, self.imaget, self.thresh)
 
                         for box in eventboxes:
 
