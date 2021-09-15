@@ -104,7 +104,7 @@ class NEATDynamic(object):
             self.imaget = config.size_tminus + config.size_tplus + 1
             self.size_tminus = config.size_tminus
             self.size_tplus = config.size_tplus
-            
+
             self.nboxes = config.nboxes
             self.gridx = 1
             self.gridy = 1
@@ -321,7 +321,7 @@ class NEATDynamic(object):
         return self.markers, self.marker_tree, self.density_location
 
     def predict(self, imagename, markers, marker_tree, density_location, savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh = 5):
+                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh=5):
 
         self.imagename = imagename
         self.image = imread(imagename)
@@ -395,13 +395,13 @@ class NEATDynamic(object):
                         sorted_event_box = sorted(eventboxes, key=lambda x: x[event_name], reverse=True)
                         scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
                         eventboxes = averagenms(sorted_event_box, scores, 0.9, self.event_threshold,
-                                                event_name, 'dynamic', self.imagex, self.imagey, self.imaget, self.thresh)
+                                                event_name, 'dynamic', self.imagex, self.imagey, self.imaget,
+                                                self.thresh)
 
                         for box in eventboxes:
 
                             event_prob = box[event_name]
                             if event_prob >= self.event_threshold:
-
 
                                 X = box['xcenter']
                                 Y = box['ycenter']
@@ -411,12 +411,14 @@ class NEATDynamic(object):
                                 crop_xplus = int(X) + int(self.imagex / 2)
                                 crop_yminus = int(Y) - int(self.imagey / 2)
                                 crop_yplus = int(Y) + int(self.imagey / 2)
-                                region = (slice(int(T - self.size_tminus - 1), int(T + self.size_tplus)), slice(int(crop_yminus), int(crop_yplus)),
+                                region = (slice(int(T - self.size_tminus - 1), int(T + self.size_tplus)),
+                                          slice(int(crop_yminus), int(crop_yplus)),
                                           slice(int(crop_xminus), int(crop_xplus)))
 
                                 crop_image = self.image[region]
 
-                                if crop_image.shape[0] >= self.imaget and crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex:
+                                if crop_image.shape[0] >= self.imaget and crop_image.shape[1] >= self.imagey and \
+                                        crop_image.shape[2] >= self.imagex:
 
                                     # Now apply the prediction for counting real events
 
@@ -427,15 +429,15 @@ class NEATDynamic(object):
                                                                    self.config, self.key_categories, self.key_cord,
                                                                    self.nboxes, 'detection', 'dynamic')
                                     if len(boxprediction) > 0:
-                                       boxprediction[0]['xcenter'] = X
-                                       boxprediction[0]['ycenter'] = Y
-                                       boxprediction[0]['xstart'] = X - int(self.imagex/2)
-                                       boxprediction[0]['ystart'] = Y - int(self.imagey/2)
+                                        boxprediction[0]['xcenter'] = X
+                                        boxprediction[0]['ycenter'] = Y
+                                        boxprediction[0]['xstart'] = X - int(self.imagex / 2)
+                                        boxprediction[0]['ystart'] = Y - int(self.imagey / 2)
 
                                     if boxprediction is not None:
                                         refinedeventboxes = refinedeventboxes + boxprediction
 
-                print('Total refined predictions:',len(refinedeventboxes))
+                print('Total refined predictions:', len(refinedeventboxes))
 
                 current_event_box = []
                 for box in refinedeventboxes:
@@ -445,19 +447,16 @@ class NEATDynamic(object):
                     if event_prob >= self.event_threshold:
                         current_event_box.append(box)
                 classedboxes[event_name] = [current_event_box]
-                print('Valid events:', event_name,  len(current_event_box))
+                print('Valid events:', event_name, len(current_event_box))
                 self.classedboxes = classedboxes
                 self.eventboxes = eventboxes
                 # nms over time
-                if inputtime%(self.imaget) == 0:
-                   self.nms()
-                   self.to_csv()
-                   eventboxes = []
-                   refinedeventboxes = []
-                   classedboxes = {}
-                
-
-
+                if inputtime % (self.imaget) == 0:
+                    self.nms()
+                    self.to_csv()
+                    eventboxes = []
+                    refinedeventboxes = []
+                    classedboxes = {}
 
     def nms(self):
 
@@ -468,8 +467,9 @@ class NEATDynamic(object):
 
                 sorted_event_box = self.classedboxes[event_name][0]
                 sorted_event_box = sorted(sorted_event_box, key=lambda x: x[event_name], reverse=True)
-                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic',self.imagex, self.imagey, self.imaget)
+                scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
+                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold,
+                                                   event_name, 'dynamic', self.imagex, self.imagey, self.imaget)
                 best_iou_classedboxes[event_name] = [best_sorted_event_box]
 
         self.iou_classedboxes = best_iou_classedboxes
@@ -514,7 +514,7 @@ class NEATDynamic(object):
                 event_count = sorted(event_count, key=lambda x: x[0], reverse=False)
                 event_data = []
                 csvname = self.savedir + "/" + event_name + "Location" + (
-                os.path.splitext(os.path.basename(self.imagename))[0])
+                    os.path.splitext(os.path.basename(self.imagename))[0])
                 writer = csv.writer(open(csvname + ".csv", "a"))
                 filesize = os.stat(csvname + ".csv").st_size
                 if filesize < 1:
@@ -527,7 +527,7 @@ class NEATDynamic(object):
 
                 self.saveimage(xlocations, ylocations, tlocations, angles, radiuses, scores)
 
-    def saveimage(self, xlocations, ylocations, tlocations,angles, radius, scores):
+    def saveimage(self, xlocations, ylocations, tlocations, angles, radius, scores):
 
         colors = [(0, 255, 0), (0, 0, 255), (255, 0, 0)]
         # fontScale
@@ -562,8 +562,8 @@ class NEATDynamic(object):
                 y1 = ylocations[j]
                 x2 = x1 + radius[j] * math.cos(angles[j])
                 y2 = y1 + radius[j] * math.sin(angles[j])
-                #cv2.line(self.Colorimage[tlocation, :], (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255), 1)
-        #imwrite((csvimagename + '.tif'), self.Colorimage.astype('uint8'))
+                # cv2.line(self.Colorimage[tlocation, :], (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255), 1)
+        # imwrite((csvimagename + '.tif'), self.Colorimage.astype('uint8'))
 
     def showNapari(self, imagedir, savedir, yolo_v2=False):
 
@@ -709,8 +709,6 @@ class NEATDynamic(object):
         self.sy = rowout
         self.sx = column
 
-
-
     def predict_main(self, sliceregion):
         try:
             self.overlaptiles(sliceregion)
@@ -743,6 +741,7 @@ class NEATDynamic(object):
             self.predict_main(sliceregion)
 
         return predictions, allx, ally
+
     def make_patches(self, sliceregion):
 
         predict_im = np.expand_dims(sliceregion, 0)
@@ -764,27 +763,30 @@ def CreateVolume(patch, imaget, timepoint, imagey, imagex):
 
     return smallimg
 
+
 def chunk_list(image, patchshape, stride, pair):
-        rowstart = pair[0]
-        colstart = pair[1]
+    rowstart = pair[0]
+    colstart = pair[1]
 
-        endrow = rowstart + patchshape[0]
-        endcol = colstart + patchshape[1]
+    endrow = rowstart + patchshape[0]
+    endcol = colstart + patchshape[1]
 
-        if endrow > image.shape[1]:
-            endrow = image.shape[1]
-        if endcol > image.shape[2]:
-            endcol = image.shape[2]
+    if endrow > image.shape[1]:
+        endrow = image.shape[1]
+    if endcol > image.shape[2]:
+        endcol = image.shape[2]
 
-        region = (slice(0, image.shape[0]), slice(rowstart, endrow),
-                  slice(colstart, endcol))
+    region = (slice(0, image.shape[0]), slice(rowstart, endrow),
+              slice(colstart, endcol))
 
-        # The actual pixels in that region.
-        patch = image[region]
+    # The actual pixels in that region.
+    patch = image[region]
 
-        # Always normalize patch that goes into the netowrk for getting a prediction score
+    # Always normalize patch that goes into the netowrk for getting a prediction score
 
-        return patch, rowstart, colstart
+    return patch, rowstart, colstart
+
+
 class EventViewer(object):
 
     def __init__(self, viewer, image, event_name, key_categories, imagename, savedir, canvas, ax, figure, yolo_v2):
@@ -808,7 +810,7 @@ class EventViewer(object):
         for (event_name, event_label) in self.key_categories.items():
             if event_label > 0 and self.event_name == event_name:
                 csvname = self.savedir + "/" + event_name + "Location" + (
-                            os.path.splitext(os.path.basename(self.imagename))[0] + '.csv')
+                        os.path.splitext(os.path.basename(self.imagename))[0] + '.csv')
                 event_locations, size_locations, angle_locations, line_locations, timelist, eventlist = self.event_counter(
                     csvname)
 
