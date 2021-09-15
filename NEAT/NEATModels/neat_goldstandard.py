@@ -71,13 +71,14 @@ class NEATDynamic(object):
     
     """
 
-    def __init__(self, config, model_dir, model_name, catconfig=None, cordconfig=None):
+    def __init__(self, config, model_dir, model_name, second_model_name, catconfig=None, cordconfig=None):
 
         self.config = config
         self.catconfig = catconfig
         self.cordconfig = cordconfig
         self.model_dir = model_dir
         self.model_name = model_name
+        self.second_model_name = second_model_name
         if self.config != None:
             self.npz_directory = config.npz_directory
             self.npz_name = config.npz_name
@@ -348,7 +349,8 @@ class NEATDynamic(object):
         f.close()
         self.model = load_model(self.model_dir + self.model_name + '.h5',
                                 custom_objects={'loss': self.yololoss, 'Concat': Concat})
-
+        self.second_model = load_model(self.model_dir + self.second_model_name + '.h5',
+                                custom_objects={'loss': self.yololoss, 'Concat': Concat})
         # self.first_pass_predict()
         self.second_pass_predict()
 
@@ -422,7 +424,7 @@ class NEATDynamic(object):
 
                                     # Now apply the prediction for counting real events
 
-                                    prediction_vector = self.make_patches(crop_image)
+                                    prediction_vector = self.second_make_patches(crop_image)
 
                                     boxprediction = yoloprediction(0, 0, prediction_vector[0],
                                                                    self.stride, T,
@@ -747,6 +749,14 @@ class NEATDynamic(object):
         predict_im = np.expand_dims(sliceregion, 0)
 
         prediction_vector = self.model.predict(np.expand_dims(predict_im, -1), verbose=0)
+
+        return prediction_vector
+
+    def second_make_patches(self, sliceregion):
+
+        predict_im = np.expand_dims(sliceregion, 0)
+
+        prediction_vector = self.second_model.predict(np.expand_dims(predict_im, -1), verbose=0)
 
         return prediction_vector
 
