@@ -276,7 +276,7 @@ class NEATDynamicSegFree(object):
                                 self.classedboxes = classedboxes    
                                 self.eventboxes =  eventboxes
                                 #nms over time
-                                if inputtime%(self.imaget//2) == 0:
+                                if inputtime%(self.imaget) == 0:
  
                                     self.nms()
                                     self.to_csv()
