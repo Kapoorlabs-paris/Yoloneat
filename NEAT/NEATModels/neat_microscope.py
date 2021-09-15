@@ -183,7 +183,7 @@ class NEATPredict(object):
         
     def predict(self, imagedir,  movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start, Z_start, downsample = False,
                 event_label_interest = 1, fileextension = '*TIF', nb_prediction = 3, n_tiles = (1,1), Z_n_tiles = (1,2,2),
-                overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01, projection_model = None, delay_projection = 4):
+                overlap_percent = 0.6, event_threshold = 0.5, iou_threshold = 0.01, projection_model = None, delay_projection = 4, thresh = 5):
         
         self.imagedir = imagedir
         self.basedirResults = self.imagedir + '/' + "live_results"
@@ -196,6 +196,7 @@ class NEATPredict(object):
         self.Z_movie_input = Z_movie_input
         self.Z_imagedir = Z_imagedir
         self.start = start
+        self.thresh = thresh
         self.event_label_interest = event_label_interest
         self.Z_start = Z_start
         self.projection_model = projection_model
@@ -385,10 +386,7 @@ class NEATPredict(object):
                
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               #best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic')
-               nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-               best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
-               
+               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic', self.thresh)
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                if event_label == self.event_label_interest:
                    if len(best_sorted_event_box) > 0:
