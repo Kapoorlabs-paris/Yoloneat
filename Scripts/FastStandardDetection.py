@@ -24,11 +24,11 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/'
+imagedir =  '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/NotDone/'
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/Microd38f32/'
+savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/Microd29f32/'
 
-model_name = 'micronetbin2d38f32'
+model_name = 'micronetbin2d29f32'
 
 division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)

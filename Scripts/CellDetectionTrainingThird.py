@@ -26,7 +26,7 @@ npz_val_name = 'Staticbin2V1Val.npz'
 
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
 #Model name based on wether it is residual or sequntial ONEAT network
-model_name = 'CellNetbin2d29resf16.h5'
+model_name = 'CellNetbin2d38resf16.h5'
 
 
 # In[14]:
@@ -45,7 +45,7 @@ startfilter = 16
 start_kernel = 7
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 29
+depth = 38
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients

@@ -12,21 +12,21 @@ from NEATModels import NEATStatic, nets
 from NEATModels.Staticconfig  import static_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 # In[13]:
 
 
-npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
+npz_directory = '/home/sancere/VKepler/CurieTrainingDatasets/oneatnpz/'
 npz_name = 'Staticbin2V1.npz'
 npz_val_name = 'Staticbin2V1Val.npz'
 
 
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
 #Model name based on wether it is residual or sequntial ONEAT network
-model_name = 'CellNetbin2d38resf32.h5'
+model_name = 'CellNetbin2d29resf32.h5'
 
 
 # In[14]:
@@ -45,7 +45,7 @@ startfilter = 32
 start_kernel = 7
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 38
+depth = 29
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients
