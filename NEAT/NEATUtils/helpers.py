@@ -672,8 +672,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                     xcenterrawmean = (boxAXcenterraw + boxBXcenterraw) / meanboxscore
                     ycenterrawmean = (boxAYcenterraw + boxBYcenterraw) / meanboxscore
                     tcenterrawmean = (boxATcenterraw + boxBTcenterraw) / meanboxscore
-                    if count >= thresh:
-                        newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
+                    newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
                                   'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean,
                                   'tcenterraw': tcenterrawmean, 'xcenter': meanboxXcenter, 'ycenter': meanboxYcenter,
                                   'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
