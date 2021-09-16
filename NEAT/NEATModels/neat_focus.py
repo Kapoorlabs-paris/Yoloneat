@@ -525,9 +525,9 @@ class NEATFocus(object):
                                                           if y < self.image.shape[1] and x < self.image.shape[0]:
                                                                 self.image_mask_c2[int(zcenter),y,x] = self.image_mask_c2[int(zcenter),y,x] + score
                                               if event_label == 1:                  
-                                                  self.Maskimage[int(zcenter), :, :, 1] = self.image_mask_c1 
+                                                  self.Maskimage[int(zcenter), :, :, 1] = self.image_mask_c1[int(zcenter),:,:] 
                                               else:
-                                                  self.Maskimage[int(zcenter), :, :, 2] = self.image_mask_c2
+                                                  self.Maskimage[int(zcenter), :, :, 2] = self.image_mask_c2[int(zcenter),:,:]
                                                   
                                                   
                                               if score > 0.9:
