@@ -370,8 +370,8 @@ class NEATPredict(object):
 
                 sorted_event_box = self.classedboxes[event_name][0]
                 scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
-                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold,
-                                                   event_name, 'dynamic', self.thresh)
+                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic',self.imagex, self.imagey, self.imaget, self.thresh)
+
                 best_iou_classedboxes[event_name] = [best_sorted_event_box]
                 if event_label == self.event_label_interest:
                     if len(best_sorted_event_box) > 0:
@@ -444,10 +444,9 @@ class NEATPredict(object):
 
                 csvimagename = ImageResults + "/" + event_name + 'LocationData'
                 name = str(self.start)
-                # self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
+                self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
 
                 event_data = []
-                # csvname = self.basedirResults + "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
                 writer = csv.writer(open(csvname + ".csv", "a"))
                 filesize = os.stat(csvname + ".csv").st_size
                 if filesize < 1:
