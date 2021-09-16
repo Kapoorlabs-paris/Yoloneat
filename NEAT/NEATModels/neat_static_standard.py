@@ -260,7 +260,7 @@ class NEATStatic(object):
         self.Trainingmodel.save(self.model_dir + self.model_name)
 
     def predict(self, imagename, savedir, event_threshold, n_tiles=(1, 1), overlap_percent=0.8, iou_threshold=0.01,
-                fcn=True, height=None, width=None, RGB=False, thresh = 5):
+                fcn=True, height=None, width=None, RGB=False, thresh = 1):
 
         self.imagename = imagename
         self.image = imread(imagename)
