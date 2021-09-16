@@ -394,7 +394,7 @@ class NEATFocus(object):
 
     def genmap(self):
 
-                image = imread(self.savename)
+                image = imread(self.savename + '.tif')
                 Name = os.path.basename(os.path.splitext(self.savename)[0])
                 Signal_first = image[:, :, :, 1]
                 Signal_second = image[:, :, :, 2]
