@@ -485,7 +485,7 @@ class NEATStatic(object):
             startlocation = (int(xlocations[j] - radius[j]), int(ylocations[j] - radius[j]))
             endlocation = (int(xlocations[j] + radius[j]), int(ylocations[j] + radius[j]))
             Z = int(tlocations[j])
-            if Z < self.CorimageDynamic.shape[0] - 1:
+            if Z < self.ColorimageDynamic.shape[0] - 1:
                     if event_label == 1:
                         image = self.ColorimageDynamic[Z, :, :, 1]
                         color = (0, 255, 0)
