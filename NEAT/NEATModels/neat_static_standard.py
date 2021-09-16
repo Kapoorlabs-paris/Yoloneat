@@ -485,37 +485,38 @@ class NEATStatic(object):
             startlocation = (int(xlocations[j] - radius[j]), int(ylocations[j] - radius[j]))
             endlocation = (int(xlocations[j] + radius[j]), int(ylocations[j] + radius[j]))
             Z = int(tlocations[j])
-            if event_label == 1:
-                image = self.ColorimageDynamic[Z, :, :, 1]
-                color = (0, 255, 0)
-            if event_label == 2:
-                color = (0, 0, 255)
-                image = self.ColorimageDynamic[Z, :, :, 2]
-            if event_label == 3:
-                color = (0, 255, 0)
-                image = self.ColorimageStatic[Z, :, :, 0]
-            if event_label == 4:
-                color = (0, 0, 255)
-                image = self.ColorimageStatic[Z, :, :, 1]
-            if event_label == 5:
-                color = (255, 0, 0)
-                image = self.ColorimageStatic[Z, :, :, 2]
+            if Z < self.CorimageDynamic.shape[0] - 1:
+                    if event_label == 1:
+                        image = self.ColorimageDynamic[Z, :, :, 1]
+                        color = (0, 255, 0)
+                    if event_label == 2:
+                        color = (0, 0, 255)
+                        image = self.ColorimageDynamic[Z, :, :, 2]
+                    if event_label == 3:
+                        color = (0, 255, 0)
+                        image = self.ColorimageStatic[Z, :, :, 0]
+                    if event_label == 4:
+                        color = (0, 0, 255)
+                        image = self.ColorimageStatic[Z, :, :, 1]
+                    if event_label == 5:
+                        color = (255, 0, 0)
+                        image = self.ColorimageStatic[Z, :, :, 2]
 
-            img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
-
-            cv2.putText(img, str('%.5f' % (scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,
-                        thickness, cv2.LINE_AA)
-            if event_label == 1:
-                self.ColorimageDynamic[Z, :, :, 1] = img[:, :, 0]
-            if event_label == 2:
-                self.ColorimageDynamic[Z, :, :, 2] = img[:, :, 0]
-            if event_label == 3:
-                self.ColorimageStatic[Z, :, :, 0] = img[:, :, 0]
-            if event_label == 4:
-                self.ColorimageStatic[Z, :, :, 1] = img[:, :, 0]
-            if event_label == 5:
-                self.ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
+                    img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
+        
+                    cv2.putText(img, str('%.5f' % (scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,
+                                thickness, cv2.LINE_AA)
+                    if event_label == 1:
+                        self.ColorimageDynamic[Z, :, :, 1] = img[:, :, 0]
+                    if event_label == 2:
+                        self.ColorimageDynamic[Z, :, :, 2] = img[:, :, 0]
+                    if event_label == 3:
+                        self.ColorimageStatic[Z, :, :, 0] = img[:, :, 0]
+                    if event_label == 4:
+                        self.ColorimageStatic[Z, :, :, 1] = img[:, :, 0]
+                    if event_label == 5:
+                        self.ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
 
     def showNapari(self, imagedir, savedir):
 
