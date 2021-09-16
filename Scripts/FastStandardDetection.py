@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -24,21 +24,21 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/NotDone/'
-model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/Microd29f32/'
+imagedir =  '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MasterBinning2V1Models/'
+savedir= '/home/sancere/VKepler/oneatgolddust/Test/Bin2Test/Masterd29f32/'
 
-model_name = 'micronetbin2d29f32'
+model_name = 'bin2masterd29f32res'
 
-division_categories_json = model_dir + 'MicroscopeCategories.json'
+division_categories_json = model_dir + 'DynamicCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'MicroscopeCord.json'
+division_cord_json = model_dir + 'DynamicCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 0.999 #[1,0.999,0.999,0.9,0.9,0.9]
-iou_threshold = 0.1
+event_threshold = [1,0.999,0.999,0.9,0.9,0.9]
+iou_threshold = 0.3
 yolo_v2 = False
 
 
