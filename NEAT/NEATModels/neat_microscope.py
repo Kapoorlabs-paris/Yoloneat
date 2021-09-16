@@ -444,7 +444,7 @@ class NEATPredict(object):
 
                 csvimagename = ImageResults + "/" + event_name + 'LocationData'
                 name = str(self.start)
-                self.saveimage(xlocations, ylocations, radiuses, csvimagename, name)
+                
 
                 event_data = []
                 writer = csv.writer(open(csvname + ".csv", "a"))
@@ -457,23 +457,7 @@ class NEATPredict(object):
                     writer.writerows(event_data)
                     event_data = []
 
-    def saveimage(self, xlocations, ylocations, radius, csvimagename, name):
 
-        StaticImage = self.image[self.image.shape[0] - 1, :]
-        StaticImage = normalizeFloatZeroOne(StaticImage, 1, 99.8)
-        Colorimage = np.zeros_like(StaticImage)
-
-        copyxlocations = xlocations.copy()
-        copyylocations = ylocations.copy()
-        for j in range(len(copyxlocations)):
-            startlocation = (int(copyxlocations[j] - radius[j]), int(copyylocations[j] - radius[j]))
-            endlocation = (int(copyxlocations[j] + radius[j]), int(copyylocations[j] + radius[j]))
-
-            cv2.rectangle(Colorimage, startlocation, endlocation, (0, 255, 255), 1)
-        RGBImage = [StaticImage, Colorimage, Colorimage]
-        RGBImage = np.swapaxes(np.asarray(RGBImage), 0, 2)
-        RGBImage = np.swapaxes(RGBImage, 0, 1)
-        imageio.imwrite((csvimagename + name + '.tif'), RGBImage)
 
     def overlaptiles(self, sliceregion):
 
