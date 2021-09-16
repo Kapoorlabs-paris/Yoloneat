@@ -514,7 +514,12 @@ class NEATFocus(object):
                                               for x in range(int(xstart),int(xend)):
                                                   for y in range(int(ystart), int(yend)):
                                                             image_mask[y,x] = image_mask[y,x] + score
-
+                                              if event_label == 1:
+                                                  self.Maskimage[int(zcenter), :, :, 1] = image_mask 
+                                              else:
+                                                  self.Maskimage[int(zcenter), :, :, 2] = image_mask
+                                                  
+                                                  
                                               if score > 0.9:
                                                   
                                                  xlocations.append(round(xcenter))
@@ -548,15 +553,14 @@ class NEATFocus(object):
                                      img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
                                      cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
-                                     cv2.rectangle(img_mask, startlocation, endlocation, textcolor, -1)
+                                    
     
                                      cv2.putText(img, str('%.4f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
                                      if event_label == 1:
                                        self.Colorimage[Z,:,:,1] = img[:,:,0]
-                                       self.Maskimage[Z,:,:,1] = img_mask[:,:,0]
                                      else:
                                        self.Colorimage[Z,:,:,2] = img[:,:,0]
-                                       self.Maskimage[Z,:,:,2] = img_mask[:,:,0]
+                                    
 
 
                   self.maskboxes[event_name] = [event_maskboxes]
