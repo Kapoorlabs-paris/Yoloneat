@@ -273,6 +273,8 @@ class NEATFocus(object):
         self.image = imread(imagename)
         self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
         self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2],3], dtype = 'uint16')
+        self.image_mask_c1 = np.zeros(self.image.shape, dtype = 'float32')
+        self.image_mask_c2  = np.zeros(self.image.shape, dtype = 'float32')
         self.Colorimage[:,:,:,0] = self.image
         self.Maskimage[:,:,:,0] = self.image
         self.radius = radius
@@ -507,17 +509,23 @@ class NEATFocus(object):
 
                                               score = iou_current_event_box[event_name]
 
+                                              
+                                              
+                                                            
+                                                            
                                               if event_label == 1:
-                                                  image_mask = self.Maskimage[int(zcenter), :, :, 1]
+                                                  for x in range(int(xstart),int(xend)):
+                                                      for y in range(int(ystart), int(yend)):
+                                                                self.image_mask_c1[y,x] = self.image_mask_c1[y,x] + score
                                               else:
-                                                  image_mask = self.Maskimage[int(zcenter), :, :, 2]
-                                              for x in range(int(xstart),int(xend)):
-                                                  for y in range(int(ystart), int(yend)):
-                                                            image_mask[y,x] = image_mask[y,x] + score
-                                              if event_label == 1:
-                                                  self.Maskimage[int(zcenter), :, :, 1] = image_mask 
+                                                  
+                                                  for x in range(int(xstart),int(xend)):
+                                                      for y in range(int(ystart), int(yend)):
+                                                                self.image_mask_c2[y,x] = self.image_mask_c2[y,x] + score
+                                              if event_label == 1:                  
+                                                  self.Maskimage[int(zcenter), :, :, 1] = self.image_mask_c1 
                                               else:
-                                                  self.Maskimage[int(zcenter), :, :, 2] = image_mask
+                                                  self.Maskimage[int(zcenter), :, :, 2] = self.image_mask_c2
                                                   
                                                   
                                               if score > 0.9:
