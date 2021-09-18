@@ -267,7 +267,7 @@ class NEATFocus(object):
     
         
         
-    def predict(self,imagename, savedir, interest_event, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0, iou_threshold = 0.01, radius = 10):
+    def predict(self,imagename, savedir, interest_event, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0, iou_threshold = 1, radius = 10):
         
         self.imagename = imagename
         self.image = imread(imagename)
@@ -548,8 +548,7 @@ class NEATFocus(object):
                                      endlocation =  (int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2))
                                      Z = int(zlocations[j])  
                                      
-                                     event_maskboxes.append(( int(ylocations[j] - widths[j]//2), int(xlocations[j]-heights[j]//2),int(ylocations[j] + widths[j]//2), int(ylocations[j]+ heights[j]//2)  ))
-                                     
+                                   
                                      
                                      
                                      if event_label == 1:                            
@@ -573,49 +572,11 @@ class NEATFocus(object):
                                     
 
 
-                  self.maskboxes[event_name] = [event_maskboxes]
+                  
 
                     
     
-    def createMask(self):
-
-        for (event_name,event_label) in self.key_categories.items():
-            if event_label > 0:
-                       #Get all events
-                       
-                       mask_event_box = self.maskboxes[event_name][0]  
-                       for zpoint in self.current_Zpoints:
-                           
-                             inside = [self.isInside(box, zpoint) for box in  mask_event_box]
-                             
-                             if any(inside):
-                                 if event_label == 1:
-                                                              
-                                     self.Maskimage[self.currentZ + self.imagez//2,zpoint[0],zpoint[1],1] = 1
-                                 else:
-                                     
-                                     self.Maskimage[self.currentZ + self.imagez//2,zpoint[0],zpoint[1],2] = 1
     
-    def isInside(self, box, centroid):
-        
-       
-        ndim = len(centroid)
-        inside = False
-        Condition = [self.Conditioncheck(centroid, box, p, ndim) for p in range(0,ndim)]
-        inside = all(Condition)
-    
-        return inside
-        
-    
-    def Conditioncheck(self, centroid, box, p, ndim):
-    
-      condition = False
-    
-      if centroid[p] >=  box[p]  and centroid[p] <=  box[p + ndim]:
-          
-           condition = True
-           
-      return condition     
     
     
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
