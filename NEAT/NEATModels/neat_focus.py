@@ -267,7 +267,7 @@ class NEATFocus(object):
     
         
         
-    def predict(self,imagename, savedir, interest_event, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0, iou_threshold = 1, radius = 10):
+    def predict(self,imagename, savedir, interest_event, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0, iou_threshold = 0.0001, radius = 10):
         
         self.imagename = imagename
         self.image = imread(imagename)
