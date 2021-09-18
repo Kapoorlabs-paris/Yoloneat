@@ -745,9 +745,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                 suppress.append(pos)
                 
                 
-            else:
-                 newbox = boxes[j]   
-
+           
         if newbox is not None and newbox not in Averageboxes:
             Averageboxes.append(newbox)
             # delete all indexes from the index list that are in the suppression list
@@ -836,10 +834,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
                           event_name: meanboxscore}
                 suppress.append(pos) 
                
-            else:
-                newbox = boxes[j]
-                meanboxrealz = boxes[j]['real_z_event']
-                meanboxconfidence = boxes[j]['confidence']
+           
                 
 
         if newbox is not None and newbox not in Averageboxes:
