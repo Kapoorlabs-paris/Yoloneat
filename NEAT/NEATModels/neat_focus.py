@@ -304,6 +304,7 @@ class NEATFocus(object):
         print('Detecting focus planes in', os.path.basename(os.path.splitext(self.imagename)[0]))
         #self.image = normalizeFloatZeroOne(self.image,1,99.8)
 
+        self.image = normalizeFloatZeroOne(self.image,1,99.8)
         for inputz in tqdm(range(0, self.image.shape[0])):
                     if inputz <= self.image.shape[0] - self.imagez:
                                 
@@ -324,7 +325,7 @@ class NEATFocus(object):
                                         imwrite((self.savename + '.tif' ), self.Maskimage)
                                         
                                 smallimage = CreateVolume(self.image, self.imagez, inputz,self.imagex, self.imagey)
-                                smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
+                                
                                 #self.current_Zpoints = [(j,k) for j in range(smallimage.shape[1]) for k in range(smallimage.shape[2]) ]
                                 # Cut off the region for training movie creation
                                 #Break image into tiles if neccessary
@@ -506,7 +507,6 @@ class NEATFocus(object):
                                               ystart = iou_current_event_box['ystart']
                                               xend = xstart + iou_current_event_box['width']
                                               yend = ystart + iou_current_event_box['height']
-
                                               score = iou_current_event_box[event_name]
 
                                               
@@ -517,7 +517,8 @@ class NEATFocus(object):
                                                   for x in range(int(xstart),int(xend)):
                                                       for y in range(int(ystart), int(yend)):
                                                                 if y < self.image.shape[1] and x < self.image.shape[2]:
-                                                                    self.Maskimage[int(zcenter), y, x, 1]= self.Maskimage[int(zcenter), y, x, 1] + score
+                                                                    self.Maskimage[int(zcenter), y, x, 1] = self.Maskimage[int(zcenter), y, x, 1] + score
+                                                                    print(self.Maskimage[int(zcenter), y, x, 1])
                                               else:
                                                   
                                                   for x in range(int(xstart),int(xend)):
