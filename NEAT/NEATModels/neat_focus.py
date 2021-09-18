@@ -358,13 +358,12 @@ class NEATFocus(object):
                                                  
                                 self.classedboxes = classedboxes    
                                 self.eventboxes =  eventboxes
-                                if inputz % (self.imagez) == 0:
-                                        self.nms()
-                                        self.to_csv()
-                                        self.draw()
-                                        #self.createMask()
-                                        eventboxes = []
-                                        classedboxes = {}    
+                                self.nms()
+                                self.to_csv()
+                                self.draw()
+                                #self.createMask()
+                                eventboxes = []
+                                classedboxes = {}    
                                                             
         self.print_planes()
         self.genmap()
