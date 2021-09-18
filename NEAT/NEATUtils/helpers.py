@@ -743,9 +743,6 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                                   'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
                                   'realangle': meanboxrealangle, 'rawangle': meanboxrawangle, event_name: meanboxscore}
 
-              
-
-
                 suppress.append(pos)
                 
                 
@@ -840,13 +837,13 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
                           'ycenter': meanboxYcenter, 'real_z_event': meanboxrealz,
                           'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
                           event_name: meanboxscore}
-
+                suppress.append(pos) 
                
             else:
                 newbox = boxes[j]
                 meanboxrealz = boxes[j]['real_z_event']
                 meanboxconfidence = boxes[j]['confidence']
-                suppress.append(pos)
+                
 
         if newbox is not None and newbox not in Averageboxes:
             Averageboxes.append(newbox)
