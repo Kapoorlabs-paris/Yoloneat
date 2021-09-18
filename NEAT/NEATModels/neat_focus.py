@@ -517,7 +517,7 @@ class NEATFocus(object):
                                                   for x in range(int(xstart),int(xend)):
                                                       for y in range(int(ystart), int(yend)):
                                                                 if y < self.image.shape[1] and x < self.image.shape[2]:
-                                                                    self.Maskimage[int(zcenter), y, x, 1] = self.Maskimage[int(zcenter), y, x, 1] + score
+                                                                    self.Maskimage[int(zcenter), y, x, 1] = 1 + self.Maskimage[int(zcenter), y, x, 1] + score
                                                                     print(self.Maskimage[int(zcenter), y, x, 1], score)
                                               else:
                                                   
