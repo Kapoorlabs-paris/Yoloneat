@@ -834,7 +834,8 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
                
             else:
                 newbox = boxes[i]
-
+                meanboxrealz = boxes[i]['real_z_event']
+                meanboxconfidence = boxes[i]['confidence']
                 suppress.append(pos)
 
         if newbox is not None and newbox not in Averageboxes:
