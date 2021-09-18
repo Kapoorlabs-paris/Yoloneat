@@ -831,6 +831,10 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
                           'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
                           event_name: meanboxscore}
 
+               
+            else:
+                newbox = boxes[i]
+
                 suppress.append(pos)
 
         if newbox is not None and newbox not in Averageboxes:
