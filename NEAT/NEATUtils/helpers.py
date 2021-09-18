@@ -609,6 +609,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
         # using the last index
         last = len(idxs) - 1
         i = idxs[last]
+        newbox = boxes[i]
         pick.append(i)
         suppress = [last]
         count = 0
@@ -619,7 +620,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
             # compute the ratio of overlap between the two boxes and the area of the second box
             overlap = compare_function(boxes[i], boxes[j], event_name)
-
+            
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
                 count = count + 1
@@ -742,7 +743,14 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                                   'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
                                   'realangle': meanboxrealangle, 'rawangle': meanboxrawangle, event_name: meanboxscore}
 
+              
+
+
                 suppress.append(pos)
+                
+                
+            else:
+                 newbox = boxes[j]   
 
         if newbox is not None and newbox not in Averageboxes:
             Averageboxes.append(newbox)
@@ -783,6 +791,8 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
         # using the last index
         last = len(idxs) - 1
         i = idxs[last]
+        newbox = boxes[i]
+        Averageboxes.append(newbox)
         pick.append(i)
         suppress = [last]
         count = 0
@@ -833,9 +843,9 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
 
                
             else:
-                newbox = boxes[i]
-                meanboxrealz = boxes[i]['real_z_event']
-                meanboxconfidence = boxes[i]['confidence']
+                newbox = boxes[j]
+                meanboxrealz = boxes[j]['real_z_event']
+                meanboxconfidence = boxes[j]['confidence']
                 suppress.append(pos)
 
         if newbox is not None and newbox not in Averageboxes:
