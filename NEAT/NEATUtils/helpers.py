@@ -609,7 +609,6 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
         # using the last index
         last = len(idxs) - 1
         i = idxs[last]
-        newbox = boxes[i]
         pick.append(i)
         suppress = [last]
         count = 0
@@ -788,8 +787,6 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
         # using the last index
         last = len(idxs) - 1
         i = idxs[last]
-        newbox = boxes[i]
-        Averageboxes.append(newbox)
         pick.append(i)
         suppress = [last]
         count = 0
