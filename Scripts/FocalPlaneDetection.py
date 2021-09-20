@@ -23,9 +23,9 @@ from pathlib import Path
 
 imagedir = '/home/sancere/VKepler/CurieTrainingDatasets/foconeatimages/'
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Focusoneatmodels/'
-savedir= '/home/sancere/VKepler/CurieTrainingDatasets/foconeatimages/Predictionsd29s5f16dz2/'
+savedir= '/home/sancere/VKepler/CurieTrainingDatasets/foconeatimages/ZmapPredictionsd29s5f16res/'
 
-model_name = 'cadhistoned29s5f16dz2'
+model_name = 'cadhistoned29s5f16res'
 focus_categories_json = model_dir + 'FocusCategories.json'
 catconfig = load_json(focus_categories_json)
 focus_cord_json = model_dir + 'FocusCord.json'

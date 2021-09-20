@@ -367,6 +367,7 @@ class NEATFocus(object):
                                 classedboxes = {}    
                                                             
         self.print_planes()
+        self.fit_curve()
         self.genmap()
                           
         
@@ -387,11 +388,6 @@ class NEATFocus(object):
                
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                best_sorted_event_box, all_boxes = simpleaveragenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-<<<<<<< HEAD
-=======
-
->>>>>>> b44e13a18489ca3c687d3f0c08f199e9e9db934f
-               
                all_best_iou_classedboxes[event_name] = [all_boxes]
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                #print("nms",best_iou_classedboxes[event_name])
@@ -437,6 +433,7 @@ class NEATFocus(object):
                                             zlocations.append(zcenter)
                                             scores.append(score)
                                             max_scores.append(max_score)
+                                            print(zlocations, scores)
                                             event_count = np.column_stack([zlocations,scores, max_scores]) 
                                             event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                                             event_data = []
@@ -452,15 +449,34 @@ class NEATFocus(object):
                                                event_data = []           
                               
                                               
-                                            H, A, mu0, sigma = gauss_fit(zlocations, max_scores) 
-                                            csvname = self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "_GaussFitFocusQuality"
-                                            writer = csv.writer(open(csvname  +".csv", "a"))
-                                            filesize = os.stat(csvname + ".csv").st_size
-                                            if filesize < 1:
-                                               writer.writerow(['Amplitude','Mean','Sigma'])
-                                               writer.writerow([A, mu0,sigma])
+                                            
                                               
     
+    def fit_curve(self):
+
+
+                                   for (event_name,event_label) in self.key_categories.items():
+
+
+
+                                         if event_label > 0:         
+                                              readcsvname = self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "_FocusQuality"
+                                              self.dataset   = pd.read_csv(readcsvname, delimiter = ',')
+                                              self.dataset_index = self.dataset.index
+            
+            
+                                              Z = self.dataset[self.dataset.keys()[0]][1:]
+                                              score = self.dataset[self.dataset.keys()[1]][1:]
+                                              
+                                              H, A, mu0, sigma = gauss_fit(np.array(Z), np.array(score))
+                                              csvname = self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "_GaussFitFocusQuality"
+                                              writer = csv.writer(open(csvname  +".csv", "a"))
+                                              filesize = os.stat(csvname + ".csv").st_size
+                                              if filesize < 1:
+                                                 writer.writerow(['Amplitude','Mean','Sigma'])
+                                                 writer.writerow([A, mu0,sigma])
+
+
     def print_planes(self):
         for (event_name,event_label) in self.key_categories.items():
              if event_label > 0:

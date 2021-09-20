@@ -37,7 +37,7 @@ cordconfig = load_json(division_cord_json)
 model = NEATMasterDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = [1,0.99999,0.9999,1,1,1]
+event_threshold = [1,0.99999,0.99999,1,1,1]
 iou_threshold = 0.3
 yolo_v2 = False
 
@@ -54,7 +54,7 @@ marker_dict = {}
 for imagename in X:
    
      
-     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, thresh = 15)
+     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, thresh = 5)
 
 
 # In[3]:
