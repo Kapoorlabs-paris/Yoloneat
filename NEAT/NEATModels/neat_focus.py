@@ -21,6 +21,7 @@ from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite
 import csv
+from scipy.optimize import curve_fit
 import napari
 import glob
 from scipy import spatial
@@ -302,7 +303,7 @@ class NEATFocus(object):
         eventboxes = []
         classedboxes = {}    
         print('Detecting focus planes in', os.path.basename(os.path.splitext(self.imagename)[0]))
-        #self.image = normalizeFloatZeroOne(self.image,1,99.8)
+        self.image = normalizeFloatZeroOne(self.image,1,99.8)
 
         self.image = normalizeFloatZeroOne(self.image,1,99.8)
         for inputz in tqdm(range(0, self.image.shape[0])):
@@ -325,7 +326,7 @@ class NEATFocus(object):
                                         imwrite((self.savename + '.tif' ), self.Maskimage)
                                         
                                 smallimage = CreateVolume(self.image, self.imagez, inputz,self.imagex, self.imagey)
-                                
+
                                 #self.current_Zpoints = [(j,k) for j in range(smallimage.shape[1]) for k in range(smallimage.shape[2]) ]
                                 # Cut off the region for training movie creation
                                 #Break image into tiles if neccessary
@@ -386,7 +387,10 @@ class NEATFocus(object):
                
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                best_sorted_event_box, all_boxes = simpleaveragenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
+<<<<<<< HEAD
+=======
 
+>>>>>>> b44e13a18489ca3c687d3f0c08f199e9e9db934f
                
                all_best_iou_classedboxes[event_name] = [all_boxes]
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
@@ -448,7 +452,13 @@ class NEATFocus(object):
                                                event_data = []           
                               
                                               
-                                              
+                                            H, A, mu0, sigma = gauss_fit(zlocations, max_scores) 
+                                            csvname = self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "_GaussFitFocusQuality"
+                                            writer = csv.writer(open(csvname  +".csv", "a"))
+                                            filesize = os.stat(csvname + ".csv").st_size
+                                            if filesize < 1:
+                                               writer.writerow(['Amplitude','Mean','Sigma'])
+                                               writer.writerow([A, mu0,sigma])
                                               
     
     def print_planes(self):
@@ -932,3 +942,13 @@ def doubleplot(imageA, imageB, titleA, titleB):
 
     plt.tight_layout()
     plt.show()
+    
+def gauss(x, H, A, x0, sigma):
+    return H + A * np.exp(-(x - x0) ** 2 / (2 * sigma ** 2))
+
+def gauss_fit(x, y):
+    mean = sum(x * y) / sum(y)
+    sigma = np.sqrt(sum(y * (x - mean) ** 2) / sum(y))
+    popt, pcov = curve_fit(gauss, x, y, p0=[min(y), max(y), mean, sigma])
+    return popt    
+    
