@@ -26,9 +26,9 @@ from pathlib import Path
 
 imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
-savedir= '/home/sancere/VKepler/WildTypeTest/wt12/Resultsd38f32/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/Resultsd29f32/'
 
-model_name = 'longdivdatad38f32'
+model_name = 'longdivdatad29f32'
 
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
@@ -37,7 +37,7 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 0.99 #[1,0.99999,0.99999,1,1,1]
+event_threshold = 0.9999 #[1,0.99999,0.99999,1,1,1]
 iou_threshold = 0.3
 yolo_v2 = False
 downsample = 2

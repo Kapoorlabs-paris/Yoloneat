@@ -24,25 +24,26 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning1V1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/GSSaveDynamicd29resf48/'
-markerdir = '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Raw/SecMarkers/'
-marker_model_name = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/EverydayneatmodelV1/bin2stardist/'
-model_name = 'wtdivd29resf48'
+imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/GSResults/'
+markerdir = '/home/sancere/VKepler/WildTypeTest/wt12/Markers/'
+marker_model_name = '/home/sancere/VKepler/FinalONEATTraining/EverydayneatmodelV1/bin2stardist/'
+model_name = 'longdivdatad38f32'
+second_model_name = 'longdivdatad29f32'
 
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'DivisionCord.json'
 cordconfig = load_json(division_cord_json)
-model = NEATDynamic(None, model_dir , model_name,catconfig, cordconfig)
+model = NEATDynamic(None, model_dir , model_name, second_model_name, catconfig, cordconfig)
 marker_model = StarDist2D(config = None, name = marker_model_name, basedir = model_dir)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
 event_threshold = 1.0-1.0E-3
-iou_threshold = 0.6
+iou_threshold = 0.3
 yolo_v2 = False
-
+downsample = 2
 
 # # In the code block below compute the markers and make a dictionary for each image
 
@@ -56,9 +57,9 @@ marker_dict = {}
 for imagename in X:
    
      
-     markers, markers_tree, density_location =  model.get_markers(imagename, marker_model,savedir, n_tiles = n_tiles, markerdir = markerdir)
+     markers, markers_tree, density_location =  model.get_markers(imagename, marker_model,savedir, n_tiles = n_tiles, markerdir = markerdir, downsample = downsample)
 
-     model.predict(imagename,markers, markers_tree, density_location, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold)
+     model.predict(imagename,markers, markers_tree, density_location, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsample = downsample)
 
 # In[3]:
 
