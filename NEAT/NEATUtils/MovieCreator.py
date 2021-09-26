@@ -143,7 +143,7 @@ def SimpleMovieMaker(z, y, x, image, crop_size, total_categories, trainlabel, na
                                            writer.writerows(Event_data)
                                                                     
     
-def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = False, yolo_v1 = True, yolo_v2 = False, defXY = False):
+def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = False, yolo_v1 = True, yolo_v2 = False, defXY = False, tshift  = 1):
     
     
             raw_path = os.path.join(image_dir, '*tif')
@@ -196,7 +196,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                                                     #Categories + XYHW + Confidence 
                                                     for (key, t) in time.items():
                                                        try: 
-                                                          MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2, defXY)
+                                                          MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2, defXY, tshift)
                                                           count = count + 1
                                                         
                                                        except:
@@ -210,7 +210,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                
 
             
-def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name, save_dir, yolo_v0, yolo_v1, yolo_v2, defXY):
+def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name, save_dir, yolo_v0, yolo_v1, yolo_v2, defLabel, tshift):
     
        sizex, sizey, size_tminus, size_tplus = crop_size
        
@@ -234,10 +234,10 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offs
           AllShifts = [shiftNone]
 
 
-       time = time - 2
+       time = time - tshift
        if time > 0:
                currentsegimage = segimage[int(time),:].astype('uint16')
-               height, width, center, seg_label = getHW(x, y, trainlabel, currentsegimage, imagesizex, imagesizey,defXY)
+               height, width, center, seg_label = getHW(x, y, trainlabel, currentsegimage, imagesizex, imagesizey,defLabel)
                for shift in AllShifts:
 
                         newname = name + 'shift' + str(shift)
@@ -314,7 +314,7 @@ def Readname(fname):
     return os.path.basename(os.path.splitext(fname)[0])
 
 
-def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, static_label, csv_name_diff,crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = True, defXY = False):
+def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, static_label, csv_name_diff,crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = True, defLabel = False):
     
     
             raw_path = os.path.join(image_dir, '*tif')
@@ -358,7 +358,7 @@ def ImageLabelDataSet(image_dir, seg_image_dir, csv_dir,save_dir, static_name, s
                                             
                                             #Categories + XYHW + Confidence 
                                             for (key, t) in time.items():
-                                               ImageMaker(t, y[key], x[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, defXY)    
+                                               ImageMaker(t, y[key], x[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, defLabel)    
                                                count = count + 1
     
 
@@ -451,7 +451,7 @@ def createNPZ(save_dir, axes, save_name = 'Yolov0oneat', save_name_val = 'Yolov0
 
 def _raise(e):
     raise e
-def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, total_categories, trainlabel, name, save_dir, yolo_v0, defXY):
+def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, total_categories, trainlabel, name, save_dir, yolo_v0, defLabel):
 
                sizeX, sizeY = crop_size
 
@@ -478,7 +478,7 @@ def  ImageMaker(time, y, x, image, segimage, crop_size, gridX, gridY, offset, to
                if time < segimage.shape[0] - 1 and time > 0:
                  currentsegimage = segimage[int(time),:].astype('uint16')
                 
-                 height, width, center, SegLabel  = getHW(x, y,trainlabel, currentsegimage, ImagesizeX, ImagesizeY, defXY)
+                 height, width, center, SegLabel  = getHW(x, y,trainlabel, currentsegimage, ImagesizeX, ImagesizeY, defLabel)
                  for shift in AllShifts:
                    
                         newname = name + 'shift' + str(shift)
@@ -639,7 +639,7 @@ def  SegFreeImageMaker(time, y, x, image, crop_size, gridX, gridY, offset, total
                                              writer = csv.writer(open(save_dir + '/' + (newname) + ".csv", "a"))
                                              writer.writerows(Event_data)
        
-def getHW(defaultX, defaultY, trainlabel, currentsegimage, imagesizex, imagesizey, defXY = False):
+def getHW(defaultX, defaultY, trainlabel, currentsegimage, imagesizex, imagesizey, defLabel = False):
     
     properties = measure.regionprops(currentsegimage, currentsegimage)
     TwoDLocation = (defaultY,defaultX)
@@ -653,7 +653,7 @@ def getHW(defaultX, defaultY, trainlabel, currentsegimage, imagesizex, imagesize
                                     height =  abs(maxc - minc)
                                     width =  abs(maxr - minr)
                                 
-                  if SegLabel == 0 or defXY:
+                  if SegLabel == 0 or defLabel == trainlabel:
                     
                              center = (defaultY, defaultX)
                              height = 0.5 * imagesizex
