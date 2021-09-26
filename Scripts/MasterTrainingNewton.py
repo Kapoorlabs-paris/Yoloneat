@@ -12,20 +12,20 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 # In[2]:
 
 
-npz_directory = '/home/sancere/VKepler/CurieTrainingDatasets/oneatnpz/'
-npz_name = 'masterlongdata.npz'
-npz_val_name = 'masterlongdataval.npz'
+npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
+npz_name = 'longmasterbin2.npz'
+npz_val_name = 'longmasterbin2val.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MasterBinning2V1Models/'
-model_name = 'masterlongdatad29f32.h5'
+model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MasterBinning2V1Models/'
+model_name = 'bin2longmasterd29resf32.h5'
 #Neural network parameters
 division_categories_json = model_dir + 'DynamicCategories.json'
 key_categories = load_json(division_categories_json)
@@ -55,7 +55,7 @@ nboxes = 1
 show = False
 stage_number = 3
 last_conv_factor = 4
-size_tminus = 6
+size_tminus = 5
 size_tplus = 4
 imagex = 64
 imagey = 64

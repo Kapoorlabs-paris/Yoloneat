@@ -36,7 +36,23 @@ from skimage.segmentation import watershed
 This method is used to convert Marker image to a list containing the XY indices for all time points
 """
 
-
+def DownsampleData(image, DownsampleFactor):
+                    
+                if DownsampleFactor!=1:  
+                    print('Downsampling Image in XY by', DownsampleFactor)
+                    scale_percent = int(100/DownsampleFactor) # percent of original size
+                    width = int(image.shape[2] * scale_percent / 100)
+                    height = int(image.shape[1] * scale_percent / 100)
+                    dim = (width, height)
+                    smallimage = np.zeros([image.shape[0],  height,width])
+                    for i in range(0, image.shape[0]):
+                          # resize image
+                          smallimage[i,:] = cv2.resize(image[i,:].astype('float32'), dim)         
+         
+                    return smallimage
+                else:
+                    
+                    return image
 def remove_big_objects(ar, max_size=6400, connectivity=1, in_place=False):
     out = ar.copy()
     ccs = out

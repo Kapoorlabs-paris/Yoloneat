@@ -9,7 +9,7 @@ Created on Mon Jun 28 13:49:35 2021
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms,DownsampleData
 from keras import callbacks
 import os
 import math
@@ -197,7 +197,7 @@ class NEATDynamicSegFree(object):
         
 
         
-    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5):
+    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsample = 1):
         
         self.imagename = imagename
         self.image = imread(imagename)
@@ -210,6 +210,8 @@ class NEATDynamicSegFree(object):
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
+        self.downsample = downsample
+        self.image = DownsampleData(self.image, self.downsample)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate","lr").encode()
@@ -358,12 +360,12 @@ class NEATDynamicSegFree(object):
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
                                                       if xcenter < self.image.shape[2] or ycenter < self.image.shape[1]:                                                  
-                                                           xlocations.append(xcenter) 
-                                                           ylocations.append(ycenter)
+                                                           xlocations.append(xcenter/self.downsample) 
+                                                           ylocations.append(ycenter/self.downsample)
                                                            scores.append(score)
                                                            confidences.append(confidence)
                                                            tlocations.append(tcenter)
-                                                           radiuses.append(radius)
+                                                           radiuses.append(radius/self.downsample)
                                                            angles.append(angle)
                                                                
                                             
