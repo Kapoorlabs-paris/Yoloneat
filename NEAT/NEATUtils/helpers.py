@@ -619,7 +619,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
             # compute the ratio of overlap between the two boxes and the area of the second box
             overlap = compare_function(boxes[i], boxes[j], event_name)
-
+            
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
                 count = count + 1
@@ -743,7 +743,9 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                                   'realangle': meanboxrealangle, 'rawangle': meanboxrawangle, event_name: meanboxscore}
 
                 suppress.append(pos)
-
+                
+                
+           
         if newbox is not None and newbox not in Averageboxes:
             Averageboxes.append(newbox)
             # delete all indexes from the index list that are in the suppression list
@@ -830,8 +832,10 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
                           'ycenter': meanboxYcenter, 'real_z_event': meanboxrealz,
                           'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
                           event_name: meanboxscore}
-
-                suppress.append(pos)
+                suppress.append(pos) 
+               
+           
+                
 
         if newbox is not None and newbox not in Averageboxes:
             Averageboxes.append(newbox)
@@ -839,7 +843,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
         idxs = np.delete(idxs, suppress)
     # return only the indicies of the bounding boxes that were picked
 
-    meanscore = sum(d[event_name] for d in Averageboxes) / len(Averageboxes)
+    meanscore = sum(d[event_name] for d in Averageboxes) / max(1,len(Averageboxes))
     maxscore = max(d[event_name] for d in Averageboxes)
 
     box = {'real_z_event': meanboxrealz, 'confidence': meanboxconfidence, event_name: meanscore, 'max_score': maxscore}

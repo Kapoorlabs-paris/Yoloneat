@@ -21,6 +21,7 @@ from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite
 import csv
+from scipy.optimize import curve_fit
 import napari
 import glob
 from scipy import spatial
@@ -267,12 +268,14 @@ class NEATFocus(object):
     
         
         
-    def predict(self,imagename, savedir, interest_event, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0, iou_threshold = 0.01, radius = 10):
+    def predict(self,imagename, savedir, interest_event, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0, iou_threshold = 0.0001, radius = 10):
         
         self.imagename = imagename
         self.image = imread(imagename)
         self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
-        self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2],3], dtype = 'uint16')
+        self.Maskimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2],3], dtype = 'float32')
+        self.image_mask_c1 = np.zeros(self.image.shape, dtype = 'float32')
+        self.image_mask_c2  = np.zeros(self.image.shape, dtype = 'float32')
         self.Colorimage[:,:,:,0] = self.image
         self.Maskimage[:,:,:,0] = self.image
         self.radius = radius
@@ -300,8 +303,9 @@ class NEATFocus(object):
         eventboxes = []
         classedboxes = {}    
         print('Detecting focus planes in', os.path.basename(os.path.splitext(self.imagename)[0]))
-        #self.image = normalizeFloatZeroOne(self.image,1,99.8)
+        self.image = normalizeFloatZeroOne(self.image,1,99.8)
 
+        self.image = normalizeFloatZeroOne(self.image,1,99.8)
         for inputz in tqdm(range(0, self.image.shape[0])):
                     if inputz <= self.image.shape[0] - self.imagez:
                                 
@@ -322,7 +326,7 @@ class NEATFocus(object):
                                         imwrite((self.savename + '.tif' ), self.Maskimage)
                                         
                                 smallimage = CreateVolume(self.image, self.imagez, inputz,self.imagex, self.imagey)
-                                smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
+
                                 #self.current_Zpoints = [(j,k) for j in range(smallimage.shape[1]) for k in range(smallimage.shape[2]) ]
                                 # Cut off the region for training movie creation
                                 #Break image into tiles if neccessary
@@ -355,7 +359,6 @@ class NEATFocus(object):
                                                  
                                 self.classedboxes = classedboxes    
                                 self.eventboxes =  eventboxes
-                                
                                 self.nms()
                                 self.to_csv()
                                 self.draw()
@@ -364,6 +367,7 @@ class NEATFocus(object):
                                 classedboxes = {}    
                                                             
         self.print_planes()
+        self.fit_curve()
         self.genmap()
                           
         
@@ -384,8 +388,6 @@ class NEATFocus(object):
                
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                best_sorted_event_box, all_boxes = simpleaveragenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-
-               
                all_best_iou_classedboxes[event_name] = [all_boxes]
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                #print("nms",best_iou_classedboxes[event_name])
@@ -394,7 +396,7 @@ class NEATFocus(object):
 
     def genmap(self):
 
-                image = imread(self.savename)
+                image = imread(self.savename + '.tif')
                 Name = os.path.basename(os.path.splitext(self.savename)[0])
                 Signal_first = image[:, :, :, 1]
                 Signal_second = image[:, :, :, 2]
@@ -431,6 +433,7 @@ class NEATFocus(object):
                                             zlocations.append(zcenter)
                                             scores.append(score)
                                             max_scores.append(max_score)
+                                            print(zlocations, scores)
                                             event_count = np.column_stack([zlocations,scores, max_scores]) 
                                             event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
                                             event_data = []
@@ -446,9 +449,34 @@ class NEATFocus(object):
                                                event_data = []           
                               
                                               
-                                              
+                                            
                                               
     
+    def fit_curve(self):
+
+
+                                   for (event_name,event_label) in self.key_categories.items():
+
+
+
+                                         if event_label > 0:         
+                                              readcsvname = self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "_FocusQuality"
+                                              self.dataset   = pd.read_csv(readcsvname, delimiter = ',')
+                                              self.dataset_index = self.dataset.index
+            
+            
+                                              Z = self.dataset[self.dataset.keys()[0]][1:]
+                                              score = self.dataset[self.dataset.keys()[1]][1:]
+                                              
+                                              H, A, mu0, sigma = gauss_fit(np.array(Z), np.array(score))
+                                              csvname = self.savedir+ "/" + (os.path.splitext(os.path.basename(self.imagename))[0])  + event_name  +  "_GaussFitFocusQuality"
+                                              writer = csv.writer(open(csvname  +".csv", "a"))
+                                              filesize = os.stat(csvname + ".csv").st_size
+                                              if filesize < 1:
+                                                 writer.writerow(['Amplitude','Mean','Sigma'])
+                                                 writer.writerow([A, mu0,sigma])
+
+
     def print_planes(self):
         for (event_name,event_label) in self.key_categories.items():
              if event_label > 0:
@@ -504,17 +532,26 @@ class NEATFocus(object):
                                               ystart = iou_current_event_box['ystart']
                                               xend = xstart + iou_current_event_box['width']
                                               yend = ystart + iou_current_event_box['height']
-
                                               score = iou_current_event_box[event_name]
 
+                                              
+                                              
+                                                            
+                                                            
                                               if event_label == 1:
-                                                  image_mask = self.Maskimage[int(zcenter), :, :, 1]
+                                                  for x in range(int(xstart),int(xend)):
+                                                      for y in range(int(ystart), int(yend)):
+                                                                if y < self.image.shape[1] and x < self.image.shape[2]:
+                                                                    self.Maskimage[int(zcenter), y, x, 1] = self.Maskimage[int(zcenter), y, x, 1] + score
                                               else:
-                                                  image_mask = self.Maskimage[int(zcenter), :, :, 2]
-                                              for x in range(int(xstart),int(xend)):
-                                                  for y in range(int(ystart), int(yend)):
-                                                            image_mask[y,x] = image_mask[y,x] + score
-
+                                                  
+                                                  for x in range(int(xstart),int(xend)):
+                                                      for y in range(int(ystart), int(yend)):
+                                                          if y < self.image.shape[1] and x < self.image.shape[2]:
+                                                              self.Maskimage[int(zcenter), y, x, 2] = self.Maskimage[int(zcenter), y, x, 2] +  score
+                                            
+                                                  
+                                                  
                                               if score > 0.9:
                                                   
                                                  xlocations.append(round(xcenter))
@@ -533,8 +570,7 @@ class NEATFocus(object):
                                      endlocation =  (int(xlocations[j] + heights[j]//2), int(ylocations[j]+ widths[j]//2))
                                      Z = int(zlocations[j])  
                                      
-                                     event_maskboxes.append(( int(ylocations[j] - widths[j]//2), int(xlocations[j]-heights[j]//2),int(ylocations[j] + widths[j]//2), int(ylocations[j]+ heights[j]//2)  ))
-                                     
+                                   
                                      
                                      
                                      if event_label == 1:                            
@@ -548,60 +584,21 @@ class NEATFocus(object):
                                      img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
                                      cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
-                                     cv2.rectangle(img_mask, startlocation, endlocation, textcolor, -1)
+                                    
     
                                      cv2.putText(img, str('%.4f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
                                      if event_label == 1:
                                        self.Colorimage[Z,:,:,1] = img[:,:,0]
-                                       self.Maskimage[Z,:,:,1] = img_mask[:,:,0]
                                      else:
                                        self.Colorimage[Z,:,:,2] = img[:,:,0]
-                                       self.Maskimage[Z,:,:,2] = img_mask[:,:,0]
+                                    
 
 
-                  self.maskboxes[event_name] = [event_maskboxes]
+                  
 
                     
     
-    def createMask(self):
-
-        for (event_name,event_label) in self.key_categories.items():
-            if event_label > 0:
-                       #Get all events
-                       
-                       mask_event_box = self.maskboxes[event_name][0]  
-                       for zpoint in self.current_Zpoints:
-                           
-                             inside = [self.isInside(box, zpoint) for box in  mask_event_box]
-                             
-                             if any(inside):
-                                 if event_label == 1:
-                                                              
-                                     self.Maskimage[self.currentZ + self.imagez//2,zpoint[0],zpoint[1],1] = 1
-                                 else:
-                                     
-                                     self.Maskimage[self.currentZ + self.imagez//2,zpoint[0],zpoint[1],2] = 1
     
-    def isInside(self, box, centroid):
-        
-       
-        ndim = len(centroid)
-        inside = False
-        Condition = [self.Conditioncheck(centroid, box, p, ndim) for p in range(0,ndim)]
-        inside = all(Condition)
-    
-        return inside
-        
-    
-    def Conditioncheck(self, centroid, box, p, ndim):
-    
-      condition = False
-    
-      if centroid[p] >=  box[p]  and centroid[p] <=  box[p + ndim]:
-          
-           condition = True
-           
-      return condition     
     
     
     def showNapari(self, imagedir, savedir, yolo_v2 = False):
@@ -961,3 +958,13 @@ def doubleplot(imageA, imageB, titleA, titleB):
 
     plt.tight_layout()
     plt.show()
+    
+def gauss(x, H, A, x0, sigma):
+    return H + A * np.exp(-(x - x0) ** 2 / (2 * sigma ** 2))
+
+def gauss_fit(x, y):
+    mean = sum(x * y) / sum(y)
+    sigma = np.sqrt(sum(y * (x - mean) ** 2) / sum(y))
+    popt, pcov = curve_fit(gauss, x, y, p0=[min(y), max(y), mean, sigma])
+    return popt    
+    

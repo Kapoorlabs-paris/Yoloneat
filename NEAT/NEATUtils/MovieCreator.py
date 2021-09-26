@@ -71,7 +71,7 @@ def SegFreeMovieLabelDataSet(image_dir, csv_dir, save_dir, static_name, static_l
                                      if classfound:
                                                     print(Csvname)
                                                     image = imread(fname)
-                                                    if NormPatch ==False:
+                                                    if normPatch ==False:
                                                        image = normalizeFloatZeroOne( image.astype('float32'),1,99.8)
                                                     dataset = pd.read_csv(csvfname)
                                                     z = dataset[dataset.keys()[0]][1:]
@@ -234,7 +234,7 @@ def MovieMaker(time, y, x, angle, image, segimage, crop_size, gridx, gridy, offs
           AllShifts = [shiftNone]
 
 
-       time = time - 1
+       time = time - 2
        if time > 0:
                currentsegimage = segimage[int(time),:].astype('uint16')
                height, width, center, seg_label = getHW(x, y, trainlabel, currentsegimage, imagesizex, imagesizey,defXY)
