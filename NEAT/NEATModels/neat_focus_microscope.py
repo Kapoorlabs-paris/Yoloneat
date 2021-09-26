@@ -418,7 +418,7 @@ class NEATFocusPredict(object):
                                                  writer.writerow(['Amplitude','Mean','Sigma'])
                                                  writer.writerow([A, mu0,sigma])
                                               
-                                                csvname = self.savedir + "/" + event_name
+                                              csvname = self.savedir + "/" + event_name
 
                                               writer = csv.writer(open(csvname + ".ini", 'w'))
                                               writer.writerow(["[main]"])
@@ -430,8 +430,8 @@ class NEATFocusPredict(object):
                                                 
                                                  live_event_data.append(line)
                                                  writer.writerow(["[" + str(count) + "]"])
-                                                 writer.writerow(["mean=" + str(mu0)
-                                                 writer.writerow(["sigma=" + str(sigma)
+                                                 writer.writerow(["mean=" + str(mu0)])
+                                                 writer.writerow(["sigma=" + str(sigma)])
                                                  live_event_data = []
                             
                                                  count = count + 1   

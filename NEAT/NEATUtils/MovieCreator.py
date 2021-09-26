@@ -143,7 +143,7 @@ def SimpleMovieMaker(z, y, x, image, crop_size, total_categories, trainlabel, na
                                            writer.writerows(Event_data)
                                                                     
     
-def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = False, yolo_v1 = True, yolo_v2 = False, defXY = False, tshift  = 1):
+def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, static_label, csv_name_diff, crop_size, gridx = 1, gridy = 1, offset = 0, yolo_v0 = False, yolo_v1 = True, yolo_v2 = False, defLabel = False, tshift  = 1):
     
     
             raw_path = os.path.join(image_dir, '*tif')
@@ -196,7 +196,7 @@ def MovieLabelDataSet(image_dir, seg_image_dir, csv_dir, save_dir, static_name, 
                                                     #Categories + XYHW + Confidence 
                                                     for (key, t) in time.items():
                                                        try: 
-                                                          MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2, defXY, tshift)
+                                                          MovieMaker(t, y[key], x[key], angle[key], image, segimage, crop_size, gridx, gridy, offset, total_categories, trainlabel, name + event_name + str(count), save_dir,yolo_v0, yolo_v1, yolo_v2, defLabel, tshift)
                                                           count = count + 1
                                                         
                                                        except:
