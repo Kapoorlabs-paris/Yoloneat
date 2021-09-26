@@ -286,7 +286,7 @@ class NEATDynamicSeg(object):
 
         self.Trainingmodel.save(self.model_dir + self.model_name)
 
-    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True, downsample = 2):
+    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True, downsample = 1):
 
         self.starmodel = starmodel
         self.imagename = imagename
