@@ -395,11 +395,16 @@ class NEATPredict(object):
                 confidences = []
 
                 iou_current_event_boxes = self.iou_classedboxes[event_name][0]
+                bbox_left_y = self.image.shape[1] // 4
+                bbox_right_y = 3 *self.image.shape[1] // 4
 
-                iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: np.sqrt(
-                    (x['xcenter'] - self.image.shape[2] // 2) * (x['xcenter'] - self.image.shape[2] // 2)) + np.sqrt(
-                    (x['ycenter'] - self.image.shape[1] // 2) * (x['ycenter'] - self.image.shape[1] // 2)),
-                                                 reverse=False)
+                bbox_left_x = self.image.shape[2] // 4
+                bbox_right_x = 3 *self.image.shape[2] // 4
+                iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: x[event_name], reverse=True)
+                #iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: np.sqrt(
+                    #(x['xcenter'] - self.image.shape[2] // 2) * (x['xcenter'] - self.image.shape[2] // 2)) + np.sqrt(
+                    #(x['ycenter'] - self.image.shape[1] // 2) * (x['ycenter'] - self.image.shape[1] // 2)),
+                                                 #reverse=False)
 
                 for iou_current_event_box in iou_current_event_boxes:
                     xcenter = iou_current_event_box['xcenter']
@@ -410,13 +415,14 @@ class NEATPredict(object):
                         iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box[
                             'width'] * iou_current_event_box['width']) // 2
                     confidence = iou_current_event_box['confidence']
-                    print(round(xcenter), round(ycenter), score)
-                    xlocations.append(round(xcenter))
-                    ylocations.append(round(ycenter))
-                    scores.append(score)
-                    tlocations.append(tcenter)
-                    radiuses.append(radius)
-                    confidences.append(confidence)
+                    if xcenter > bbox_left_x and xcenter < bbox_right_x and ycenter > bbox_left_y and ycenter < bbox_right_y:
+                        print(round(xcenter), round(ycenter), score)
+                        xlocations.append(round(xcenter))
+                        ylocations.append(round(ycenter))
+                        scores.append(score)
+                        tlocations.append(tcenter)
+                        radiuses.append(radius)
+                        confidences.append(confidence)
 
                 event_count = np.column_stack([xlocations, ylocations])
                 total_event_count = np.column_stack([tlocations, ylocations, xlocations, scores, radiuses, confidences])

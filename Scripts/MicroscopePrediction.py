@@ -13,7 +13,7 @@ from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
 from csbdeep.models import ProjectionCARE
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -41,7 +41,7 @@ projection_model = None  #ProjectionCARE(config = None, name = projection_model_
 
 n_tiles = (1,1)
 Z_n_tiles = (1,2,2)
-event_threshold = 1 - 1.0E-6
+event_threshold = 1 - 1.0E-3
 iou_threshold = 0.1
 nb_predictions = 5
 

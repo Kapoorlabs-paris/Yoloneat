@@ -20,12 +20,12 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/foconeatnpz/'
-npz_name = 'Foconeat.npz'
-npz_val_name = 'FoconeatVal.npz'
+npz_name = 'Foconeatdz2.npz'
+npz_val_name = 'Foconeatdz2Val.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Focusoneatmodels/'
-model_name = 'cadhistoned65s5f16res.h5'
+model_name = 'cadhistoned29s5f16dz2.h5'
 
 
 # In[ ]:
@@ -46,7 +46,7 @@ start_kernel = 7
 
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 65
+depth = 29
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients
@@ -59,8 +59,8 @@ nboxes = 1
 show = False
 stage_number = 5
 last_conv_factor = 16
-size_tminus = 1
-size_tplus = 1
+size_tminus = 2
+size_tplus = 2
 imagex = 128
 imagey = 128
 

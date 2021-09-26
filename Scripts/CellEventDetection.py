@@ -23,8 +23,8 @@ from pathlib import Path
 
 imagedir = '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Bin2Test/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Bin2Test/Save38resf32/'
-model_name = 'CellNetbin2d38resf32'
+savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Bin2Test/Save29resf16/'
+model_name = 'CellNetbin2d29resf16'
 division_categories_json = model_dir + 'StaticCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'StaticCord.json'
@@ -32,8 +32,8 @@ cordconfig = load_json(division_cord_json)
 model = NEATStatic(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (1,1)
-event_threshold = [1,0.9,0.9,1,1,1]
-iou_threshold = 0.1
+event_threshold = [1,0.999,0.999,0.9,0.9,0.9]
+iou_threshold = 0.2
 
 
 # In[ ]:

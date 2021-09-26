@@ -178,7 +178,7 @@ class NEATStaticPredict(object):
     def predict(self, imagedir, movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start,
                 Z_start, downsample=False, fileextension='*TIF', nb_prediction=3, n_tiles=(1, 1), Z_n_tiles=(1, 2, 2),
                 overlap_percent=0.6, event_threshold=0.5, iou_threshold=0.01, projection_model=None,
-                delay_projection=4):
+                delay_projection=10):
 
         self.imagedir = imagedir
         self.basedirResults = self.imagedir + '/' + "live_results"

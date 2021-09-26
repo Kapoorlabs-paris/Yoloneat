@@ -20,7 +20,7 @@ from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
 from csbdeep.models import ProjectionCARE
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="3"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -30,7 +30,7 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 Z_imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/Z_ONEAT_fly_test/'
 imagedir = '/data/u934/service_imagerie/v_kapoor/FinalONEATTraining/ONEAT_fly_test/'
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
-model_name = 'CellNetbin2d38resf32'
+model_name = 'CellNetbin2d29resf16'
 projection_model_name = 'projectionmodelbin2'
 division_categories_json = model_dir + 'StaticCategories.json'
 catconfig = load_json(division_categories_json)
@@ -47,7 +47,7 @@ projection_model = None #ProjectionCARE(config = None, name = projection_model_n
 
 n_tiles = (1,1)
 Z_n_tiles = (1,2,2)
-event_threshold = 0.9999
+event_threshold = 0.999999
 iou_threshold = 0.1
 nb_predictions = 30
 
@@ -55,7 +55,7 @@ nb_predictions = 30
 # In[4]:
 
 
-model.predict(imagedir, {}, {}, Z_imagedir, [], [],  0, 0, fileextension = fileextension, nb_prediction = nb_predictions, n_tiles = n_tiles, Z_n_tiles = Z_n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, projection_model = projection_model)
+model.predict(imagedir, {}, {}, Z_imagedir, [], [],  67, 67, fileextension = fileextension, nb_prediction = nb_predictions, n_tiles = n_tiles, Z_n_tiles = Z_n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, projection_model = projection_model)
 
 
 # In[ ]:
