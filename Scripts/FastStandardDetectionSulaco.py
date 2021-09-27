@@ -9,7 +9,7 @@ import sys
 import os
 import glob
 sys.path.append("../NEAT")
-from NEATModels import NEATMasterDynamicSegFree, nets
+from NEATModels import NEATDynamicSegFree, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
@@ -24,23 +24,23 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Bin2Test/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MasterBinning2V1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Bin2Test/Mondaymasterlongdatad38f32/'
+imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
+savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Oldd29f32/'
 
-model_name = 'masterlongdatad38f32'
+model_name = 'bin2divmodeld29resf32'
 
-division_categories_json = model_dir + 'DynamicCategories.json'
+division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'DynamicCord.json'
+division_cord_json = model_dir + 'DivisionCord.json'
 cordconfig = load_json(division_cord_json)
-model = NEATMasterDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
+model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = [1,0.999,0.999,0.99,0.99,0.99]
+event_threshold = 0.999 #[1,0.999,0.999,0.99,0.99,0.99]
 iou_threshold = 0.3
 yolo_v2 = False
-
+downsample = 2
 
 # # In the code block below compute the markers and make a dictionary for each image
 
@@ -54,7 +54,7 @@ marker_dict = {}
 for imagename in X:
    
      
-     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold)
+     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsample = downsample)
 
 
 # In[3]:

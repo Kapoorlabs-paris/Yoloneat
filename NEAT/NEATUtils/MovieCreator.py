@@ -647,7 +647,7 @@ def getHW(defaultX, defaultY, trainlabel, currentsegimage, imagesizex, imagesize
     SegLabel = currentsegimage[int(TwoDLocation[0]), int(TwoDLocation[1])]
     for prop in properties:
                                                
-                  if SegLabel > 0 and prop.label == SegLabel and defXY == False:
+                  if SegLabel > 0 and prop.label == SegLabel and defLabel != trainlabel:
                                     minr, minc, maxr, maxc = prop.bbox
                                     center = prop.centroid
                                     height =  abs(maxc - minc)

@@ -29,9 +29,9 @@ csv_dir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatcsv/m
 #Specify the directory containing the segmentations
 seg_image_dir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatimages/bin2/segmentation/'
 #Specify the model directory where we store the json of categories, training model and parameters
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
 #Directory for storing center ONEAT training data for static classes
-save_dir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/MasterApoptosisLongdata/'
+save_dir = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/MasterApoptosisLongMicrodata/'
 Path(model_dir).mkdir(exist_ok = True)
 Path(save_dir).mkdir(exist_ok = True)
 
@@ -49,13 +49,13 @@ csv_name_diff = 'ONEAT'
 #with xythw and class terms only
 yolo_v0 = False
 size_tminus = 6
-size_tplus = 4
+size_tplus = 0
 tshift = 1
 trainshapeX = 64
 trainshapeY = 64
 axes= 'STXYC'
-npz_name = 'masterlongdata'
-npz_val_name = 'masterlongdataval'
+npz_name = 'masterlongmicrodata'
+npz_val_name = 'masterlongmicrodataval'
 crop_size = [trainshapeX,trainshapeY,size_tminus,size_tplus]
 
 
@@ -74,9 +74,9 @@ dynamic_config = TrainConfig(event_type_name, event_type_label, event_position_n
 
 dynamic_json, dynamic_cord_json = dynamic_config.to_json()
 
-save_json(dynamic_json, model_dir + "DynamicCategories" + '.json')
+save_json(dynamic_json, model_dir + "MasterMicroscopeCategories" + '.json')
 
-save_json(dynamic_cord_json, model_dir + "DynamicCord" + '.json')    
+save_json(dynamic_cord_json, model_dir + "MasterMicroscopeCord" + '.json')    
 
 
 # In[ ]:
