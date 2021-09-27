@@ -203,6 +203,7 @@ class NEATDynamicSegFree(object):
         self.image = imread(imagename)
         self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
         print(self.Colorimage.shape)
+        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
         self.Colorimage[:,:,:,0] = self.image
         self.savedir = savedir
         self.n_tiles = n_tiles
@@ -234,7 +235,7 @@ class NEATDynamicSegFree(object):
         
 
         savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
-        
+        heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat' 
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
@@ -243,6 +244,9 @@ class NEATDynamicSegFree(object):
                                       
                                                                               
                                       imwrite((savename + '.tif' ), self.Colorimage)
+                                      
+                                      imwrite((heatsavename + '.tif' ), self.heatmap)
+                                      
                                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
                                                           self.imagey)
 
@@ -319,6 +323,24 @@ class NEATDynamicSegFree(object):
                
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               for iou_current_event_box in sorted_event_box:
+                                                      xcenter = iou_current_event_box['xcenter']
+                                                      ycenter = iou_current_event_box['ycenter']
+                                                      tcenter = iou_current_event_box['real_time_event']
+                                                      xstart = iou_current_event_box['xstart']
+                                                      ystart = iou_current_event_box['ystart']
+                                                      xend = xstart + iou_current_event_box['width']
+                                                      yend = ystart + iou_current_event_box['height']
+                                                      score = iou_current_event_box[event_name]
+                                                      radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                                      if event_label == 1:
+                                                                  for x in range(int(xstart),int(xend)):
+                                                                      for y in range(int(ystart), int(yend)):
+                                                                                if y < self.image.shape[1] and x < self.image.shape[2]:
+                                                                                    self.heatmap[int(tcenter), y, x] = self.heatmap[int(tcenter), y, x] + score
+               
+               
+               
                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic',self.imagex, self.imagey, self.imaget, self.thresh)
 
                
@@ -356,6 +378,10 @@ class NEATDynamicSegFree(object):
                                                       tcenter = iou_current_event_box['real_time_event']
                                                       confidence = iou_current_event_box['confidence']
                                                       angle = iou_current_event_box['realangle']
+                                                      xstart = iou_current_event_box['xstart']
+                                                      ystart = iou_current_event_box['ystart']
+                                                      xend = xstart + iou_current_event_box['width']
+                                                      yend = ystart + iou_current_event_box['height']
                                                       score = iou_current_event_box[event_name]
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
@@ -367,6 +393,8 @@ class NEATDynamicSegFree(object):
                                                            tlocations.append(tcenter)
                                                            radiuses.append(radius * self.downsample)
                                                            angles.append(angle)
+                                                           
+                                                          
                                                                
                                             
                                               event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
