@@ -201,10 +201,7 @@ class NEATDynamicSegFree(object):
         
         self.imagename = imagename
         self.image = imread(imagename)
-        self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype = 'uint16')
-        print(self.Colorimage.shape)
         self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
-        self.Colorimage[:,:,:,0] = self.image
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.thresh = thresh
@@ -212,6 +209,7 @@ class NEATDynamicSegFree(object):
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
         self.downsample = downsample
+        self.originalimage = self.image
         self.image = DownsampleData(self.image, self.downsample)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
@@ -243,7 +241,6 @@ class NEATDynamicSegFree(object):
                                 if inputtime%10==0 or inputtime >= self.image.shape[0] - self.imaget - 1:
                                       
                                                                               
-                                      imwrite((savename + '.tif' ), self.Colorimage)
                                       
                                       imwrite((heatsavename + '.tif' ), self.heatmap)
                                       
@@ -324,19 +321,19 @@ class NEATDynamicSegFree(object):
                sorted_event_box = self.classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                for iou_current_event_box in sorted_event_box:
-                                                      xcenter = iou_current_event_box['xcenter']
-                                                      ycenter = iou_current_event_box['ycenter']
+                                                      xcenter = iou_current_event_box['xcenter']* self.downsample
+                                                      ycenter = iou_current_event_box['ycenter']* self.downsample
                                                       tcenter = iou_current_event_box['real_time_event']
-                                                      xstart = iou_current_event_box['xstart']
-                                                      ystart = iou_current_event_box['ystart']
-                                                      xend = xstart + iou_current_event_box['width']
-                                                      yend = ystart + iou_current_event_box['height']
+                                                      xstart = iou_current_event_box['xstart']* self.downsample
+                                                      ystart = iou_current_event_box['ystart']* self.downsample
+                                                      xend = xstart + iou_current_event_box['width']* self.downsample
+                                                      yend = ystart + iou_current_event_box['height']* self.downsample
                                                       score = iou_current_event_box[event_name]
-                                                      radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
+                                                      
                                                       if event_label == 1:
                                                                   for x in range(int(xstart),int(xend)):
                                                                       for y in range(int(ystart), int(yend)):
-                                                                                if y < self.image.shape[1] and x < self.image.shape[2]:
+                                                                                if y < self.originalimage.shape[1] and x < self.originalimage.shape[2]:
                                                                                     self.heatmap[int(tcenter), y, x] = self.heatmap[int(tcenter), y, x] + score
                
                
@@ -411,49 +408,7 @@ class NEATDynamicSegFree(object):
                                                  writer.writerows(event_data)
                                                  event_data = []           
                               
-                                              
-                                              
-                                              self.saveimage(xlocations, ylocations, tlocations, radiuses,scores)
 
-
-                      
-
-     
-
-    def saveimage(self, xlocations, ylocations, tlocations, radius, scores):
-
-                        
-
-                                      
-                                      
-
-                                      colors = [(0,255,0),(0,0,255),(255,0,0)]
-                                      # fontScale
-                                      fontScale = 1
-                            
-                                      # Blue color in BGR
-                                      textcolor = (255, 0, 0)
-                            
-                                      # Line thickness of 2 px
-                                      thickness = 2
-                                      for j in range(len(xlocations)):
-                                                 startlocation = (int(xlocations[j] - radius[j]), int(ylocations[j]-radius[j]))
-                                                 endlocation =  (int(xlocations[j] + radius[j]), int(ylocations[j]+ radius[j]))
-                                                 Z = int(tlocations[j])
-                                                 
-                                                 image = self.Colorimage[Z,:,:,1]
-                                                 color = (0,255,0)
-                                                 if scores[j] >= 1.0 - 1.0E-5:
-                                                     color = (0,0,255)
-                                                     image = self.Colorimage[Z,:,:,2]
-                                                 img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  
-                                                 cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
-                                                     
-                                                 cv2.putText(img, str('%.4f'%(scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,thickness, cv2.LINE_AA)
-                                                 if scores[j] >= 1.0 - 1.0E-5:
-                                                   self.Colorimage[Z,:,:,2] = img[:,:,0]
-                                                 else:
-                                                   self.Colorimage[Z,:,:,1] = img[:,:,0]
 
 
     
