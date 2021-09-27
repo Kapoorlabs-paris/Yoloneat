@@ -360,12 +360,12 @@ class NEATDynamicSegFree(object):
                                                       radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
                                                       #Replace the detection with the nearest marker location
                                                       if xcenter < self.image.shape[2] or ycenter < self.image.shape[1]:                                                  
-                                                           xlocations.append(xcenter/self.downsample) 
-                                                           ylocations.append(ycenter/self.downsample)
+                                                           xlocations.append(xcenter * self.downsample) 
+                                                           ylocations.append(ycenter * self.downsample)
                                                            scores.append(score)
                                                            confidences.append(confidence)
                                                            tlocations.append(tcenter)
-                                                           radiuses.append(radius/self.downsample)
+                                                           radiuses.append(radius * self.downsample)
                                                            angles.append(angle)
                                                                
                                             

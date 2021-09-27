@@ -2,7 +2,7 @@ from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
 from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, \
-    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms
+    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData
 from keras import callbacks
 import os
 import math
@@ -288,7 +288,7 @@ class NEATDynamic(object):
 
         self.Trainingmodel.save(self.model_dir + self.model_name)
 
-    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True):
+    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True, downsample = 1):
 
         self.starmodel = starmodel
         self.imagename = imagename
@@ -298,7 +298,8 @@ class NEATDynamic(object):
         self.savedir = savedir
         self.star = star
         Path(self.savedir).mkdir(exist_ok=True)
-
+        self.downsample = downsample
+        self.image = DownsampleData(self.image, self.downsample)
         self.n_tiles = n_tiles
         print('Obtaining Markers')
         if markerdir is None:
@@ -322,7 +323,7 @@ class NEATDynamic(object):
         return self.markers, self.marker_tree, self.density_location
 
     def predict(self, imagename, markers, marker_tree, density_location, savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh=5):
+                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh=5, downsample = 1):
 
         self.imagename = imagename
         self.image = imread(imagename)
@@ -342,6 +343,8 @@ class NEATDynamic(object):
         self.downsample_regions = {}
         self.upsample_regions = {}
         self.candidate_regions = {}
+        self.downsample = downsample
+        self.image = DownsampleData(self.image, self.downsample)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate", "lr").encode()

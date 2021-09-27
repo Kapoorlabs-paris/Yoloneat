@@ -2,7 +2,7 @@ from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
 from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, \
-    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms
+    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData
 from keras import callbacks
 import os
 import math
@@ -286,7 +286,7 @@ class NEATDynamicSeg(object):
 
         self.Trainingmodel.save(self.model_dir + self.model_name)
 
-    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True):
+    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True, downsample = 1):
 
         self.starmodel = starmodel
         self.imagename = imagename
@@ -295,6 +295,8 @@ class NEATDynamicSeg(object):
         Name = os.path.basename(os.path.splitext(self.imagename)[0])
         self.savedir = savedir
         self.star = star
+        self.downsample = downsample
+        self.image = DownsampleData(self.image, self.downsample)
         Path(self.savedir).mkdir(exist_ok=True)
 
         self.n_tiles = n_tiles
@@ -320,7 +322,7 @@ class NEATDynamicSeg(object):
         return self.markers, self.marker_tree, self.density_location
 
     def predict(self, imagename, markers, marker_tree, density_location, savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1, density_veto=5):
+                event_threshold=0.5, iou_threshold=0.1, density_veto=5, downsample = 1):
 
         self.imagename = imagename
         self.image = imread(imagename)
@@ -337,6 +339,8 @@ class NEATDynamicSeg(object):
         self.downsample_regions = {}
         self.upsample_regions = {}
         self.candidate_regions = {}
+        self.downsample = downsample
+        self.image = DownsampleData(self.image, self.downsample)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate", "lr").encode()
@@ -483,12 +487,12 @@ class NEATDynamicSeg(object):
                             'width'] * iou_current_event_box['width']) // 2
                     # Replace the detection with the nearest marker location
                     if xcenter < self.image.shape[2] - self.imagex or ycenter < self.image.shape[1] - self.imagey:
-                        xlocations.append(xcenter)
-                        ylocations.append(ycenter)
+                        xlocations.append(xcenter * self.downsample)
+                        ylocations.append(ycenter * self.downsample)
                         scores.append(score)
                         confidences.append(confidence)
                         tlocations.append(tcenter)
-                        radiuses.append(radius)
+                        radiuses.append(radius * self.downsample)
                         angles.append(angle)
 
                 event_count = np.column_stack(
