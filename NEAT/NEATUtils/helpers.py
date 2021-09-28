@@ -1024,12 +1024,12 @@ def save_dynamic_csv(imagename, key_categories, iou_classedboxes, savedir, downs
                         iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box[
                             'width'] * iou_current_event_box['width']) // 2
                     radius = radius * downsamplefactor
-                    xlocations.append(xcenter * self.downsample)
-                    ylocations.append(ycenter * self.downsample)
+                    xlocations.append(xcenter * downsamplefactor)
+                    ylocations.append(ycenter * downsamplefactor)
                     scores.append(score)
                     confidences.append(confidence)
                     tlocations.append(tcenter)
-                    radiuses.append(radius * self.downsample)
+                    radiuses.append(radius * downsamplefactor)
                     angles.append(angle)
 
                 event_count = np.column_stack(
@@ -1037,7 +1037,7 @@ def save_dynamic_csv(imagename, key_categories, iou_classedboxes, savedir, downs
                 event_count = sorted(event_count, key=lambda x: x[0], reverse=False)
                 event_data = []
                 csvname = savedir + "/" + event_name + "Location" + (
-                os.path.splitext(os.path.basename(self.imagename))[0])
+                os.path.splitext(os.path.basename(imagename))[0])
                 writer = csv.writer(open(csvname + ".csv", "a"))
                 filesize = os.stat(csvname + ".csv").st_size
                 if filesize < 1:
