@@ -318,7 +318,7 @@ class NEATDynamicSegFree(object):
             if event_label > 0:
                
                
-               best_sorted_event_box = dynamic_nms(self.heatmap, self.originalimage, self.classedboxes, event_name, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh)
+               best_sorted_event_box = dynamic_nms(self.heatmap, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh)
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                

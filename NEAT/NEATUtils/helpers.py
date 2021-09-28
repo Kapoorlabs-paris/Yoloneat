@@ -969,7 +969,7 @@ def saveimage(ColorimageStatic,ColorimageDynamic , xlocations, ylocations, tloca
                         ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
 
 
-def dynamic_nms(heatmap, originalimage, classedboxes, event_name, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh):
+def dynamic_nms(heatmap, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh):
     
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
