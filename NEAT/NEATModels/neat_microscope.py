@@ -177,7 +177,7 @@ class NEATPredict(object):
                 Z_start, downsample=False,
                 event_label_interest=1, fileextension='*TIF', nb_prediction=3, n_tiles=(1, 1), Z_n_tiles=(1, 2, 2),
                 overlap_percent=0.6, event_threshold=0.5, iou_threshold=0.01, projection_model=None, delay_projection=4,
-                thresh=5):
+                thresh=5, jumpindex = 1):
 
         self.imagedir = imagedir
         self.basedirResults = self.imagedir + '/' + "live_results"
@@ -190,6 +190,7 @@ class NEATPredict(object):
         self.Z_movie_input = Z_movie_input
         self.Z_imagedir = Z_imagedir
         self.start = start
+        self.jumpindex = jumpindex
         self.thresh = thresh
         self.event_label_interest = event_label_interest
         self.Z_start = Z_start
@@ -364,6 +365,7 @@ class NEATPredict(object):
 
         best_iou_classedboxes = {}
         self.iou_classedboxes = {}
+        self.start = self.start + self.jumpindex
         for (event_name, event_label) in self.key_categories.items():
             if event_label > 0:
                 # Get all events
@@ -373,11 +375,7 @@ class NEATPredict(object):
                 best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic',self.imagex, self.imagey, self.imaget, self.thresh)
 
                 best_iou_classedboxes[event_name] = [best_sorted_event_box]
-                if event_label == self.event_label_interest:
-                    if len(best_sorted_event_box) > 0:
-                        self.start = self.start + self.size_tminus + 1
-                    else:
-                        self.start = self.start + 1
+                
 
         self.iou_classedboxes = best_iou_classedboxes
 
