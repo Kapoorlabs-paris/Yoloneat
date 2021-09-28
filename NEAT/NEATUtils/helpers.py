@@ -1043,10 +1043,12 @@ def dynamic_nms(heatmap, originalimage, classedboxes, event_name, event_label, d
                                                       xcenter = iou_current_event_box['xcenter']* downsamplefactor
                                                       ycenter = iou_current_event_box['ycenter']* downsamplefactor
                                                       tcenter = iou_current_event_box['real_time_event']
+                                                      
                                                       xstart = iou_current_event_box['xstart']* downsamplefactor
                                                       ystart = iou_current_event_box['ystart']* downsamplefactor
-                                                      xend = xstart + iou_current_event_box['width']* downsamplefactor
-                                                      yend = ystart + iou_current_event_box['height']* downsamplefactor
+                                                      
+                                                      xend = xcenter + iou_current_event_box['width']* downsamplefactor
+                                                      yend = ycenter + iou_current_event_box['height']* downsamplefactor
                                                       score = iou_current_event_box[event_name]
                                                       
                                                       if event_label == 1:
