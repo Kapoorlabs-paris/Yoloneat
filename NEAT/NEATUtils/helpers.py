@@ -973,7 +973,8 @@ def dynamic_nms(heatmap, originalimage, classedboxes, event_name, event_label, d
     
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               for iou_current_event_box in sorted_event_box:
+               best_sorted_event_box = averagenms(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               for iou_current_event_box in best_sorted_event_box:
                                                       xcenter = iou_current_event_box['xcenter']* downsamplefactor
                                                       ycenter = iou_current_event_box['ycenter']* downsamplefactor
                                                       tcenter = iou_current_event_box['real_time_event']
@@ -991,7 +992,7 @@ def dynamic_nms(heatmap, originalimage, classedboxes, event_name, event_label, d
                
                
                
-               best_sorted_event_box = averagenms(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               
                
                return best_sorted_event_box
 
