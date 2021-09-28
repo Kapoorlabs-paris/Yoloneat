@@ -867,6 +867,190 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
     return box, Averageboxes
 
 
+
+def save_static_csv(ColorimageStatic,ColorimageDynamic,imagename, key_categories, iou_classedboxes, savedir, downsamplefactor):
+    
+    
+    for (event_name, event_label) in key_categories.items():
+
+            if event_label > 0:
+                xlocations = []
+                ylocations = []
+                scores = []
+                confidences = []
+                tlocations = []
+                radiuses = []
+
+                iou_current_event_boxes = iou_classedboxes[event_name][0]
+                iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: x[event_name], reverse=True)
+
+                for iou_current_event_box in iou_current_event_boxes:
+                    xcenter = iou_current_event_box['xcenter'] * downsamplefactor
+                    ycenter = iou_current_event_box['ycenter'] * downsamplefactor
+                    tcenter = iou_current_event_box['real_time_event']
+                    confidence = iou_current_event_box['confidence']
+                    score = iou_current_event_box[event_name]
+                    radius = np.sqrt(
+                        iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box[
+                            'width'] * iou_current_event_box['width']) // 2
+                    radius = radius * downsamplefactor
+                    # Replace the detection with the nearest marker location
+
+                    xlocations.append(xcenter)
+                    ylocations.append(ycenter)
+                    scores.append(score)
+                    confidences.append(confidence)
+                    tlocations.append(tcenter)
+                    radiuses.append(radius)
+
+                event_count = np.column_stack([tlocations, ylocations, xlocations, scores, radiuses, confidences])
+                event_count = sorted(event_count, key=lambda x: x[0], reverse=False)
+                event_data = []
+                csvname = savedir + "/" + event_name + "Location" + (
+                os.path.splitext(os.path.basename(self.imagename))[0])
+                writer = csv.writer(open(csvname + ".csv", "a"))
+                filesize = os.stat(csvname + ".csv").st_size
+                if filesize < 1:
+                    writer.writerow(['T', 'Y', 'X', 'Score', 'Size', 'Confidence'])
+                for line in event_count:
+                    if line not in event_data:
+                        event_data.append(line)
+                    writer.writerows(event_data)
+                    event_data = []
+                    
+                saveimage(ColorimageStatic,ColorimageDynamic , xlocations, ylocations, tlocations, scores, radius, event_label)    
+                    
+def saveimage(ColorimageStatic,ColorimageDynamic , xlocations, ylocations, tlocations, scores, radius, event_label):
+
+        colors = [(0, 255, 0), (0, 0, 255), (255, 0, 0)]
+        # fontScale
+        fontScale = 1
+
+        # Blue color in BGR
+        textcolor = (255, 0, 0)
+
+        # Line thickness of 2 px
+        thickness = 2
+        for j in range(len(xlocations)):
+            startlocation = (int(xlocations[j] - radius[j]), int(ylocations[j] - radius[j]))
+            endlocation = (int(xlocations[j] + radius[j]), int(ylocations[j] + radius[j]))
+            Z = int(tlocations[j])
+            if Z < ColorimageDynamic.shape[0] - 1:
+                    if event_label == 1:
+                        image = ColorimageDynamic[Z, :, :, 1]
+                        color = (0, 255, 0)
+                    if event_label == 2:
+                        color = (0, 0, 255)
+                        image = ColorimageDynamic[Z, :, :, 2]
+                    if event_label == 3:
+                        color = (0, 255, 0)
+                        image = ColorimageStatic[Z, :, :, 0]
+                    if event_label == 4:
+                        color = (0, 0, 255)
+                        image = ColorimageStatic[Z, :, :, 1]
+                    if event_label == 5:
+                        color = (255, 0, 0)
+                        image = ColorimageStatic[Z, :, :, 2]
+
+                    img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
+        
+                    cv2.putText(img, str('%.5f' % (scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,
+                                thickness, cv2.LINE_AA)
+                    if event_label == 1:
+                        ColorimageDynamic[Z, :, :, 1] = img[:, :, 0]
+                    if event_label == 2:
+                        ColorimageDynamic[Z, :, :, 2] = img[:, :, 0]
+                    if event_label == 3:
+                        ColorimageStatic[Z, :, :, 0] = img[:, :, 0]
+                    if event_label == 4:
+                        ColorimageStatic[Z, :, :, 1] = img[:, :, 0]
+                    if event_label == 5:
+                        ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
+
+
+def dynamic_nms(heatmap, originalimage, classedboxes, event_name, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh):
+    
+               sorted_event_box = classedboxes[event_name][0]
+               scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               for iou_current_event_box in sorted_event_box:
+                                                      xcenter = iou_current_event_box['xcenter']* downsamplefactor
+                                                      ycenter = iou_current_event_box['ycenter']* downsamplefactor
+                                                      tcenter = iou_current_event_box['real_time_event']
+                                                      xstart = iou_current_event_box['xstart']* downsamplefactor
+                                                      ystart = iou_current_event_box['ystart']* downsamplefactor
+                                                      xend = xstart + iou_current_event_box['width']* downsamplefactor
+                                                      yend = ystart + iou_current_event_box['height']* downsamplefactor
+                                                      score = iou_current_event_box[event_name]
+                                                      
+                                                      if event_label == 1:
+                                                                  for x in range(int(xstart),int(xend)):
+                                                                      for y in range(int(ystart), int(yend)):
+                                                                                if y < originalimage.shape[1] and x < originalimage.shape[2]:
+                                                                                      heatmap[int(tcenter), y, x] = heatmap[int(tcenter), y, x] + score
+               
+               
+               
+               best_sorted_event_box = averagenms(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               
+               return best_sorted_event_box
+
+
+
+def save_dynamic_csv(imagename, key_categories, iou_classedboxes, savedir, downsamplefactor):
+    
+    
+        for (event_name, event_label) in key_categories.items():
+
+            if event_label > 0:
+                xlocations = []
+                ylocations = []
+                scores = []
+                confidences = []
+                tlocations = []
+                radiuses = []
+                angles = []
+
+                iou_current_event_boxes = iou_classedboxes[event_name][0]
+                iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: x[event_name], reverse=True)
+                for iou_current_event_box in iou_current_event_boxes:
+                    xcenter = iou_current_event_box['xcenter'] * downsamplefactor
+                    ycenter = iou_current_event_box['ycenter'] * downsamplefactor
+                    tcenter = iou_current_event_box['real_time_event']
+                    confidence = iou_current_event_box['confidence']
+                    angle = iou_current_event_box['realangle']
+                    score = iou_current_event_box[event_name]
+                    radius = np.sqrt(
+                        iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box[
+                            'width'] * iou_current_event_box['width']) // 2
+                    radius = radius * downsamplefactor
+                    xlocations.append(xcenter * self.downsample)
+                    ylocations.append(ycenter * self.downsample)
+                    scores.append(score)
+                    confidences.append(confidence)
+                    tlocations.append(tcenter)
+                    radiuses.append(radius * self.downsample)
+                    angles.append(angle)
+
+                event_count = np.column_stack(
+                    [tlocations, ylocations, xlocations, scores, radiuses, confidences, angles])
+                event_count = sorted(event_count, key=lambda x: x[0], reverse=False)
+                event_data = []
+                csvname = savedir + "/" + event_name + "Location" + (
+                os.path.splitext(os.path.basename(self.imagename))[0])
+                writer = csv.writer(open(csvname + ".csv", "a"))
+                filesize = os.stat(csvname + ".csv").st_size
+                if filesize < 1:
+                    writer.writerow(['T', 'Y', 'X', 'Score', 'Size', 'Confidence', 'Angle'])
+                for line in event_count:
+                    if line not in event_data:
+                        event_data.append(line)
+                    writer.writerows(event_data)
+                    event_data = []
+    
+    
+    
+
 def area_function(boxes):
     """Calculate the area of each polygon in polys
 

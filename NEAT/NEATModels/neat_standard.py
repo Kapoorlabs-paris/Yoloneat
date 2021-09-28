@@ -2,7 +2,7 @@ from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
 from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, \
-    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData
+    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData, save_dynamic_csv, dynamic_nms
 from keras import callbacks
 import os
 import math
@@ -291,6 +291,7 @@ class NEATDynamicSeg(object):
         self.starmodel = starmodel
         self.imagename = imagename
         self.image = imread(imagename)
+        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
         self.density_location = {}
         Name = os.path.basename(os.path.splitext(self.imagename)[0])
         self.savedir = savedir
@@ -322,7 +323,7 @@ class NEATDynamicSeg(object):
         return self.markers, self.marker_tree, self.density_location
 
     def predict(self, imagename, markers, marker_tree, density_location, savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1, density_veto=5, downsample = 1):
+                event_threshold=0.5, iou_threshold=0.1, density_veto=5, downsamplefactor = 1):
 
         self.imagename = imagename
         self.image = imread(imagename)
@@ -339,8 +340,8 @@ class NEATDynamicSeg(object):
         self.downsample_regions = {}
         self.upsample_regions = {}
         self.candidate_regions = {}
-        self.downsample = downsample
-        self.image = DownsampleData(self.image, self.downsample)
+        self.downsamplefactor = downsamplefactor
+        self.image = DownsampleData(self.image, self.downsamplefactor)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate", "lr").encode()
@@ -356,6 +357,7 @@ class NEATDynamicSeg(object):
         eventboxes = []
         classedboxes = {}
         count = 0
+        heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat'
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
@@ -368,6 +370,11 @@ class NEATDynamicSeg(object):
                 # all_density_location = self.density_location[str(inputtime)]
                 # density = all_density_location[0]
                 # locations = all_density_location[1]
+
+                count = count + 1
+                if inputtime%10==0 or inputtime >= self.image.shape[0] - self.imaget - 1:
+                                      
+                        imwrite((heatsavename + '.tif' ), self.heatmap)
 
                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
                                           self.imagey)
@@ -386,6 +393,10 @@ class NEATDynamicSeg(object):
                 self.upsample_regions[str(inputtime)] = up_region
                 # Cut off the region for training movie creation
                 # Break image into tiles if neccessary
+                
+                
+                
+                
                 predictions, allx, ally = self.predict_main(smallimage)
                 # Iterate over tiles
                 for p in range(0, len(predictions)):
@@ -446,104 +457,21 @@ class NEATDynamicSeg(object):
             if event_label > 0:
                 # Get all events
 
-                sorted_event_box = self.classedboxes[event_name][0]
-
-                sorted_event_box = sorted(sorted_event_box, key=lambda x: x[event_name], reverse=True)
-
-                scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
-                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold,
-                                                   event_name, 'dynamic', self.imagex, self.imagey, self.imaget)
-                # nms_indices = fastnms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name)
-                # best_sorted_event_box = [sorted_event_box[nms_indices[i]] for i in range(len(nms_indices))]
-
+                best_sorted_event_box = dynamic_nms(self.heatmap, self.originalimage, self.classedboxes, event_name, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh)
+               
                 best_iou_classedboxes[event_name] = [best_sorted_event_box]
                 # print("nms",best_iou_classedboxes[event_name])
         self.iou_classedboxes = best_iou_classedboxes
 
     def to_csv(self):
 
-        for (event_name, event_label) in self.key_categories.items():
+        
+       
+        save_dynamic_csv(self.imagename, self.key_categories, self.iou_classedboxes, self.savedir, self.downsamplefactor)
+        
 
-            if event_label > 0:
-                xlocations = []
-                ylocations = []
-                scores = []
-                confidences = []
-                tlocations = []
-                radiuses = []
-                angles = []
 
-                iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: x[event_name], reverse=True)
-                for iou_current_event_box in iou_current_event_boxes:
-                    xcenter = iou_current_event_box['xcenter']
-                    ycenter = iou_current_event_box['ycenter']
-                    tcenter = iou_current_event_box['real_time_event']
-                    confidence = iou_current_event_box['confidence']
-                    angle = iou_current_event_box['realangle']
-                    score = iou_current_event_box[event_name]
-                    radius = np.sqrt(
-                        iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box[
-                            'width'] * iou_current_event_box['width']) // 2
-                    # Replace the detection with the nearest marker location
-                    if xcenter < self.image.shape[2] - self.imagex or ycenter < self.image.shape[1] - self.imagey:
-                        xlocations.append(xcenter * self.downsample)
-                        ylocations.append(ycenter * self.downsample)
-                        scores.append(score)
-                        confidences.append(confidence)
-                        tlocations.append(tcenter)
-                        radiuses.append(radius * self.downsample)
-                        angles.append(angle)
-
-                event_count = np.column_stack(
-                    [tlocations, ylocations, xlocations, scores, radiuses, confidences, angles])
-                event_count = sorted(event_count, key=lambda x: x[0], reverse=False)
-                event_data = []
-                csvname = self.savedir + "/" + event_name + "Location" + (
-                os.path.splitext(os.path.basename(self.imagename))[0])
-                writer = csv.writer(open(csvname + ".csv", "a"))
-                filesize = os.stat(csvname + ".csv").st_size
-                if filesize < 1:
-                    writer.writerow(['T', 'Y', 'X', 'Score', 'Size', 'Confidence', 'Angle'])
-                for line in event_count:
-                    if line not in event_data:
-                        event_data.append(line)
-                    writer.writerows(event_data)
-                    event_data = []
-
-                self.saveimage(xlocations, ylocations, tlocations, radiuses, scores)
-
-    def saveimage(self, xlocations, ylocations, tlocations, radius, scores):
-
-        colors = [(0, 255, 0), (0, 0, 255), (255, 0, 0)]
-        # fontScale
-        fontScale = 1
-
-        # Blue color in BGR
-        textcolor = (255, 0, 0)
-
-        # Line thickness of 2 px
-        thickness = 2
-        for j in range(len(xlocations)):
-            startlocation = (int(xlocations[j] - radius[j] // 2), int(ylocations[j] - radius[j] // 2))
-            endlocation = (int(xlocations[j] + radius[j] // 2), int(ylocations[j] + radius[j] // 2))
-            Z = int(tlocations[j])
-            image = self.Colorimage[Z, :, :, 1]
-            color = (0, 255, 0)
-            if scores[j] >= 1.0 - 1.0E-7:
-                color = (0, 0, 255)
-                image = self.Colorimage[Z, :, :, 2]
-            img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
-
-            cv2.putText(img, str('%.2f' % (scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,
-                        thickness, cv2.LINE_AA)
-            if scores[j] >= 1.0 - 1.0E-7:
-                self.Colorimage[Z, :, :, 2] = img[:, :, 0]
-            else:
-                self.Colorimage[Z, :, :, 1] = img[:, :, 0]
-        savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
-        imwrite((savename + '.tif'), self.Colorimage)
+ 
 
     def showNapari(self, imagedir, savedir, yolo_v2=False):
 

@@ -9,7 +9,7 @@ Created on Mon Jun 28 13:49:35 2021
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms,DownsampleData
+from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms,DownsampleData, save_dynamic_csv, dynamic_nms
 from keras import callbacks
 import os
 import math
@@ -197,7 +197,7 @@ class NEATDynamicSegFree(object):
         
 
         
-    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsample = 1):
+    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsamplefactor = 1):
         
         self.imagename = imagename
         self.image = imread(imagename)
@@ -208,9 +208,9 @@ class NEATDynamicSegFree(object):
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
-        self.downsample = downsample
+        self.downsamplefactor = downsamplefactor
         self.originalimage = self.image
-        self.image = DownsampleData(self.image, self.downsample)
+        self.image = DownsampleData(self.image, self.downsamplefactor)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate","lr").encode()
@@ -316,30 +316,9 @@ class NEATDynamicSegFree(object):
         self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
-               #Get all events
-               
-               sorted_event_box = self.classedboxes[event_name][0]
-               scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               for iou_current_event_box in sorted_event_box:
-                                                      xcenter = iou_current_event_box['xcenter']* self.downsample
-                                                      ycenter = iou_current_event_box['ycenter']* self.downsample
-                                                      tcenter = iou_current_event_box['real_time_event']
-                                                      xstart = iou_current_event_box['xstart']* self.downsample
-                                                      ystart = iou_current_event_box['ystart']* self.downsample
-                                                      xend = xstart + iou_current_event_box['width']* self.downsample
-                                                      yend = ystart + iou_current_event_box['height']* self.downsample
-                                                      score = iou_current_event_box[event_name]
-                                                      
-                                                      if event_label == 1:
-                                                                  for x in range(int(xstart),int(xend)):
-                                                                      for y in range(int(ystart), int(yend)):
-                                                                                if y < self.originalimage.shape[1] and x < self.originalimage.shape[2]:
-                                                                                    self.heatmap[int(tcenter), y, x] = self.heatmap[int(tcenter), y, x] + score
                
                
-               
-               best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic',self.imagex, self.imagey, self.imaget, self.thresh)
-
+               best_sorted_event_box = dynamic_nms(self.heatmap, self.originalimage, self.classedboxes, event_name, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh)
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                
@@ -351,66 +330,8 @@ class NEATDynamicSegFree(object):
     
     def to_csv(self):
         
-        for (event_name,event_label) in self.key_categories.items():
-                   
-                   if event_label > 0:
-                                              xlocations = []
-                                              ylocations = []
-                                              scores = []
-                                              confidences = []
-                                              tlocations = []   
-                                              radiuses = []
-                                              angles = []
+        save_dynamic_csv(self.imagename, self.key_categories, self.iou_classedboxes, self.savedir, self.downsamplefactor)          
                               
-                                     
-                                              iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                                              
-                                              iou_current_event_boxes = sorted(iou_current_event_boxes, key = lambda x:math.sqrt((x['xcenter'] - self.image.shape[2]//2) * (x['xcenter'] - self.image.shape[2]//2) + ((x['ycenter'] - self.image.shape[1]//2))* ((x['ycenter'] - self.image.shape[1]//2))  ), reverse = True)
-                                             
-
- 
-                                              for iou_current_event_box in iou_current_event_boxes:
-                                                      xcenter = iou_current_event_box['xcenter']
-                                                      ycenter = iou_current_event_box['ycenter']
-                                                      tcenter = iou_current_event_box['real_time_event']
-                                                      confidence = iou_current_event_box['confidence']
-                                                      angle = iou_current_event_box['realangle']
-                                                      xstart = iou_current_event_box['xstart']
-                                                      ystart = iou_current_event_box['ystart']
-                                                      xend = xstart + iou_current_event_box['width']
-                                                      yend = ystart + iou_current_event_box['height']
-                                                      score = iou_current_event_box[event_name]
-                                                      radius = np.sqrt( iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box['width'] * iou_current_event_box['width']  )// 2
-                                                      #Replace the detection with the nearest marker location
-                                                      if xcenter < self.image.shape[2] or ycenter < self.image.shape[1]:                                                  
-                                                           xlocations.append(xcenter * self.downsample) 
-                                                           ylocations.append(ycenter * self.downsample)
-                                                           scores.append(score)
-                                                           confidences.append(confidence)
-                                                           tlocations.append(tcenter)
-                                                           radiuses.append(radius * self.downsample)
-                                                           angles.append(angle)
-                                                           
-                                                          
-                                                               
-                                            
-                                              event_count = np.column_stack([tlocations,ylocations,xlocations,scores,radiuses,confidences,angles]) 
-                                              event_count = sorted(event_count, key = lambda x:x[0], reverse = False)
-                                              event_data = []
-                                              csvname = self.savedir+ "/" + event_name + "Location" + (os.path.splitext(os.path.basename(self.imagename))[0])
-                                              writer = csv.writer(open(csvname  +".csv", "a"))
-                                              filesize = os.stat(csvname + ".csv").st_size
-                                              if filesize < 1:
-                                                 writer.writerow(['T','Y','X','Score','Size','Confidence','Angle'])
-                                              for line in event_count:
-                                                 if line not in event_data:  
-                                                    event_data.append(line)
-                                                 writer.writerows(event_data)
-                                                 event_data = []           
-                              
-
-
-
     
           
     def showNapari(self, imagedir, savedir, yolo_v2 = False):

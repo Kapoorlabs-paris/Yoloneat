@@ -10,7 +10,7 @@ from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json, yoloprediction, nonfcn_yoloprediction, normalizeFloatZeroOne, \
-    fastnms, twod_zero_pad, averagenms
+    fastnms, twod_zero_pad, averagenms, save_static_csv, DownsampleData
 from keras import callbacks
 import os
 from tqdm import tqdm
@@ -260,7 +260,7 @@ class NEATStatic(object):
         self.Trainingmodel.save(self.model_dir + self.model_name)
 
     def predict(self, imagename, savedir, event_threshold, n_tiles=(1, 1), overlap_percent=0.8, iou_threshold=0.01,
-                fcn=True, height=None, width=None, RGB=False, thresh = 1):
+                fcn=True, height=None, width=None, RGB=False, thresh = 1, downsamplefactor = 1):
 
         self.imagename = imagename
         self.image = imread(imagename)
@@ -276,9 +276,12 @@ class NEATStatic(object):
         self.height = height
         self.width = width
         self.thresh = thresh
+        self.downsamplefactor = downsamplefactor
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
+        self.originalimage = self.image
+        self.image = DownsampleData(self.image, self.downsamplefactor)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate", "lr").encode()
@@ -422,101 +425,10 @@ class NEATStatic(object):
 
     def to_csv(self):
 
-        for (event_name, event_label) in self.key_categories.items():
-
-            if event_label > 0:
-                xlocations = []
-                ylocations = []
-                scores = []
-                confidences = []
-                tlocations = []
-                radiuses = []
-
-                iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: x[event_name], reverse=True)
-
-                for iou_current_event_box in iou_current_event_boxes:
-                    xcenter = iou_current_event_box['xcenter']
-                    ycenter = iou_current_event_box['ycenter']
-                    tcenter = iou_current_event_box['real_time_event']
-                    confidence = iou_current_event_box['confidence']
-                    score = iou_current_event_box[event_name]
-                    radius = np.sqrt(
-                        iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box[
-                            'width'] * iou_current_event_box['width']) // 2
-                    # Replace the detection with the nearest marker location
-
-                    xlocations.append(xcenter)
-                    ylocations.append(ycenter)
-                    scores.append(score)
-                    confidences.append(confidence)
-                    tlocations.append(tcenter)
-                    radiuses.append(radius)
-
-                event_count = np.column_stack([tlocations, ylocations, xlocations, scores, radiuses, confidences])
-                event_count = sorted(event_count, key=lambda x: x[0], reverse=False)
-                event_data = []
-                csvname = self.savedir + "/" + event_name + "Location" + (
-                os.path.splitext(os.path.basename(self.imagename))[0])
-                writer = csv.writer(open(csvname + ".csv", "a"))
-                filesize = os.stat(csvname + ".csv").st_size
-                if filesize < 1:
-                    writer.writerow(['T', 'Y', 'X', 'Score', 'Size', 'Confidence'])
-                for line in event_count:
-                    if line not in event_data:
-                        event_data.append(line)
-                    writer.writerows(event_data)
-                    event_data = []
-
-                self.saveimage(xlocations, ylocations, tlocations, scores, radiuses, event_label)
-
-    def saveimage(self, xlocations, ylocations, tlocations, scores, radius, event_label):
-
-        colors = [(0, 255, 0), (0, 0, 255), (255, 0, 0)]
-        # fontScale
-        fontScale = 1
-
-        # Blue color in BGR
-        textcolor = (255, 0, 0)
-
-        # Line thickness of 2 px
-        thickness = 2
-        for j in range(len(xlocations)):
-            startlocation = (int(xlocations[j] - radius[j]), int(ylocations[j] - radius[j]))
-            endlocation = (int(xlocations[j] + radius[j]), int(ylocations[j] + radius[j]))
-            Z = int(tlocations[j])
-            if Z < self.ColorimageDynamic.shape[0] - 1:
-                    if event_label == 1:
-                        image = self.ColorimageDynamic[Z, :, :, 1]
-                        color = (0, 255, 0)
-                    if event_label == 2:
-                        color = (0, 0, 255)
-                        image = self.ColorimageDynamic[Z, :, :, 2]
-                    if event_label == 3:
-                        color = (0, 255, 0)
-                        image = self.ColorimageStatic[Z, :, :, 0]
-                    if event_label == 4:
-                        color = (0, 0, 255)
-                        image = self.ColorimageStatic[Z, :, :, 1]
-                    if event_label == 5:
-                        color = (255, 0, 0)
-                        image = self.ColorimageStatic[Z, :, :, 2]
-
-                    img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                    cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
         
-                    cv2.putText(img, str('%.5f' % (scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,
-                                thickness, cv2.LINE_AA)
-                    if event_label == 1:
-                        self.ColorimageDynamic[Z, :, :, 1] = img[:, :, 0]
-                    if event_label == 2:
-                        self.ColorimageDynamic[Z, :, :, 2] = img[:, :, 0]
-                    if event_label == 3:
-                        self.ColorimageStatic[Z, :, :, 0] = img[:, :, 0]
-                    if event_label == 4:
-                        self.ColorimageStatic[Z, :, :, 1] = img[:, :, 0]
-                    if event_label == 5:
-                        self.ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
+        save_static_csv(self.ColorimageStatic, self.ColorimageDynamic, self.imagename, self.key_categories, self.iou_classedboxes, self.savedir, self.downsamplefactor)
+   
+
 
     def showNapari(self, imagedir, savedir):
 
