@@ -1093,12 +1093,12 @@ def save_dynamic_csv(imagename, key_categories, iou_classedboxes, savedir, downs
                         iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box[
                             'width'] * iou_current_event_box['width']) // 2
                     radius = radius * downsamplefactor
-                    xlocations.append(xcenter * downsamplefactor)
-                    ylocations.append(ycenter * downsamplefactor)
+                    xlocations.append(xcenter)
+                    ylocations.append(ycenter)
                     scores.append(score)
                     confidences.append(confidence)
                     tlocations.append(tcenter)
-                    radiuses.append(radius * downsamplefactor)
+                    radiuses.append(radius)
                     angles.append(angle)
 
                 event_count = np.column_stack(
