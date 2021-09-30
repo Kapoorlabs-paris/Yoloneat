@@ -1051,11 +1051,8 @@ def dynamic_nms(heatmap, originalimage, classedboxes, event_name, event_label, d
                                                       yend = ycenter + iou_current_event_box['height']* downsamplefactor
                                                       score = iou_current_event_box[event_name]
                                                       
-                                                      if event_label == 1:
-                                                                  for x in range(int(xstart),int(xend)):
-                                                                      for y in range(int(ystart), int(yend)):
-                                                                                if y < originalimage.shape[1] and x < originalimage.shape[2]:
-                                                                                      heatmap[int(tcenter), y, x] = heatmap[int(tcenter), y, x] + score
+                                                      if event_label >= 1:
+                                                                  heatmap[int(tcenter), int(ycenter), int(xcenter)] = heatmap[int(tcenter), int(ycenter), int(xcenter)] + score
                
                
                best_sorted_event_box = averagenms(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
