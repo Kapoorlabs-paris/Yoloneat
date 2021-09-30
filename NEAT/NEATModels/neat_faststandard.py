@@ -201,7 +201,7 @@ class NEATDynamicSegFree(object):
         
         self.imagename = imagename
         self.image = imread(imagename)
-        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
+        self.heatmap = np.zeros(self.image.shape, dtype = 'float16')
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.thresh = thresh

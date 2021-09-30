@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/tMapped/iusr/bin/env python
 # coding: utf-8
 
 # In[1]:
@@ -25,10 +25,10 @@ from pathlib import Path
 
 
 imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
-model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Microscope2V1Models/'
-savedir= '/home/sancere/VKepler/WildTypeTest/wt12/MicroResultstshift2micronetd38f32_th20/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/MicroResultsd38f32_th10/'
 
-model_name = 'tshift2micronetd38f32'
+model_name = 'micronetbin2d38f32'
 
 division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
@@ -37,11 +37,11 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 0.99999 #[1,0.99999,0.99999,1,1,1]
+event_threshold = 0.999 #[1,0.99999,0.99999,1,1,1]
 iou_threshold = 0.3
 yolo_v2 = False
 downsample = 2
-thresh = 20
+thresh = 10
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:
