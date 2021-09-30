@@ -971,7 +971,7 @@ def save_static_csv(ColorimageStatic,ColorimageDynamic,imagename, key_categories
                 event_count = sorted(event_count, key=lambda x: x[0], reverse=False)
                 event_data = []
                 csvname = savedir + "/" + event_name + "Location" + (
-                os.path.splitext(os.path.basename(self.imagename))[0])
+                os.path.splitext(os.path.basename(imagename))[0])
                 writer = csv.writer(open(csvname + ".csv", "a"))
                 filesize = os.stat(csvname + ".csv").st_size
                 if filesize < 1:
@@ -1052,7 +1052,9 @@ def dynamic_nms(heatmap, originalimage, classedboxes, event_name, event_label, d
                                                       score = iou_current_event_box[event_name]
                                                       
                                                       if event_label >= 1:
-                                                                  heatmap[int(tcenter), int(ycenter), int(xcenter)] = heatmap[int(tcenter), int(ycenter), int(xcenter)] + score
+                                                          for x in (int(xcenter - 4), int(xcenter + 4)):
+                                                              for y in (int(ycenter - 4), int(ycenter + 4)):
+                                                                  heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
                
                
                best_sorted_event_box = averagenms(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
