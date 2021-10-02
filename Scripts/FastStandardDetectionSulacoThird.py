@@ -27,7 +27,7 @@ from pathlib import Path
 imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
 maskimagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/HeatMapped/Microd38f32_th10'
+savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/HeatMapped/Microd38f32_th20'
 
 model_name = 'micronetbin2d38f32'
 mask_name = '_Mask'
@@ -42,7 +42,7 @@ event_threshold = 0.999 #[1,0.999,0.999,0.99,0.99,0.99]
 iou_threshold = 0.3
 yolo_v2 = False
 downsample = 2
-thresh = 10
+thresh = 20
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:
