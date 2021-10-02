@@ -59,7 +59,7 @@ Y = sorted(Y)
 marker_dict = {}
 for imagename in X:
   for maskimagename in Y:   
-     if maskimagename == imagename + mask_name:
+     if maskimagename == imagename + mask_name + '.tif':
           model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, maskimagename = maskimagename)
 
 
