@@ -54,7 +54,7 @@ marker_dict = {}
 for imagename in X:
    
      maskimagename = imagename + mask_name
-     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsample = downsample, maskimagename = maskimagename)
+     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, maskimagename = maskimagename)
 
 
 # In[3]:
