@@ -197,10 +197,13 @@ class NEATDynamicSegFree(object):
         
 
         
-    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsamplefactor = 1):
+    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsamplefactor = 1, maskimagename = None):
         
         self.imagename = imagename
         self.image = imread(imagename)
+        
+        self.maskimagename = maskimagename
+        self.maskimage = imread(maskimagename)
         self.heatmap = np.zeros(self.image.shape, dtype = 'float16')
         self.savedir = savedir
         self.n_tiles = n_tiles
@@ -318,7 +321,7 @@ class NEATDynamicSegFree(object):
             if event_label > 0:
                
                
-               best_sorted_event_box = dynamic_nms(self.heatmap, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh)
+               best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh)
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                

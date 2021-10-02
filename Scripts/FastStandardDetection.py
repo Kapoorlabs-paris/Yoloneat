@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -26,7 +26,7 @@ from pathlib import Path
 
 imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/MicroResultsd38f32_th10/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/MicroResultsd38f32_th20/'
 
 model_name = 'micronetbin2d38f32'
 
@@ -41,7 +41,7 @@ event_threshold = 0.999 #[1,0.99999,0.99999,1,1,1]
 iou_threshold = 0.3
 yolo_v2 = False
 downsample = 2
-thresh = 10
+thresh = 20
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:
