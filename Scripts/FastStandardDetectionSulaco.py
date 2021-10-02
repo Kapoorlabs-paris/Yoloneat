@@ -53,7 +53,7 @@ X = sorted(X)
 marker_dict = {}
 for imagename in X:
    
-     maskimagename = imagename + mask_name
+     maskimagename = os.path.basename(os.path.splitext(imagename)[0]) + mask_name + '.tif'
      model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, maskimagename = maskimagename)
 
 
