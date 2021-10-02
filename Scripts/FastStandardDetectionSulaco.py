@@ -25,7 +25,7 @@ from pathlib import Path
 
 
 imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
 savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Oldd29f32/'
 
 model_name = 'micronetbin2d38f32'
