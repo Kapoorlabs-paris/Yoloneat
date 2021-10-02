@@ -61,8 +61,9 @@ for imagename in X:
   Name = os.path.basename(os.path.splitext(imagename)[0])  
   for maskimagename in Y:   
      MaskName = os.path.basename(os.path.splitext(maskimagename)[0]) 
-     print(MaskName, Name, mask_name)
+     
      if MaskName == Name + mask_name:
+          print(MaskName, Name, mask_name)
           model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, maskimagename = maskimagename)
 
 
