@@ -214,6 +214,7 @@ class NEATDynamicSegFree(object):
         self.downsamplefactor = downsamplefactor
         self.originalimage = self.image
         self.image = DownsampleData(self.image, self.downsamplefactor)
+        self.maskimage = DownsampleData(self.maskimage, self.downsamplefactor)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate","lr").encode()

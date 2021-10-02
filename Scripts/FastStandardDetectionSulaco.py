@@ -28,11 +28,11 @@ imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
 savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Oldd29f32/'
 
-model_name = 'bin2divmodeld29resf32'
-
-division_categories_json = model_dir + 'DivisionCategories.json'
+model_name = 'micronetbin2d38f32'
+mask_name = '_Mask'
+division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'DivisionCord.json'
+division_cord_json = model_dir + 'MicroscopeCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
@@ -53,8 +53,8 @@ X = sorted(X)
 marker_dict = {}
 for imagename in X:
    
-     
-     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsample = downsample)
+     maskimagename = imagename + mask_name
+     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsample = downsample, maskimagename = maskimagename)
 
 
 # In[3]:
