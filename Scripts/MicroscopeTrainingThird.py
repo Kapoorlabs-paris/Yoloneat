@@ -25,7 +25,7 @@ npz_val_name = 'tshift2microdataval.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-model_name = 'tshift2microdatad38f32.h5'
+model_name = 'tshift2micronetd38f32.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'MicroscopeCategories.json'
