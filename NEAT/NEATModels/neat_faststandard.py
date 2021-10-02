@@ -204,6 +204,7 @@ class NEATDynamicSegFree(object):
         
         self.maskimagename = maskimagename
         self.maskimage = imread(maskimagename)
+        self.maskimage = self.maskimage.astype('uint8')
         self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
         self.savedir = savedir
         self.n_tiles = n_tiles
