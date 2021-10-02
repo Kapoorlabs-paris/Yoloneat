@@ -25,6 +25,7 @@ from pathlib import Path
 
 
 imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
+maskimagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
 savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Oldd29f32/'
 
@@ -50,13 +51,16 @@ downsample = 2
 Raw_path = os.path.join(imagedir, '*tif')
 X = glob.glob(Raw_path)
 X = sorted(X)
+
+Mask_path = os.path.join(maskimagedir, '*tif')
+Y = glob.glob(Mask_path)
+Y = sorted(Y)
+
 marker_dict = {}
 for imagename in X:
-     
-     print(imagename)
-     print(os.path.basename(imagename))
-     maskimagename = os.path.basename(os.path.splitext(imagename)[0]) + mask_name + '.tif'
-     model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, maskimagename = maskimagename)
+  for maskimagename in Y:   
+     if maskimagename == imagename + mask_name:
+          model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, maskimagename = maskimagename)
 
 
 # In[3]:
