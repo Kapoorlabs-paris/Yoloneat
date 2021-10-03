@@ -239,10 +239,10 @@ class NEATDynamicSegFree(object):
         savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
         heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat' 
         print('Detecting event locations')
-        for inputtime in tqdm(range(0, self.image.shape[0])):
+        for inputtime in tqdm(range(10, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
                                 count = count + 1
-                                if inputtime%10==0 or inputtime >= self.image.shape[0] - self.imaget - 1:
+                                if inputtime%10==0 and inputtime > 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
                                       
                                                                               
                                       
