@@ -12,7 +12,7 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -20,29 +20,29 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 npz_directory = '/home/sancere/VKepler/CurieTrainingDatasets/oneatnpz/'
-npz_name = 'minimicrodata.npz'
-npz_val_name = 'minimicrodataval.npz'
+npz_name = 'minidivdata.npz'
+npz_val_name = 'minidivdataval.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-model_name = 'minimicrodatad29f32.h5'
+model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
+model_name = 'bin2divmodeld38resf16.h5'
 
 #Neural network parameters
-division_categories_json = model_dir + 'MicroscopeCategories.json'
+division_categories_json = model_dir + 'DivisionCategories.json'
 key_categories = load_json(division_categories_json)
-division_cord_json = model_dir + 'MicroscopeCord.json'
+division_cord_json = model_dir + 'DivisionCord.json'
 key_cord = load_json(division_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
 residual = True
 #NUmber of starting convolutional filters, is doubled down with increasing depth
-startfilter = 32
+startfilter = 16
 #CNN network start layer, mid layers and lstm layer kernel size
 start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 29
+depth = 38
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients
@@ -50,14 +50,14 @@ batch_size = 8
 # use softmax for single event per box, sigmoid for multi event per box
 lstm_hidden_unit = 16
 #Training epochs, longer the better with proper chosen learning rate
-epochs = 100
+epochs = 200
 nboxes = 1
 #The inbuilt model stride which is equal to the nulber of times image was downsampled by the network
 show = False
 stage_number = 3
 last_conv_factor = 4
 size_tminus = 3
-size_tplus = 0
+size_tplus = 3
 imagex = 64
 imagey = 64
 yolo_v0 = False
