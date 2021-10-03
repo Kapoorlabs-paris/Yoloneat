@@ -1052,12 +1052,10 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                       score = iou_current_event_box[event_name]
                                                       
                                                       if event_label >= 1:
-                                                          for x in range(int(xcenter - 4), int(xcenter + 4)):
-                                                              for y in range(int(ycenter - 4), int(ycenter + 4)):
+                                                          for x in range(int(xcenter - 2), int(xcenter + 2)):
+                                                              for y in range(int(ycenter - 2), int(ycenter + 2)):
                                                                   heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
-                                                                  if maskimage is not None:
-                                                                      if maskimage[int(tcenter), int(y), int(x)] == 0:
-                                                                          heatmap[int(tcenter), int(y), int(x)] = 0
+                                                                  
                scores = [ good_sorted_event_box[i][event_name]  for i in range(len(good_sorted_event_box))]
                best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, 1)
            
