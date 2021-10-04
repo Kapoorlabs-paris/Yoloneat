@@ -25,7 +25,7 @@ npz_val_name = 'minidivdataval.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
-model_name = 'bin2divmodeld38resf16.h5'
+model_name = 'bin2divmodeld38resf32.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'DivisionCategories.json'
@@ -36,7 +36,7 @@ key_cord = load_json(division_cord_json)
 #For ORNET use residual = True and for OSNET use residual = False
 residual = True
 #NUmber of starting convolutional filters, is doubled down with increasing depth
-startfilter = 16
+startfilter = 32
 #CNN network start layer, mid layers and lstm layer kernel size
 start_kernel = 7
 lstm_kernel = 3
