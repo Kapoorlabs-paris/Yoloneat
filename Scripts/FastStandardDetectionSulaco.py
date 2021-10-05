@@ -27,9 +27,9 @@ from pathlib import Path
 imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
 maskimagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/Masks/'
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/Microd38f32_th20'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/Microd38f16_th20'
 
-model_name = 'micronetbin2d38f32'
+model_name = 'micronetbin2d38f16'
 mask_name = '_Mask'
 division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
