@@ -79,7 +79,7 @@ class NEATDynamicSegFree(object):
     """
     
     
-    def __init__(self, config, model_dir, model_name, catconfig = None, cordconfig = None, second_model_name = None):
+    def __init__(self, config, model_dir, model_name, catconfig = None, cordconfig = None):
 
         
         self.config = config
@@ -87,7 +87,6 @@ class NEATDynamicSegFree(object):
         self.cordconfig = cordconfig
         self.model_dir = model_dir
         self.model_name = model_name 
-        self.second_model_name = second_model_name
         if self.config !=None:
                 self.npz_directory = config.npz_directory
                 self.npz_name = config.npz_name
@@ -225,14 +224,7 @@ class NEATDynamicSegFree(object):
         f.close()
         self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
         
-        if self.second_model_name is not None:
-                       f_second = h5py.File(self.model_dir + self.second_model_name + '.h5', 'r+')
-                       data_p_second = f_second.attrs['training_config']
-                       data_p_second = data_p_second.decode().replace("learning_rate","lr").encode()
-                       f_second.attrs['training_config'] = data_p_second
-                       f_second.close()
-                       self.second_model =  load_model( self.model_dir + self.second_model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
-
+       
             
         eventboxes = []
         classedboxes = {}    

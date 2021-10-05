@@ -82,7 +82,7 @@ save_json(config_json, model_dir + os.path.splitext(model_name)[0] + '_Parameter
 # In[ ]:
 
 
-Train = NEATDynamic(config, model_dir, model_name, model_name)
+Train = NEATDynamic(config, model_dir, model_name)
 
 Train.loadData()
 

@@ -71,14 +71,13 @@ class NEATDynamic(object):
     
     """
 
-    def __init__(self, config, model_dir, model_name, second_model_name, catconfig=None, cordconfig=None):
+    def __init__(self, config, model_dir, model_name,  catconfig=None, cordconfig=None):
 
         self.config = config
         self.catconfig = catconfig
         self.cordconfig = cordconfig
         self.model_dir = model_dir
         self.model_name = model_name
-        self.second_model_name = second_model_name
         if self.config != None:
             self.npz_directory = config.npz_directory
             self.npz_name = config.npz_name
@@ -217,13 +216,7 @@ class NEATDynamic(object):
                 if self.Y_val[i, :, :, 0] == 1:
                     self.Y_val[i, :, :, -1] = 1
         Y_rest = self.Y[:, :, :, self.categories:]
-        Y_main = self.Y[:, :, :, 0:self.categories - 1]
-
-        y_integers = np.argmax(Y_main, axis=-1)
-        y_integers = y_integers[:, 0, 0]
-
-        d_class_weights = compute_class_weight('balanced', np.unique(y_integers), y_integers)
-        d_class_weights = d_class_weights.reshape(1, d_class_weights.shape[0])
+ 
 
         model_weights = self.model_dir + self.model_name
         if os.path.exists(model_weights):
@@ -278,7 +271,7 @@ class NEATDynamic(object):
                                      self.gridx, self.gridy, plot=self.show, nboxes=self.nboxes)
 
         # Train the model and save as a h5 file
-        self.Trainingmodel.fit(self.X, self.Y, class_weight=d_class_weights, batch_size=self.batch_size,
+        self.Trainingmodel.fit(self.X, self.Y, batch_size=self.batch_size,
                                epochs=self.epochs, validation_data=(self.X_val, self.Y_val), shuffle=True,
                                callbacks=[lrate, hrate, srate, prate])
 
@@ -351,8 +344,6 @@ class NEATDynamic(object):
         f.attrs['training_config'] = data_p
         f.close()
         self.model = load_model(self.model_dir + self.model_name + '.h5',
-                                custom_objects={'loss': self.yololoss, 'Concat': Concat})
-        self.second_model = load_model(self.model_dir + self.second_model_name + '.h5',
                                 custom_objects={'loss': self.yololoss, 'Concat': Concat})
         # self.first_pass_predict()
         self.second_pass_predict()
@@ -759,7 +750,7 @@ class NEATDynamic(object):
 
         predict_im = np.expand_dims(sliceregion, 0)
 
-        prediction_vector = self.second_model.predict(np.expand_dims(predict_im, -1), verbose=0)
+        prediction_vector = self.model.predict(np.expand_dims(predict_im, -1), verbose=0)
 
         return prediction_vector
 
