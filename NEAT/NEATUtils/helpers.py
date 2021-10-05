@@ -818,14 +818,15 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
                     count = count + 1
 
                     
-                    if count >= thresh:
-                         Averageboxes.append(boxes[i])
+                    
                          
 
                     suppress.append(pos)
                 
                 
-           
+            if count >= thresh:
+               
+                Averageboxes.append(boxes[i])
             
             # delete all indexes from the index list that are in the suppression list
         idxs = np.delete(idxs, suppress)
