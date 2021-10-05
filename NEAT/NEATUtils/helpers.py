@@ -628,138 +628,147 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
         pick.append(i)
         suppress = [last]
         count = 0
+        centerAx = boxes[i]['xcenter']
+        centerAy = boxes[i]['ycenter']
         # loop over all indexes in the indexes list
-        for pos in range(0, last):
+        for pos in tqdm(range(0, last)):
             # grab the current index
             j = idxs[pos]
 
             # compute the ratio of overlap between the two boxes and the area of the second box
-            overlap = compare_function(boxes[i], boxes[j], event_name)
             
-            # if there is sufficient overlap, suppress the current bounding box
-            if overlap > nms_threshold:
-                count = count + 1
-                if event_type == 'static':
-
-                    boxAscore = boxes[i][event_name]
-                    boxAXstart = boxes[i]['xstart']
-                    boxAYstart = boxes[i]['ystart']
-                    boxATstart = boxes[i]['tstart']
-                    boxAXcenter = boxes[i]['xcenter']
-                    boxAYcenter = boxes[i]['ycenter']
-                    boxArealtime = boxes[i]['real_time_event']
-                    boxAboxtime = boxes[i]['box_time_event']
-                    boxAheight = boxes[i]['height']
-                    boxAwidth = boxes[i]['width']
-                    boxAconfidence = boxes[i]['confidence']
-
-                    boxAXcenterraw = boxAscore * boxes[i]['xcenterraw']
-                    boxAYcenterraw = boxAscore * boxes[i]['ycenterraw']
-                    boxATcenterraw = boxAscore * boxes[i]['tcenterraw']
-
-                    boxBscore = boxes[j][event_name]
-                    boxBXstart = boxes[j]['xstart']
-                    boxBYstart = boxes[j]['ystart']
-                    boxBXcenter = boxes[j]['xcenter']
-                    boxBYcenter = boxes[j]['ycenter']
-                    boxBrealtime = boxes[j]['real_time_event']
-                    boxBboxtime = boxes[j]['box_time_event']
-                    boxBheight = boxes[j]['height']
-                    boxBwidth = boxes[j]['width']
-                    boxBconfidence = boxes[j]['confidence']
-
-                    boxBXcenterraw = boxBscore * boxes[j]['xcenterraw']
-                    boxBYcenterraw = boxBscore * boxes[j]['ycenterraw']
-                    boxBTcenterraw = boxBscore * boxes[j]['tcenterraw']
-
-                    boxscore = (boxAscore + boxBscore)
-                    meanboxscore = boxscore / 2
-                    meanboxXstart = boxAXstart
-                    meanboxYstart = boxAYstart
-                    meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * imagex
-                    meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * imagey
-
-                    meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw) / boxscore) * imaget)
-
-                    meanboxtime = int((boxAboxtime + boxBboxtime) / 2)
-                    meanboxheight = (boxAheight + boxBheight) / 2
-                    meanboxwidth = (boxAwidth + boxBwidth) / 2
-                    meanboxconfidence = (boxAconfidence + boxBconfidence) / 2
-                    xcenterrawmean = (boxAXcenterraw + boxBXcenterraw) / meanboxscore
-                    ycenterrawmean = (boxAYcenterraw + boxBYcenterraw) / meanboxscore
-                    tcenterrawmean = (boxATcenterraw + boxBTcenterraw) / meanboxscore
-                    newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
-                                  'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean,
-                                  'tcenterraw': tcenterrawmean, 'xcenter': meanboxXcenter, 'ycenter': meanboxYcenter,
-                                  'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
-                                  'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
-                                  event_name: meanboxscore}
-
-                if event_type == 'dynamic':
-
-                    boxAscore = boxes[i][event_name]
-                    boxAXstart = boxes[i]['xstart']
-                    boxAYstart = boxes[i]['ystart']
-                    boxATstart = boxes[i]['tstart']
-                    boxAXcenter = boxes[i]['xcenter']
-                    boxAYcenter = boxes[i]['ycenter']
-                    boxArealtime = boxes[i]['real_time_event']
-                    boxAboxtime = boxes[i]['box_time_event']
-                    boxAheight = boxes[i]['height']
-                    boxAwidth = boxes[i]['width']
-                    boxAconfidence = boxes[i]['confidence']
-                    boxArealangle = boxes[i]['realangle']
-                    boxArawangle = boxes[i]['rawangle']
-
-                    boxAXcenterraw = boxAscore * boxes[i]['xcenterraw']
-                    boxAYcenterraw = boxAscore * boxes[i]['ycenterraw']
-                    boxATcenterraw = boxAscore * boxes[i]['tcenterraw']
-
-                    boxBscore = boxes[j][event_name]
-                    boxBXstart = boxes[j]['xstart']
-                    boxBYstart = boxes[j]['ystart']
-                    boxBXcenter = boxes[j]['xcenter']
-                    boxBYcenter = boxes[j]['ycenter']
-                    boxBrealtime = boxes[j]['real_time_event']
-                    boxBboxtime = boxes[j]['box_time_event']
-                    boxBheight = boxes[j]['height']
-                    boxBwidth = boxes[j]['width']
-                    boxBconfidence = boxes[j]['confidence']
-                    boxBrealangle = boxes[j]['realangle']
-                    boxBrawangle = boxes[j]['rawangle']
-
-                    boxBXcenterraw = boxBscore * boxes[j]['xcenterraw']
-                    boxBYcenterraw = boxBscore * boxes[j]['ycenterraw']
-                    boxBTcenterraw = boxBscore * boxes[j]['tcenterraw']
-
-                    boxscore = (boxAscore + boxBscore)
-                    meanboxscore = boxscore / 2
-                    meanboxXstart = boxAXstart
-                    meanboxYstart = boxAYstart
-                    meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * imagex
-                    meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * imagey
-
-                    meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw) / boxscore) * imaget)
-
-                    meanboxtime = int((boxAboxtime + boxBboxtime) / 2)
-                    meanboxheight = (boxAheight + boxBheight) / 2
-                    meanboxwidth = (boxAwidth + boxBwidth) / 2
-                    meanboxconfidence = (boxAconfidence + boxBconfidence) / 2
-                    meanboxrealangle = (boxArealangle + boxBrealangle) / 2
-                    meanboxrawangle = (boxArawangle + boxBrawangle) / 2
-                    xcenterrawmean = (boxAXcenterraw + boxBXcenterraw) / meanboxscore
-                    ycenterrawmean = (boxAYcenterraw + boxBYcenterraw) / meanboxscore
-                    tcenterrawmean = (boxATcenterraw + boxBTcenterraw) / meanboxscore
-                    if count >= thresh:
+            
+            centerBx = boxes[j]['xcenter']
+            centerBy = boxes[j]['ycenter']
+            
+            distance = Distance(centerAx, centerAy, centerBx, centerBy)
+            if distance < max(imagex * imagex, imagey * imagey):
+                overlap = compare_function(boxes[i], boxes[j], event_name)
+            
+                # if there is sufficient overlap, suppress the current bounding box
+                if overlap > nms_threshold:
+                    count = count + 1
+                    if event_type == 'static':
+    
+                        boxAscore = boxes[i][event_name]
+                        boxAXstart = boxes[i]['xstart']
+                        boxAYstart = boxes[i]['ystart']
+                        boxATstart = boxes[i]['tstart']
+                        boxAXcenter = boxes[i]['xcenter']
+                        boxAYcenter = boxes[i]['ycenter']
+                        boxArealtime = boxes[i]['real_time_event']
+                        boxAboxtime = boxes[i]['box_time_event']
+                        boxAheight = boxes[i]['height']
+                        boxAwidth = boxes[i]['width']
+                        boxAconfidence = boxes[i]['confidence']
+    
+                        boxAXcenterraw = boxAscore * boxes[i]['xcenterraw']
+                        boxAYcenterraw = boxAscore * boxes[i]['ycenterraw']
+                        boxATcenterraw = boxAscore * boxes[i]['tcenterraw']
+    
+                        boxBscore = boxes[j][event_name]
+                        boxBXstart = boxes[j]['xstart']
+                        boxBYstart = boxes[j]['ystart']
+                        boxBXcenter = boxes[j]['xcenter']
+                        boxBYcenter = boxes[j]['ycenter']
+                        boxBrealtime = boxes[j]['real_time_event']
+                        boxBboxtime = boxes[j]['box_time_event']
+                        boxBheight = boxes[j]['height']
+                        boxBwidth = boxes[j]['width']
+                        boxBconfidence = boxes[j]['confidence']
+    
+                        boxBXcenterraw = boxBscore * boxes[j]['xcenterraw']
+                        boxBYcenterraw = boxBscore * boxes[j]['ycenterraw']
+                        boxBTcenterraw = boxBscore * boxes[j]['tcenterraw']
+    
+                        boxscore = (boxAscore + boxBscore)
+                        meanboxscore = boxscore / 2
+                        meanboxXstart = boxAXstart
+                        meanboxYstart = boxAYstart
+                        meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * imagex
+                        meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * imagey
+    
+                        meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw) / boxscore) * imaget)
+    
+                        meanboxtime = int((boxAboxtime + boxBboxtime) / 2)
+                        meanboxheight = (boxAheight + boxBheight) / 2
+                        meanboxwidth = (boxAwidth + boxBwidth) / 2
+                        meanboxconfidence = (boxAconfidence + boxBconfidence) / 2
+                        xcenterrawmean = (boxAXcenterraw + boxBXcenterraw) / meanboxscore
+                        ycenterrawmean = (boxAYcenterraw + boxBYcenterraw) / meanboxscore
+                        tcenterrawmean = (boxATcenterraw + boxBTcenterraw) / meanboxscore
                         newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
-                                  'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean,
-                                  'tcenterraw': tcenterrawmean, 'xcenter': meanboxXcenter, 'ycenter': meanboxYcenter,
-                                  'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
-                                  'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
-                                  'realangle': meanboxrealangle, 'rawangle': meanboxrawangle, event_name: meanboxscore}
-
-                suppress.append(pos)
-                
+                                      'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean,
+                                      'tcenterraw': tcenterrawmean, 'xcenter': meanboxXcenter, 'ycenter': meanboxYcenter,
+                                      'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
+                                      'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
+                                      event_name: meanboxscore}
+    
+                    if event_type == 'dynamic':
+    
+                        boxAscore = boxes[i][event_name]
+                        boxAXstart = boxes[i]['xstart']
+                        boxAYstart = boxes[i]['ystart']
+                        boxATstart = boxes[i]['tstart']
+                        boxAXcenter = boxes[i]['xcenter']
+                        boxAYcenter = boxes[i]['ycenter']
+                        boxArealtime = boxes[i]['real_time_event']
+                        boxAboxtime = boxes[i]['box_time_event']
+                        boxAheight = boxes[i]['height']
+                        boxAwidth = boxes[i]['width']
+                        boxAconfidence = boxes[i]['confidence']
+                        boxArealangle = boxes[i]['realangle']
+                        boxArawangle = boxes[i]['rawangle']
+    
+                        boxAXcenterraw = boxAscore * boxes[i]['xcenterraw']
+                        boxAYcenterraw = boxAscore * boxes[i]['ycenterraw']
+                        boxATcenterraw = boxAscore * boxes[i]['tcenterraw']
+    
+                        boxBscore = boxes[j][event_name]
+                        boxBXstart = boxes[j]['xstart']
+                        boxBYstart = boxes[j]['ystart']
+                        boxBXcenter = boxes[j]['xcenter']
+                        boxBYcenter = boxes[j]['ycenter']
+                        boxBrealtime = boxes[j]['real_time_event']
+                        boxBboxtime = boxes[j]['box_time_event']
+                        boxBheight = boxes[j]['height']
+                        boxBwidth = boxes[j]['width']
+                        boxBconfidence = boxes[j]['confidence']
+                        boxBrealangle = boxes[j]['realangle']
+                        boxBrawangle = boxes[j]['rawangle']
+    
+                        boxBXcenterraw = boxBscore * boxes[j]['xcenterraw']
+                        boxBYcenterraw = boxBscore * boxes[j]['ycenterraw']
+                        boxBTcenterraw = boxBscore * boxes[j]['tcenterraw']
+    
+                        boxscore = (boxAscore + boxBscore)
+                        meanboxscore = boxscore / 2
+                        meanboxXstart = boxAXstart
+                        meanboxYstart = boxAYstart
+                        meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * imagex
+                        meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * imagey
+    
+                        meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw) / boxscore) * imaget)
+    
+                        meanboxtime = int((boxAboxtime + boxBboxtime) / 2)
+                        meanboxheight = (boxAheight + boxBheight) / 2
+                        meanboxwidth = (boxAwidth + boxBwidth) / 2
+                        meanboxconfidence = (boxAconfidence + boxBconfidence) / 2
+                        meanboxrealangle = (boxArealangle + boxBrealangle) / 2
+                        meanboxrawangle = (boxArawangle + boxBrawangle) / 2
+                        xcenterrawmean = (boxAXcenterraw + boxBXcenterraw) / meanboxscore
+                        ycenterrawmean = (boxAYcenterraw + boxBYcenterraw) / meanboxscore
+                        tcenterrawmean = (boxATcenterraw + boxBTcenterraw) / meanboxscore
+                        if count >= thresh:
+                            newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
+                                      'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean,
+                                      'tcenterraw': tcenterrawmean, 'xcenter': meanboxXcenter, 'ycenter': meanboxYcenter,
+                                      'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
+                                      'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
+                                      'realangle': meanboxrealangle, 'rawangle': meanboxrawangle, event_name: meanboxscore}
+    
+                    suppress.append(pos)
+                    
                 
            
         if newbox is not None and newbox not in Averageboxes:
@@ -806,24 +815,28 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
         suppress = [last]
         count = 0
         # loop over all indexes in the indexes list
-        for pos in range(0, last):
+        for pos in tqdm(range(0, last)):
             # grab the current index
             j = idxs[pos]
 
             # compute the ratio of overlap between the two boxes and the area of the second box
-            overlap = compare_function(boxes[i], boxes[j], event_name)
+            centerAx = boxes[i]['xcenter']
+            centerAy = boxes[i]['ycenter']
             
-            # if there is sufficient overlap, suppress the current bounding box
-            if overlap > nms_threshold:
-                    count = count + 1
-
+            centerBx = boxes[j]['xcenter']
+            centerBy = boxes[j]['ycenter']
+            
+            distance = Distance(centerAx, centerAy, centerBx, centerBy)
+            if distance < max(imagex * imagex, imagey * imagey):
+                overlap = compare_function(boxes[i], boxes[j], event_name)
+                
+                # if there is sufficient overlap, suppress the current bounding box
+                if overlap > nms_threshold:
+                        count = count + 1
+    
+                        suppress.append(pos)
                     
                     
-                         
-
-                    suppress.append(pos)
-                
-                
             if count >= thresh:
                
                 Averageboxes.append(boxes[i])
@@ -1039,8 +1052,8 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                
-               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
-               for iou_current_event_box in good_sorted_event_box:
+               best_sorted_event_box = averagenms(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               for iou_current_event_box in best_sorted_event_box:
                                                       xcenter = iou_current_event_box['xcenter']* downsamplefactor
                                                       ycenter = iou_current_event_box['ycenter']* downsamplefactor
                                                       tcenter = iou_current_event_box['real_time_event']
@@ -1055,11 +1068,15 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                       if event_label >= 1:
                                                           for x in range(int(xcenter - 2), int(xcenter + 2)):
                                                               for y in range(int(ycenter - 2), int(ycenter + 2)):
-                                                                  heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
                                                                   
-               scores = [ good_sorted_event_box[i][event_name]  for i in range(len(good_sorted_event_box))]
-               best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, 1)
-           
+                                                                  
+                                                                  heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
+                                                                  if maskimage is not None:
+                                                                      if maskimage[int(tcenter), int(y), int(x)] == 0:
+                                                                          heatmap[int(tcenter), int(y), int(x)] = 0
+                                                                      
+                                                                  
+              
                
                return best_sorted_event_box
            
@@ -1522,6 +1539,11 @@ def extra_pad(image, patchX, patchY):
 def save_labelimages(save_dir, image, axes, fname, Name):
     imwrite((save_dir + Name + '.tif'), image)
 
+def Distance(centerAx, centerAy, centerBx, centerBy):
+    
+    distance = (centerAx - centerBx) * (centerAx - centerBx) + (centerAy - centerBy) * (centerAy - centerBy)
+    
+    return distance
 
 def save_csv(save_dir, Event_Count, Name):
     Event_data = []
