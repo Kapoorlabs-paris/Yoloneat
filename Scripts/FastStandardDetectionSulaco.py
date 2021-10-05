@@ -26,10 +26,10 @@ from pathlib import Path
 
 imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
 maskimagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/Masks/'
-model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/Microd29f32_th20'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/Microd38f32_th20'
 
-model_name = 'micronetbin2d29f32'
+model_name = 'micronetbin2d38f32'
 mask_name = '_Mask'
 division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
@@ -59,12 +59,12 @@ Y = sorted(Y)
 marker_dict = {}
 for imagename in X:
   Name = os.path.basename(os.path.splitext(imagename)[0])  
-  #for maskimagename in Y:   
-     #MaskName = os.path.basename(os.path.splitext(maskimagename)[0]) 
+  for maskimagename in Y:   
+     MaskName = os.path.basename(os.path.splitext(maskimagename)[0]) 
      
-     #if MaskName == Name + mask_name:
+     if MaskName == Name + mask_name:
           #print(MaskName, Name, mask_name)
-  model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, thresh = thresh)
+          model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, thresh = thresh,maskimagename = maskimagename)
 
 
 # In[3]:

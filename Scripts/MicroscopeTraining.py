@@ -12,7 +12,7 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -24,7 +24,7 @@ npz_name = 'longmicrodata.npz'
 npz_val_name = 'longmicrodataval.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
+model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
 model_name = 'longmicrodatad29f32.h5'
 
 #Neural network parameters

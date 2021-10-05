@@ -24,7 +24,7 @@ npz_name = 'minimicrodata.npz'
 npz_val_name = 'minimicrodataval.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
+model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/'
 model_name = 'micronetbin2d38f16.h5'
 
 #Neural network parameters
