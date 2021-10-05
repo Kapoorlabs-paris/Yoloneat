@@ -12,7 +12,7 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
@@ -20,17 +20,17 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 npz_directory = '/home/sancere/VKepler/CurieTrainingDatasets/oneatnpz/'
-npz_name = 'minidivdata.npz'
-npz_val_name = 'minidivdataval.npz'
+npz_name = 'longmicrodata.npz'
+npz_val_name = 'longmicrodataval.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Binning2V1Models/'
-model_name = 'bin2divmodeld29resf32.h5'
+model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
+model_name = 'longmicrodatad29f32.h5'
 
 #Neural network parameters
-division_categories_json = model_dir + 'DivisionCategories.json'
+division_categories_json = model_dir + 'MicroscopeCategories.json'
 key_categories = load_json(division_categories_json)
-division_cord_json = model_dir + 'DivisionCord.json'
+division_cord_json = model_dir + 'MicroscopeCord.json'
 key_cord = load_json(division_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False
@@ -56,8 +56,8 @@ nboxes = 1
 show = False
 stage_number = 3
 last_conv_factor = 4
-size_tminus = 3
-size_tplus = 3
+size_tminus = 6
+size_tplus = 0
 imagex = 64
 imagey = 64
 yolo_v0 = False

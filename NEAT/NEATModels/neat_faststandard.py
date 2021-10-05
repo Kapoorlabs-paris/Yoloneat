@@ -203,8 +203,9 @@ class NEATDynamicSegFree(object):
         self.image = imread(imagename)
         
         self.maskimagename = maskimagename
-        self.maskimage = imread(maskimagename)
-        self.maskimage = self.maskimage.astype('uint8')
+        if maskimagename is not None:
+          self.maskimage = imread(maskimagename)
+          self.maskimage = self.maskimage.astype('uint8')
         self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
         self.savedir = savedir
         self.n_tiles = n_tiles
@@ -259,7 +260,6 @@ class NEATDynamicSegFree(object):
                                 for p in range(0,len(predictions)):   
                         
                                   sum_time_prediction = predictions[p]
-                                  
                                   if sum_time_prediction is not None:
                                      #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                                      for i in range(0, sum_time_prediction.shape[0]):
