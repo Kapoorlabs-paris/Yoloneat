@@ -24,10 +24,10 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
-maskimagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/HeatMapped/Microd38f32_th5'
+imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
+maskimagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/Masks/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/MicroscopeV1Models/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/Microd38f32_th20'
 
 model_name = 'micronetbin2d38f32'
 mask_name = '_Mask'
@@ -38,11 +38,11 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 1 - 1.0E-6 #[1,0.999,0.999,0.99,0.99,0.99]
+event_threshold = 0.9999 #[1,0.999,0.999,0.99,0.99,0.99]
 iou_threshold = 0.3
 yolo_v2 = False
 downsample = 2
-thresh = 5
+thresh = 20
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:

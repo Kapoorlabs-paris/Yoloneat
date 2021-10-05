@@ -820,7 +820,7 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
                     
                     if count >= thresh:
                          Averageboxes.append(boxes[i])
-                         Averageboxes.append(boxes[j])
+                         
 
                     suppress.append(pos)
                 
