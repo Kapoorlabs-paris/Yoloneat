@@ -628,21 +628,11 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
         pick.append(i)
         suppress = [last]
         count = 0
-        centerAx = boxes[i]['xcenter']
-        centerAy = boxes[i]['ycenter']
         # loop over all indexes in the indexes list
         for pos in range(0, last):
             # grab the current index
-            j = idxs[pos]
+                j = idxs[pos]
 
-            # compute the ratio of overlap between the two boxes and the area of the second box
-            
-            
-            centerBx = boxes[j]['xcenter']
-            centerBy = boxes[j]['ycenter']
-            
-            distance = Distance(centerAx, centerAy, centerBx, centerBy)
-            if distance < max(imagex * imagex, imagey * imagey):
                 overlap = compare_function(boxes[i], boxes[j], event_name)
             
                 # if there is sufficient overlap, suppress the current bounding box
@@ -817,17 +807,9 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
         # loop over all indexes in the indexes list
         for pos in tqdm(range(0, last)):
             # grab the current index
-            j = idxs[pos]
+                j = idxs[pos]
 
-            # compute the ratio of overlap between the two boxes and the area of the second box
-            centerAx = boxes[i]['xcenter']
-            centerAy = boxes[i]['ycenter']
             
-            centerBx = boxes[j]['xcenter']
-            centerBy = boxes[j]['ycenter']
-            
-            distance = Distance(centerAx, centerAy, centerBx, centerBy)
-            if distance < max(imagex * imagex, imagey * imagey):
                 overlap = compare_function(boxes[i], boxes[j], event_name)
                 
                 # if there is sufficient overlap, suppress the current bounding box
@@ -837,9 +819,10 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
                         suppress.append(pos)
                     
                     
-            if count >= thresh:
-               
-                Averageboxes.append(boxes[i])
+                if count >= thresh:
+                    
+                    if boxes[i] not in Averageboxes:
+                       Averageboxes.append(boxes[i])
             
             # delete all indexes from the index list that are in the suppression list
         idxs = np.delete(idxs, suppress)
