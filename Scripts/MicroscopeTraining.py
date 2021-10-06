@@ -19,13 +19,13 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 # In[2]:
 
 
-npz_directory = '/home/sancere/VKepler/CurieTrainingDatasets/oneatnpz/'
-npz_name = 'micronet.npz'
-npz_val_name = 'micronetval.npz'
+npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
+npz_name = 'microEMnet.npz'
+npz_val_name = 'microEMnetval.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
-model_name = 'micronetd38f16.h5'
+model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/'
+model_name = 'microEMnetd38f16.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'MicroscopeCategories.json'
