@@ -823,6 +823,7 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
                     
                     if boxes[i] not in Averageboxes:
                        Averageboxes.append(boxes[i])
+                    if boxes[j] not in Averageboxes:    
                        Averageboxes.append(boxes[j])
             
             # delete all indexes from the index list that are in the suppression list
