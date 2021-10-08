@@ -805,7 +805,7 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
         suppress = [last]
         count = 0
         # loop over all indexes in the indexes list
-        for pos in tqdm(range(0, last)):
+        for pos in (range(0, last)):
             # grab the current index
                 j = idxs[pos]
 
