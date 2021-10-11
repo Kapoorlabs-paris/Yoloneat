@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -26,16 +26,16 @@ from pathlib import Path
 
 imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
-savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/Micronetd38f32_th20/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/MicroEMnetd38f32_th20/'
 
-model_name = 'micronetd38f32'
+model_name = 'microEMnetd38f32'
 
 division_categories_json = model_dir + 'MicroscopeCategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'MicroscopeCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
-Path(savedir).mkdir(exist_ok=True)
+Path(savedir).mkdir(exist_ok= True)
 n_tiles = (4,4)
 event_threshold = 0.9999 #[1,0.99999,0.99999,1,1,1]
 iou_threshold = 0.3
