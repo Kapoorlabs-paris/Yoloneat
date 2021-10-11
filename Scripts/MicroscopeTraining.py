@@ -19,6 +19,7 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 # In[2]:
 
 
+<<<<<<< HEAD
 npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
 npz_name = 'microgoldclassicnet.npz'
 npz_val_name = 'microgoldclassicnetval.npz'
@@ -26,6 +27,15 @@ npz_val_name = 'microgoldclassicnetval.npz'
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/'
 model_name = 'microgoldd38f32.h5'
+=======
+npz_directory = '/home/sancere/VKepler/CurieTrainingDatasets/oneatnpz/'
+npz_name = 'microdiamondclassicnet.npz'
+npz_val_name = 'microdiamondclassicnetval.npz'
+
+#Read and Write the h5 file, directory location and name
+model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
+model_name = 'microdiamondnetd29f32.h5'
+>>>>>>> 0baab2817e65d6738327d776e43daa997804ef8d
 
 #Neural network parameters
 division_categories_json = model_dir + 'MicroscopeCategories.json'
@@ -42,7 +52,7 @@ start_kernel = 7
 lstm_kernel = 3
 mid_kernel = 3
 #Network depth has to be 9n + 2, n= 3 or 4 is optimal for Notum dataset
-depth = 38
+depth = 29
 #Size of the gradient descent length vector, start small and use callbacks to get smaller when reaching the minima
 learning_rate = 1.0E-3
 #For stochastic gradient decent, the batch size used for computing the gradients

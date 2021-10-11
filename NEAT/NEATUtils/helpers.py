@@ -815,16 +815,18 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
                 # if there is sufficient overlap, suppress the current bounding box
                 if overlap > nms_threshold:
                         count = count + 1
-    
+                        if count >= thresh:
+                            
+                            if boxes[i] not in Averageboxes:
+                               Averageboxes.append(boxes[i])
+                            if boxes[j] not in Averageboxes:    
+                               Averageboxes.append(boxes[j])
+                               
+                               
                         suppress.append(pos)
                     
-                    
-                if count >= thresh:
-                    
-                    if boxes[i] not in Averageboxes:
-                       Averageboxes.append(boxes[i])
-                    if boxes[j] not in Averageboxes:    
-                       Averageboxes.append(boxes[j])
+                        
+                
             
             # delete all indexes from the index list that are in the suppression list
         idxs = np.delete(idxs, suppress)
@@ -1060,6 +1062,7 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                                       if maskimage[int(tcenter), int(y), int(x)] == 0:
                                                                           heatmap[int(tcenter), int(y), int(x)] = 0
                                                                       
+               scores = [ sorted_event_box[i][event_name]  for i in range(len(good_sorted_event_box))]
                                                                   
                best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
                
