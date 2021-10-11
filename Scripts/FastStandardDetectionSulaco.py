@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -27,7 +27,7 @@ from pathlib import Path
 imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
 maskimagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/Masks/'
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
-savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/Microgoldnetd29f32_th20'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/Microgoldnetd29f32_th40'
 
 model_name = 'microgoldnetd29f32'
 mask_name = '_Mask'
@@ -38,11 +38,11 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 1.0 - 1.0E-6 #[1,0.999,0.999,0.99,0.99,0.99]
+event_threshold = 1.0 - 1.0E-4 #[1,0.999,0.999,0.99,0.99,0.99]
 iou_threshold = 0.3
 yolo_v2 = False
 downsample = 2
-thresh = 20
+thresh = 40
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:
