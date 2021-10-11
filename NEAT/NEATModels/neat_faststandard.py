@@ -632,7 +632,6 @@ class EventViewer(object):
          line_locations = []
          for i in range(len(listtime)):
              tcenter = int(listtime[i])
-             print(tcenter)
              ycenter = listy[i]
              xcenter = listx[i]
              size = listsize[i]

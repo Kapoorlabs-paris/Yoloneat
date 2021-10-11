@@ -805,7 +805,7 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
         suppress = [last]
         count = 0
         # loop over all indexes in the indexes list
-        for pos in tqdm(range(0, last)):
+        for pos in (range(0, last)):
             # grab the current index
                 j = idxs[pos]
 
@@ -823,6 +823,8 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
                     
                     if boxes[i] not in Averageboxes:
                        Averageboxes.append(boxes[i])
+                    if boxes[j] not in Averageboxes:    
+                       Averageboxes.append(boxes[j])
             
             # delete all indexes from the index list that are in the suppression list
         idxs = np.delete(idxs, suppress)
@@ -1034,9 +1036,9 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
     
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
                
-               best_sorted_event_box = averagenms(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
-               for iou_current_event_box in best_sorted_event_box:
+               for iou_current_event_box in good_sorted_event_box:
                                                       xcenter = iou_current_event_box['xcenter']* downsamplefactor
                                                       ycenter = iou_current_event_box['ycenter']* downsamplefactor
                                                       tcenter = iou_current_event_box['real_time_event']
@@ -1059,7 +1061,7 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                                           heatmap[int(tcenter), int(y), int(x)] = 0
                                                                       
                                                                   
-              
+               best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
                
                return best_sorted_event_box
            
