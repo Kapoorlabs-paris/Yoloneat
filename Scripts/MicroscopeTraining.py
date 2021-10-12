@@ -12,7 +12,7 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 

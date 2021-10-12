@@ -1057,7 +1057,7 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                               for y in range(int(ycenter - 2), int(ycenter + 2)):
                                                                   
                                                                   
-                                                                  heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
+                                                                  heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + int(round(score))
                                                                   if maskimage is not None:
                                                                       if maskimage[int(tcenter), int(y), int(x)] == 0:
                                                                           heatmap[int(tcenter), int(y), int(x)] = 0

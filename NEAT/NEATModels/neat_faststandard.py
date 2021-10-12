@@ -207,7 +207,7 @@ class NEATDynamicSegFree(object):
           self.maskimage = self.maskimage.astype('uint8')
         else:
             self.maskimage = None
-        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
+        self.heatmap = np.zeros(self.image.shape, dtype = 'uint16')
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.thresh = thresh
@@ -231,7 +231,6 @@ class NEATDynamicSegFree(object):
         count = 0
         
 
-        savename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Colored'                       
         heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat' 
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
