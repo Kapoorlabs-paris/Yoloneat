@@ -28,6 +28,7 @@ from tifffile import imread, imwrite
 import csv
 import napari
 import glob
+from scipy import ndimage
 from scipy import spatial
 import itertools
 from napari.qt.threading import thread_worker
@@ -196,18 +197,19 @@ class NEATDynamicSegFree(object):
         
 
         
-    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsamplefactor = 1, maskimagename = None):
+    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsamplefactor = 1, maskimagename = None, maskfilter = 10):
         
         self.imagename = imagename
         self.image = imread(imagename)
-        
+        self.maskfilter = maskfilter
         self.maskimagename = maskimagename
         if maskimagename is not None:
           self.maskimage = imread(maskimagename)
           self.maskimage = self.maskimage.astype('uint8')
+          self.maskimage = ndimage.minimum_filter(self.maskimage, size = self.maskfilter)
         else:
             self.maskimage = None
-        self.heatmap = np.zeros(self.image.shape, dtype = 'uint16')
+        self.heatmap = np.zeros(self.image.shape, dtype = 'float16')
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.thresh = thresh
