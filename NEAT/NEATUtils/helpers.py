@@ -1061,7 +1061,9 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                                   if maskimage is not None:
                                                                       if maskimage[int(tcenter), int(y), int(x)] == 0:
                                                                           heatmap[int(tcenter), int(y), int(x)] = 0
-                                                                          good_sorted_event_box.remove(iou_current_event_box)
+                                                                          if iou_current_event_box in good_sorted_event_box:
+                                                                             print('removed outside mask prediction') 
+                                                                             good_sorted_event_box.remove(iou_current_event_box)
                                                                       
                scores = [ sorted_event_box[i][event_name]  for i in range(len(good_sorted_event_box))]
                                                                   
