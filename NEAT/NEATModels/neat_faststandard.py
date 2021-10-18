@@ -209,7 +209,7 @@ class NEATDynamicSegFree(object):
           self.maskimage = ndimage.minimum_filter(self.maskimage, size = self.maskfilter)
         else:
             self.maskimage = None
-        self.heatmap = np.zeros(self.image.shape, dtype = 'float16')
+        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.thresh = thresh
@@ -544,9 +544,9 @@ def chunk_list(image, patchshape, stride, pair):
             endrow = rowstart + patchshape[0]
             endcol = colstart + patchshape[1]
 
-            if endrow > image.shape[1]:
+            if endrow >= image.shape[1]:
                 endrow = image.shape[1]
-            if endcol > image.shape[2]:
+            if endcol >= image.shape[2]:
                 endcol = image.shape[2]
 
 

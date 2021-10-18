@@ -594,7 +594,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
 
 
 def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0,
-               thresh=1):
+               thresh=1, maskimage = None):
     if len(boxes) == 0:
         return []
 
@@ -749,13 +749,14 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         xcenterrawmean = (boxAXcenterraw + boxBXcenterraw) / meanboxscore
                         ycenterrawmean = (boxAYcenterraw + boxBYcenterraw) / meanboxscore
                         tcenterrawmean = (boxATcenterraw + boxBTcenterraw) / meanboxscore
-                        if count >= thresh:
-                            newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
-                                      'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean,
-                                      'tcenterraw': tcenterrawmean, 'xcenter': meanboxXcenter, 'ycenter': meanboxYcenter,
-                                      'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
-                                      'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
-                                      'realangle': meanboxrealangle, 'rawangle': meanboxrawangle, event_name: meanboxscore}
+                        if maskimage is not None and  maskimage[int(meanboxrealtime), int(meanboxYcenter), int(meanboxXcenter)] > 0:
+                            if count >= thresh:
+                                newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
+                                          'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean,
+                                          'tcenterraw': tcenterrawmean, 'xcenter': meanboxXcenter, 'ycenter': meanboxYcenter,
+                                          'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
+                                          'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
+                                          'realangle': meanboxrealangle, 'rawangle': meanboxrawangle, event_name: meanboxscore}
     
                     suppress.append(pos)
                     
@@ -1053,8 +1054,8 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                       score = iou_current_event_box[event_name]
                                                       
                                                       if event_label >= 1:
-                                                          for x in range(int(xcenter - 4), int(xcenter + 4)):
-                                                              for y in range(int(ycenter - 4), int(ycenter + 4)):
+                                                          for x in range(int(xcenter - 8), int(xcenter + 8)):
+                                                              for y in range(int(ycenter - 8), int(ycenter + 8)):
                                                                   
                                                                   
                                                                   heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
@@ -1064,7 +1065,7 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                                       
                scores = [ sorted_event_box[i][event_name]  for i in range(len(good_sorted_event_box))]
                                                                   
-               best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh, maskimage)
                
                return best_sorted_event_box
            
