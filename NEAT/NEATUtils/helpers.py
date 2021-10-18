@@ -1040,6 +1040,7 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
                
+               filtered_good_sorted_event_box = []
                for iou_current_event_box in good_sorted_event_box:
                                                       xcenter = iou_current_event_box['xcenter']* downsamplefactor
                                                       ycenter = iou_current_event_box['ycenter']* downsamplefactor
@@ -1053,18 +1054,23 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                       score = iou_current_event_box[event_name]
                                                       
                                                       if event_label >= 1:
-                                                          for x in range(int(xcenter - 8), int(xcenter + 8)):
-                                                              for y in range(int(ycenter - 8), int(ycenter + 8)):
-                                                                  
-                                                                  
-                                                                  heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
-                                                                  if maskimage is not None:
-                                                                      if maskimage[int(tcenter), int(y), int(x)] == 0:
-                                                                          heatmap[int(tcenter), int(y), int(x)] = 0
-                                                                          if iou_current_event_box in good_sorted_event_box:
-                                                                             good_sorted_event_box.remove(iou_current_event_box)
+                                                          if maskimage is not None:
+                                                              if maskimage[int(tcenter), int(ycenter), int(xcenter)] > 0:
+                                                                      filtered_good_sorted_event_box.append(iou_current_event_box)
+                                                                      for x in range(int(xcenter - 8), int(xcenter + 8)):
+                                                                          for y in range(int(ycenter - 8), int(ycenter + 8)):
+                                                                              
+                                                                              heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
+                                                                              
+                                                          else:
+                                                              
+                                                              filtered_good_sorted_event_box.append(iou_current_event_box)
+                                                              for x in range(int(xcenter - 8), int(xcenter + 8)):
+                                                                  for y in range(int(ycenter - 8), int(ycenter + 8)):
                                                                       
-               scores = [ sorted_event_box[i][event_name]  for i in range(len(good_sorted_event_box))]
+                                                                      heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
+                                                                      
+               scores = [ sorted_event_box[i][event_name]  for i in range(len(filtered_good_sorted_event_box))]
                                                                   
                best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
                
