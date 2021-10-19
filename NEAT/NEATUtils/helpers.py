@@ -593,8 +593,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
     return pick
 
 
-def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0,
-               thresh=1, maskimage = None):
+def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0):
     if len(boxes) == 0:
         return []
 
@@ -750,8 +749,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                         xcenterrawmean = (boxAXcenterraw + boxBXcenterraw) / meanboxscore
                         ycenterrawmean = (boxAYcenterraw + boxBYcenterraw) / meanboxscore
                         tcenterrawmean = (boxATcenterraw + boxBTcenterraw) / meanboxscore
-                        if count >= thresh:
-                                newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
+                        newbox = {'xstart': meanboxXstart, 'ystart': meanboxYstart, 'tstart': boxATstart,
                                           'xcenterraw': xcenterrawmean, 'ycenterraw': ycenterrawmean,
                                           'tcenterraw': tcenterrawmean, 'xcenter': meanboxXcenter, 'ycenter': meanboxYcenter,
                                           'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
@@ -1073,7 +1071,7 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                                       
                scores = [ filtered_good_sorted_event_box[i][event_name]  for i in range(len(filtered_good_sorted_event_box))]
                                                                   
-               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
                
                return best_sorted_event_box
            

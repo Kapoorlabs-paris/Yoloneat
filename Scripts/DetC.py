@@ -24,16 +24,16 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
-maskimagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Masks/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/'
-savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/HeatMapped/Microgoldd29f32_th10/'
+imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
+maskimagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/Masks/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/goldd29f32_th10/'
 
-model_name = 'microgoldd29f32'
+model_name = 'goldd29f32'
 mask_name = '_Mask'
-division_categories_json = model_dir + 'MicroscopeCategories.json'
+division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'MicroscopeCord.json'
+division_cord_json = model_dir + 'DivisionCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
