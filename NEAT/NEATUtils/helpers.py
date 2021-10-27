@@ -657,11 +657,11 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
             
                 # if there is sufficient overlap, suppress the current bounding box
                 if  compare_func == 'iou' and overlap > nms_threshold:
-                    newbox = getmeanbox(boxes[i], boxes[j], event_name, event_type)
+                    newbox = getmeanbox(boxes[i], boxes[j], event_name, event_type, imagex, imagey, imaget)
                     suppress.append(pos)
 
                 if compare_func == 'dist' and overlap < dist_threshold * dist_threshold:
-                    newbox = getmeanbox(boxes[i], boxes[j], event_name, event_type)
+                    newbox = getmeanbox(boxes[i], boxes[j], event_name, event_type, imagex, imagey, imaget)
                     suppress.append(pos)
                     
         if newbox is not None and newbox not in Averageboxes:
@@ -673,7 +673,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
 
 
-def getmeanbox(box1, box2, event_name, event_type):
+def getmeanbox(box1, box2, event_name, event_type, imagex, imagey, imaget):
     
     if event_type == 'static':
     
