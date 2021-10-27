@@ -24,12 +24,12 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
-maskimagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/Masks/'
-model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
-savedir= '/home/sancere/VKepler/WildTypeTest/wt12/HeatMapped/goldd29f32_th10/'
+imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wtN10/'
+maskimagedir =  '/data/u934/service_imagerie/v_kapoor/wtN10/Masks/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/'
+savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/diamondapoptosisd29f32_th5/'
 
-model_name = 'goldd29f32'
+model_name = 'diamondapoptosisnetd29f32'
 mask_name = '_Mask'
 division_categories_json = model_dir + 'DivisionCategories.json'
 catconfig = load_json(division_categories_json)
@@ -38,11 +38,12 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 1.0 - 1.0E-4 #[1,0.999,0.999,0.99,0.99,0.99]
-iou_threshold = 0.3
+event_threshold = 1.0 - 1.0E-4 
+iou_threshold = 30
+
 yolo_v2 = False
 downsample = 2
-thresh = 10
+thresh = 5
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:

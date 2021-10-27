@@ -660,7 +660,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                     newbox = getmeanbox(box1, box2, event_name, event_type)
                     suppress.append(pos)
 
-                if compare_func == 'dist' and overlap < nms_threshold:
+                if compare_func == 'dist' and overlap < nms_threshold * nms_threshold:
                     newbox = getmeanbox(box1, box2, event_name, event_type)
                     suppress.append(pos)
                     
@@ -1063,7 +1063,7 @@ def saveimage(ColorimageStatic,ColorimageDynamic , xlocations, ylocations, tloca
                         ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
 
 
-def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh):
+def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh, compare_func = 'dist'):
     
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
@@ -1101,7 +1101,7 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                                       
                scores = [ filtered_good_sorted_event_box[i][event_name]  for i in range(len(filtered_good_sorted_event_box))]
                                                                   
-               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
+               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, compare_func = compare_func)
                
                return best_sorted_event_box
            
