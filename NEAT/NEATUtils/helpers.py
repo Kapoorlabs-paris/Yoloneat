@@ -597,7 +597,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
             j = idxs[pos]
 
             # compute the ratio of overlap between the two boxes and the area of the second box
-            overlap = compare_function(boxes[i], boxes[j], event_name)
+            overlap = compare_function(boxes[i], boxes[j])
 
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
@@ -611,7 +611,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
     return pick
 
 
-def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0):
+def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0, compare_func = 'dist'):
     if len(boxes) == 0:
         return []
 
@@ -649,44 +649,64 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
         for pos in range(0, last):
             # grab the current index
                 j = idxs[pos]
-
-                overlap = compare_function(boxes[i], boxes[j], event_name)
+                
+                if compare_func == 'iou':   
+                    overlap = compare_function(boxes[i], boxes[j])
+                else:
+                    overlap = dist_compare_function(boxes[i], boxes[j])
             
                 # if there is sufficient overlap, suppress the current bounding box
-                if overlap > nms_threshold:
-                    count = count + 1
-                    if event_type == 'static':
+                if  compare_func == 'iou' and overlap > nms_threshold:
+                    newbox = getmeanbox(box1, box2, event_name, event_type)
+                    suppress.append(pos)
+
+                if compare_func == 'dist' and overlap < nms_threshold:
+                    newbox = getmeanbox(box1, box2, event_name, event_type)
+                    suppress.append(pos)
+                    
+        if newbox is not None and newbox not in Averageboxes:
+            Averageboxes.append(newbox)
+            # delete all indexes from the index list that are in the suppression list
+        idxs = np.delete(idxs, suppress)
+    # return only the indicies of the bounding boxes that were picked
+    return Averageboxes
+
+
+
+def getmeanbox(box1, box2, event_name, event_type):
     
-                        boxAscore = boxes[i][event_name]
-                        boxAXstart = boxes[i]['xstart']
-                        boxAYstart = boxes[i]['ystart']
-                        boxATstart = boxes[i]['tstart']
-                        boxAXcenter = boxes[i]['xcenter']
-                        boxAYcenter = boxes[i]['ycenter']
-                        boxArealtime = boxes[i]['real_time_event']
-                        boxAboxtime = boxes[i]['box_time_event']
-                        boxAheight = boxes[i]['height']
-                        boxAwidth = boxes[i]['width']
-                        boxAconfidence = boxes[i]['confidence']
+    if event_type == 'static':
     
-                        boxAXcenterraw = boxAscore * boxes[i]['xcenterraw']
-                        boxAYcenterraw = boxAscore * boxes[i]['ycenterraw']
-                        boxATcenterraw = boxAscore * boxes[i]['tcenterraw']
+                        boxAscore = box1[event_name]
+                        boxAXstart = box1['xstart']
+                        boxAYstart = box1['ystart']
+                        boxATstart = box1['tstart']
+                        boxAXcenter = box1['xcenter']
+                        boxAYcenter = box1['ycenter']
+                        boxArealtime = box1['real_time_event']
+                        boxAboxtime = box1['box_time_event']
+                        boxAheight = box1['height']
+                        boxAwidth = box1['width']
+                        boxAconfidence = box1['confidence']
     
-                        boxBscore = boxes[j][event_name]
-                        boxBXstart = boxes[j]['xstart']
-                        boxBYstart = boxes[j]['ystart']
-                        boxBXcenter = boxes[j]['xcenter']
-                        boxBYcenter = boxes[j]['ycenter']
-                        boxBrealtime = boxes[j]['real_time_event']
-                        boxBboxtime = boxes[j]['box_time_event']
-                        boxBheight = boxes[j]['height']
-                        boxBwidth = boxes[j]['width']
-                        boxBconfidence = boxes[j]['confidence']
+                        boxAXcenterraw = boxAscore * box1['xcenterraw']
+                        boxAYcenterraw = boxAscore * box1['ycenterraw']
+                        boxATcenterraw = boxAscore * box1['tcenterraw']
     
-                        boxBXcenterraw = boxBscore * boxes[j]['xcenterraw']
-                        boxBYcenterraw = boxBscore * boxes[j]['ycenterraw']
-                        boxBTcenterraw = boxBscore * boxes[j]['tcenterraw']
+                        boxBscore = box2[event_name]
+                        boxBXstart = box2['xstart']
+                        boxBYstart = box2['ystart']
+                        boxBXcenter = box2['xcenter']
+                        boxBYcenter = box2['ycenter']
+                        boxBrealtime = box2['real_time_event']
+                        boxBboxtime = box2['box_time_event']
+                        boxBheight = box2['height']
+                        boxBwidth = box2['width']
+                        boxBconfidence = box2['confidence']
+    
+                        boxBXcenterraw = boxBscore * box2['xcenterraw']
+                        boxBYcenterraw = boxBscore * box2['ycenterraw']
+                        boxBTcenterraw = boxBscore * box2['tcenterraw']
     
                         boxscore = (boxAscore + boxBscore)
                         meanboxscore = boxscore / 2
@@ -711,43 +731,43 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                                       'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
                                       event_name: meanboxscore}
     
-                    if event_type == 'dynamic':
+    if event_type == 'dynamic':
     
-                        boxAscore = boxes[i][event_name]
-                        boxAXstart = boxes[i]['xstart']
-                        boxAYstart = boxes[i]['ystart']
-                        boxATstart = boxes[i]['tstart']
-                        boxAXcenter = boxes[i]['xcenter']
-                        boxAYcenter = boxes[i]['ycenter']
-                        boxArealtime = boxes[i]['real_time_event']
-                        boxAboxtime = boxes[i]['box_time_event']
-                        boxAheight = boxes[i]['height']
-                        boxAwidth = boxes[i]['width']
-                        boxAconfidence = boxes[i]['confidence']
-                        boxArealangle = boxes[i]['realangle']
-                        boxArawangle = boxes[i]['rawangle']
+                        boxAscore = box1[event_name]
+                        boxAXstart = box1['xstart']
+                        boxAYstart = box1['ystart']
+                        boxATstart = box1['tstart']
+                        boxAXcenter = box1['xcenter']
+                        boxAYcenter = box1['ycenter']
+                        boxArealtime = box1['real_time_event']
+                        boxAboxtime = box1['box_time_event']
+                        boxAheight = box1['height']
+                        boxAwidth = box1['width']
+                        boxAconfidence = box1['confidence']
+                        boxArealangle = box1['realangle']
+                        boxArawangle = box1['rawangle']
     
-                        boxAXcenterraw = boxAscore * boxes[i]['xcenterraw']
-                        boxAYcenterraw = boxAscore * boxes[i]['ycenterraw']
-                        boxATcenterraw = boxAscore * boxes[i]['tcenterraw']
+                        boxAXcenterraw = boxAscore * box1['xcenterraw']
+                        boxAYcenterraw = boxAscore * box1['ycenterraw']
+                        boxATcenterraw = boxAscore * box1['tcenterraw']
     
-                        boxBscore = boxes[j][event_name]
-                        boxBXstart = boxes[j]['xstart']
-                        boxBYstart = boxes[j]['ystart']
-                        boxBTstart = boxes[j]['tstart']
-                        boxBXcenter = boxes[j]['xcenter']
-                        boxBYcenter = boxes[j]['ycenter']
-                        boxBrealtime = boxes[j]['real_time_event']
-                        boxBboxtime = boxes[j]['box_time_event']
-                        boxBheight = boxes[j]['height']
-                        boxBwidth = boxes[j]['width']
-                        boxBconfidence = boxes[j]['confidence']
-                        boxBrealangle = boxes[j]['realangle']
-                        boxBrawangle = boxes[j]['rawangle']
+                        boxBscore = box2[event_name]
+                        boxBXstart = box2['xstart']
+                        boxBYstart = box2['ystart']
+                        boxBTstart = box2['tstart']
+                        boxBXcenter = box2['xcenter']
+                        boxBYcenter = box2['ycenter']
+                        boxBrealtime = box2['real_time_event']
+                        boxBboxtime = box2['box_time_event']
+                        boxBheight = box2['height']
+                        boxBwidth = box2['width']
+                        boxBconfidence = box2['confidence']
+                        boxBrealangle = box2['realangle']
+                        boxBrawangle = box2['rawangle']
     
-                        boxBXcenterraw = boxBscore * boxes[j]['xcenterraw']
-                        boxBYcenterraw = boxBscore * boxes[j]['ycenterraw']
-                        boxBTcenterraw = boxBscore * boxes[j]['tcenterraw']
+                        boxBXcenterraw = boxBscore * box2['xcenterraw']
+                        boxBYcenterraw = boxBscore * box2['ycenterraw']
+                        boxBTcenterraw = boxBscore * box2['tcenterraw']
     
                         boxscore = (boxAscore + boxBscore)
                         meanboxscore = boxscore / 2
@@ -774,18 +794,10 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
                                           'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
                                           'realangle': meanboxrealangle, 'rawangle': meanboxrawangle, event_name: meanboxscore}
     
-                    suppress.append(pos)
-                    
-                
-           
-        if newbox is not None and newbox not in Averageboxes:
-            Averageboxes.append(newbox)
-            # delete all indexes from the index list that are in the suppression list
-        idxs = np.delete(idxs, suppress)
-    # return only the indicies of the bounding boxes that were picked
-    return Averageboxes
-
-
+    
+    
+    return newbox
+    
 
 def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0,
                thresh=1):
@@ -827,7 +839,7 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
                 j = idxs[pos]
 
             
-                overlap = compare_function(boxes[i], boxes[j], event_name)
+                overlap = compare_function(boxes[i], boxes[j])
                 
                 # if there is sufficient overlap, suppress the current bounding box
                 if overlap > nms_threshold:
@@ -892,7 +904,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
             j = idxs[pos]
 
             # compute the ratio of overlap between the two boxes and the area of the second box
-            overlap = compare_function(boxes[i], boxes[j], event_name)
+            overlap = compare_function(boxes[i], boxes[j])
 
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
