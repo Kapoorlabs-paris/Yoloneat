@@ -521,7 +521,7 @@ def MakeTrees(segimage):
     return AllTrees
 
 
-def compare_function(box1, box2, event_name):
+def compare_function(box1, box2):
     w1, h1 = box1['width'], box1['height']
     w2, h2 = box2['width'], box2['height']
 
@@ -537,6 +537,24 @@ def compare_function(box1, box2, event_name):
     union = r1 * r1 + r2 * r2 - intersect
 
     return float(np.true_divide(intersect, union))
+
+def dist_compare_function(box1, box2):
+    
+    x1 = box1['xcenter']
+    x2 = box2['xcenter']
+    
+    y1 = box1['ycenter']
+    y2 = box2['ycenter']
+    
+    t1 = box1['real_time_event']
+    t2 = box2['real_time_event']
+    
+    vec1 = [x1, y1, t1]
+    vec2 = [x2, y2, t2]
+    
+    distance = Genericdist(vec1, vec2)
+    
+    return distance
 
 
 def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
@@ -1540,6 +1558,12 @@ def Distance(centerAx, centerAy, centerBx, centerBy):
     
     return distance
 
+def Genericdist(vec1, vec2):
+    
+    distance = 0
+    for i in range(0, len(vec1)):
+        distance = distance + (vec1[i] - vec2[i]) 
+    return distance
 def save_csv(save_dir, Event_Count, Name):
     Event_data = []
 
