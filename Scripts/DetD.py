@@ -39,8 +39,8 @@ model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
 event_threshold = 1.0 - 1.0E-4 
-iou_threshold = 30
-
+iou_threshold = 0.3
+dist_threshold = 30
 yolo_v2 = False
 downsample = 2
 thresh = 5
@@ -65,7 +65,7 @@ for imagename in X:
      
      if MaskName == Name + mask_name:
           print(MaskName, Name, mask_name)
-          model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, thresh = thresh, maskimagename = maskimagename)
+          model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, thresh = thresh, maskimagename = maskimagename, dist_threshold = dist_threshold)
 
 
 # In[3]:

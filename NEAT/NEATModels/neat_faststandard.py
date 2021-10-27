@@ -197,11 +197,12 @@ class NEATDynamicSegFree(object):
         
 
         
-    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsamplefactor = 1, maskimagename = None, maskfilter = 10, compare_func = 'dist'):
+    def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsamplefactor = 1, maskimagename = None, maskfilter = 10, compare_func = 'dist', dist_threshold = 30):
         
         self.imagename = imagename
         self.image = imread(imagename)
         self.maskfilter = maskfilter
+        self.dist_threshold = dist_threshold
         self.maskimagename = maskimagename
         if maskimagename is not None:
           self.maskimage = imread(maskimagename)
@@ -317,7 +318,7 @@ class NEATDynamicSegFree(object):
             if event_label > 0:
                
                #best_sorted_event_box = self.classedboxes[event_name][0]
-               best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh, compare_func = self.compare_func )
+               best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh, compare_func = self.compare_func, dist_threshold = self.dist_threshold )
                
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
                
