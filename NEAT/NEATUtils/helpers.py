@@ -1574,7 +1574,7 @@ def Genericdist(vec1, vec2):
     
     distance = 0
     for i in range(0, len(vec1)):
-        distance = distance + (vec1[i] - vec2[i]) 
+        distance = distance + (vec1[i] - vec2[i]) * (vec1[i] - vec2[i])
     return distance
 def save_csv(save_dir, Event_Count, Name):
     Event_data = []
