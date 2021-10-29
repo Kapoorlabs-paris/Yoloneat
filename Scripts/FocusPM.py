@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-
 import sys
 import os
 import glob
@@ -18,17 +11,16 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
 
-# In[2]:
 
 
-imagedir = '/home/sancere/VKepler/CurieTrainingDatasets/foconeatimages/'
-model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/Focusoneatmodels/'
-savedir= '/home/sancere/VKepler/CurieTrainingDatasets/foconeatimages/ZmapPredictionsd29s5f16res/'
+imagedir = 'images/'
+model_dir = 'models/'
+savedir= 'results/'
 
-model_name = 'cadhistoned29s5f16res'
-focus_categories_json = model_dir + 'FocusCategories.json'
+model_name = 'Focalplanedetector'
+focus_categories_json = model_dir + 'Focalplanecategories.json'
 catconfig = load_json(focus_categories_json)
-focus_cord_json = model_dir + 'FocusCord.json'
+focus_cord_json = model_dir + 'Focalplanecord.json'
 cordconfig = load_json(focus_cord_json)
 model = NEATFocus(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
@@ -36,9 +28,6 @@ n_tiles = (1,1)
 interest_event = ("BestCad", "BestNuclei")
 
 
-# # In the code block below compute the markers and make a dictionary for each image
-
-# In[ ]:
 
 
 Raw_path = os.path.join(imagedir, '*tif')
@@ -50,7 +39,6 @@ for imagename in X:
          model.predict(imagename, savedir, interest_event, n_tiles = n_tiles)
 
 
-# In[ ]:
 
 
 

@@ -611,7 +611,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
     return pick
 
 
-def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0, compare_func = 'dist', dist_threshold =30):
+def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0, compare_func = 'iou', dist_threshold =30):
     if len(boxes) == 0:
         return []
 

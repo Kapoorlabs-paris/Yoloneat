@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
-
 import sys
 import os
 import glob
@@ -18,16 +11,14 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
 
-# In[2]:
 
-
-imagedir = '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Bin2Test/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/CellNetBinning2Models/'
-savedir= '/data/u934/service_imagerie/v_kapoor/oneatgolddust/Test/Bin2Test/Save29resf16/'
-model_name = 'CellNetbin2d29resf16'
-division_categories_json = model_dir + 'StaticCategories.json'
+imagedir = 'images/'
+model_dir = 'models/'
+savedir= 'Results/'
+model_name = 'Celltypedetector'
+division_categories_json = model_dir + 'Celltypecategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'StaticCord.json'
+division_cord_json = model_dir + 'Celltypecord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATStatic(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
@@ -36,22 +27,10 @@ event_threshold = [1,0.999,0.999,0.9,0.9,0.9]
 iou_threshold = 0.2
 
 
-# In[ ]:
-
-
 Raw_path = os.path.join(imagedir, '*tif')
 X = glob.glob(Raw_path)
 for imagename in X:
      model.predict(imagename, savedir, event_threshold, n_tiles = n_tiles, iou_threshold = iou_threshold)
-
-
-# In[3]:
-
-
-
-
-
-# In[ ]:
 
 
 
