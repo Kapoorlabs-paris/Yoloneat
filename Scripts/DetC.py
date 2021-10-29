@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -25,7 +25,7 @@ from pathlib import Path
 
 
 imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wtN10/'
-maskimagedir =  '/data/u934/service_imagerie/v_kapoor/wtN10/Masks/'
+maskimagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wtN10/Masks/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/'
 savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/diamondapoptosisd29f32_th5/'
 
