@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -27,13 +27,13 @@ from pathlib import Path
 imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
 maskimagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Masks/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
-savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/Celldeathpredictor_th5/'
+savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/Cellsplitdetector_th5/'
 
-model_name = 'Celldeathpredictor'
+model_name = 'Cellsplitdetector'
 mask_name = '_Mask'
-division_categories_json = model_dir + 'Celldeathcategories.json'
+division_categories_json = model_dir + 'Cellsplitcategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'Celldeathcord.json'
+division_cord_json = model_dir + 'Cellsplitcord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
