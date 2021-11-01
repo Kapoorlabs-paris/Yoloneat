@@ -75,7 +75,7 @@ n_patches_per_image = 400
 Rays = 192
 startfilter = 32
 use_gpu_opencl = False
-GenerateNPZ = False
+GenerateNPZ = True
 TrainUNET = True
 TrainSTAR = True
 
