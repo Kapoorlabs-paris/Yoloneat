@@ -23,7 +23,7 @@ import napari
 import glob
 from scipy import spatial
 import itertools
-from napari.qt.threading import thread_worker
+#from napari.qt.threading import thread_worker
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
@@ -31,7 +31,7 @@ from matplotlib.figure import Figure
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
-import cv2
+#import cv2
 import imageio
 
 Boxname = 'ImageIDBox'
@@ -218,6 +218,16 @@ class NEATDynamic(object):
         Y_rest = self.Y[:, :, :, self.categories:]
  
 
+        if self.yolo_v1:
+
+            for i in range(self.Y.shape[0]):
+
+                if self.Y[i, :, :, 0] == 1:
+                    self.Y[i, :, :, -1] = 0
+            for i in range(self.Y_val.shape[0]):
+
+                if self.Y_val[i, :, :, 0] == 1:
+                    self.Y_val[i, :, :, -1] = 0
         model_weights = self.model_dir + self.model_name
         if os.path.exists(model_weights):
 

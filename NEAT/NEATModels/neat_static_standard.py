@@ -27,16 +27,16 @@ from keras.models import load_model
 from tifffile import imread, imwrite
 import csv
 import napari
-from napari.qt.threading import thread_worker
+#from napari.qt.threading import thread_worker
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.backends.backend_qt5agg import \
+    #FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
+#from qtpy.QtCore import Qt
+#from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import glob
 import h5py
-import cv2
+#import cv2
 import imageio
 
 Boxname = 'ImageIDBox'

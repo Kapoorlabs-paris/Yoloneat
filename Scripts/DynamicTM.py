@@ -6,23 +6,23 @@ from NEATModels import NEATDynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import save_json, load_json
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 
-npz_directory = 'npz_directory/'
-npz_name = 'Celleventprediction.npz'
-npz_val_name = 'Celleventpredictionval.npz'
+npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
+npz_name = 'Cellsplitpredictor.npz'
+npz_val_name = 'Cellsplitpredictorval.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  'oneat_models/'
-model_name = 'Celleventpredictor.h5'
+model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
+model_name = 'Cellsplitpredictorv2.h5'
 
 #Neural network parameters
-division_categories_json = model_dir + 'Celleventcategories.json'
+division_categories_json = model_dir + 'Cellsplitcategories.json'
 key_categories = load_json(division_categories_json)
-division_cord_json = model_dir + 'Celleventcord.json'
+division_cord_json = model_dir + 'Cellsplitcord.json'
 key_cord = load_json(division_cord_json)
 
 #For ORNET use residual = True and for OSNET use residual = False

@@ -26,15 +26,15 @@ import napari
 import glob
 from scipy import spatial
 import itertools
-from napari.qt.threading import thread_worker
+#from napari.qt.threading import thread_worker
 import matplotlib.pyplot  as plt
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.backends.backend_qt5agg import \
+    #FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
+#from qtpy.QtCore import Qt
+#from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
-import cv2
+#import cv2
 import imageio
 Boxname = 'ImageIDBox'
 EventBoxname = 'EventIDBox'

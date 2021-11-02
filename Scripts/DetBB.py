@@ -26,7 +26,7 @@ from pathlib import Path
 
 imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wtN10/'
 maskimagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wtN10/Masks/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/OneatModels/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
 savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/Cellsplitpredictor_th5/'
 
 model_name = 'Cellsplitpredictor'

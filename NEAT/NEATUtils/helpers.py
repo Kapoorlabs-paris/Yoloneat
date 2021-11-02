@@ -6,7 +6,7 @@ import collections
 import warnings
 import csv
 import json
-import cv2
+#import cv2
 from scipy import spatial
 from matplotlib import cm
 from tifffile import imsave
