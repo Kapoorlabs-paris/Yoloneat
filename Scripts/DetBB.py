@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -24,12 +24,12 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wtN10/'
-maskimagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wtN10/Masks/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
-savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/Cellsplitpredictor_th5/'
+imagedir =  '/home/sancere/Kepler/WildTypeTest/wt12/'
+maskimagedir =  '/home/sancere/Kepler/WildTypeTest/wt12/Masks/'
+model_dir = '/home/sancere/Kepler/CurieDeepLearningModels/WinnerOneatModels/'
+savedir= '/home/sancere/Kepler/WildTypeTest/Cellsplitpredictor_th5_d15v2/'
 
-model_name = 'Cellsplitpredictor'
+model_name = 'Cellsplitpredictorv2'
 mask_name = '_Mask'
 division_categories_json = model_dir + 'Cellsplitcategories.json'
 catconfig = load_json(division_categories_json)
@@ -40,7 +40,7 @@ Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
 event_threshold = 1.0 - 1.0E-4 
 iou_threshold = 0.3
-dist_threshold = 10
+dist_threshold = 15
 yolo_v2 = False
 downsample = 2
 thresh = 5

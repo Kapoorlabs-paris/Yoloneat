@@ -218,16 +218,6 @@ class NEATDynamic(object):
         Y_rest = self.Y[:, :, :, self.categories:]
  
 
-        if self.yolo_v1:
-
-            for i in range(self.Y.shape[0]):
-
-                if self.Y[i, :, :, 0] == 1:
-                    self.Y[i, :, :, -1] = 0
-            for i in range(self.Y_val.shape[0]):
-
-                if self.Y_val[i, :, :, 0] == 1:
-                    self.Y_val[i, :, :, -1] = 0
         model_weights = self.model_dir + self.model_name
         if os.path.exists(model_weights):
 
