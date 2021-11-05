@@ -558,7 +558,6 @@ def dist_compare_function(box1, box2):
 
 
 def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
-    thresh = 10
     if len(boxes) == 0:
         return []
 
@@ -611,7 +610,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
     return pick
 
 
-def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0, compare_func = 'iou', dist_threshold =30):
+def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0):
     if len(boxes) == 0:
         return []
 
@@ -644,30 +643,21 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
         i = idxs[last]
         pick.append(i)
         suppress = [last]
-        count = 0
         # loop over all indexes in the indexes list
         for pos in range(0, last):
             # grab the current index
                 j = idxs[pos]
                 
-                if compare_func == 'iou':   
-                    overlap = compare_function(boxes[i], boxes[j])
-                else:
-                    overlap = dist_compare_function(boxes[i], boxes[j])
+                overlap = compare_function(boxes[i], boxes[j])
+               
             
                 # if there is sufficient overlap, suppress the current bounding box
-                if  compare_func == 'iou' and overlap > nms_threshold:
+                if   overlap > nms_threshold:
                     newbox = getmeanbox(boxes[i], boxes[j], event_name, event_type, imagex, imagey, imaget)
                     suppress.append(pos)
                 if newbox is None:
                         newbox = boxes[i]
-                    
-
-                if compare_func == 'dist' and overlap < dist_threshold * dist_threshold:
-                    newbox = getmeanbox(boxes[i], boxes[j], event_name, event_type, imagex, imagey, imaget)
-                    suppress.append(pos)
-                if newbox is None:
-                        newbox = boxes[i]
+            
                     
                     
         if newbox is not None and newbox not in Averageboxes:
@@ -1069,7 +1059,7 @@ def saveimage(ColorimageStatic,ColorimageDynamic , xlocations, ylocations, tloca
                         ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
 
 
-def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh, compare_func = 'dist', dist_threshold = 30 ):
+def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh):
     
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
@@ -1107,7 +1097,7 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                                       
                scores = [ filtered_good_sorted_event_box[i][event_name]  for i in range(len(filtered_good_sorted_event_box))]
                                                                   
-               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, compare_func = compare_func, dist_threshold = dist_threshold)
+               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
                
                return best_sorted_event_box
            

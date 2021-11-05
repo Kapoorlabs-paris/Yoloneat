@@ -24,16 +24,16 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/home/sancere/Kepler/WildTypeTest/wt12/'
-maskimagedir =  '/home/sancere/Kepler/WildTypeTest/wt12/Masks/'
-model_dir = '/home/sancere/Kepler/CurieDeepLearningModels/WinnerOneatModels/'
-savedir= '/home/sancere/Kepler/WildTypeTest/Cellsplitdetector_th10d15v2/'
+imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
+maskimagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/Masks/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
+savedir= '/home/sancere/VKepler/WildTypeTest/Celldeathpredictord38_th5_d15/'
 
-model_name = 'Cellsplitdetectorv2'
+model_name = 'microapoptosisdiamondd38f32'
 mask_name = '_Mask'
-division_categories_json = model_dir + 'Cellsplitcategories.json'
+division_categories_json = model_dir + 'ApoptosisCategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'Cellsplitcord.json'
+division_cord_json = model_dir + 'ApoptosisCord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
@@ -43,7 +43,7 @@ iou_threshold = 0.3
 dist_threshold = 15
 yolo_v2 = False
 downsample = 2
-thresh = 10
+thresh = 5
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:

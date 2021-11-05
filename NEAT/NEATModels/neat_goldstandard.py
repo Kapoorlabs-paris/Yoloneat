@@ -31,7 +31,7 @@ from matplotlib.figure import Figure
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
-#import cv2
+import cv2
 import imageio
 
 Boxname = 'ImageIDBox'

@@ -28,7 +28,7 @@ from natsort import natsorted
 import glob
 import matplotlib.pyplot as plt
 import h5py
-#import cv2
+import cv2
 import imageio
 from PIL import Image
 import matplotlib.pyplot as plt

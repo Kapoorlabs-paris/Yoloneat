@@ -23,15 +23,15 @@ import napari
 import glob
 from scipy import spatial
 import itertools
-#from napari.qt.threading import thread_worker
+from napari.qt.threading import thread_worker
 import matplotlib.pyplot as plt
-#from matplotlib.backends.backend_qt5agg import \
-    #FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import \
+    FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-#from qtpy.QtCore import Qt
-#from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
-#import cv2
+import cv2
 import imageio
 
 Boxname = 'ImageIDBox'
@@ -319,7 +319,7 @@ class NEATDynamicSeg(object):
 
                             event_prob = box[event_name]
                             event_confidence = box['confidence']
-                            if event_prob >= self.event_threshold and event_confidence >= 0.9:
+                            if event_prob >= self.event_threshold:
                                 current_event_box.append(box)
                         classedboxes[event_name] = [current_event_box]
 

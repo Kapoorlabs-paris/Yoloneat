@@ -11,13 +11,13 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 
-npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
-npz_name = 'Cellsplitpredictor.npz'
-npz_val_name = 'Cellsplitpredictorval.npz'
+npz_directory = '/home/sancere/VKepler/CurieTrainingDatasets/oneatnpz/'
+npz_name = 'Celldeathdetectorm3p3.npz'
+npz_val_name = 'Celldeathdetectorm3p3val.npz'
 
 #Read and Write the h5 file, directory location and name
-model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
-model_name = 'Cellsplitpredictorv2.h5'
+model_dir =  '/home/sancere/VKepler/CurieDeepLearningModels/WinnerOneatModels/'
+model_name = 'Celldeathdetectorm3p3.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'Cellsplitcategories.json'
@@ -45,7 +45,7 @@ lstm_hidden_unit = 16
 epochs = 250
 nboxes = 1
 #The inbuilt model stride which is equal to the nulber of times image was downsampled by the network
-show = True
+show = False
 stage_number = 3
 last_conv_factor = 4
 size_tminus = 3
