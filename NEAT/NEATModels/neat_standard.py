@@ -319,7 +319,7 @@ class NEATDynamicSeg(object):
 
                             event_prob = box[event_name]
                             event_confidence = box['confidence']
-                            if event_prob >= self.event_threshold:
+                            if event_prob >= self.event_threshold and event_confidence >= 0.9:
                                 current_event_box.append(box)
                         classedboxes[event_name] = [current_event_box]
 

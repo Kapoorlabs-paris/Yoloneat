@@ -26,24 +26,24 @@ from pathlib import Path
 
 imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
 maskimagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/Masks/'
-model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/OneatModels/'
-savedir= '/home/sancere/VKepler/WildTypeTest/Celldeathpredictord38_th5_d15/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/WinnerOneatModels/'
+savedir= '/home/sancere/VKepler/WildTypeTest/Celldeathpredictor_th1/'
 
-model_name = 'microapoptosisdiamondd38f32'
+model_name = 'Celldeathpredictor'
 mask_name = '_Mask'
-division_categories_json = model_dir + 'ApoptosisCategories.json'
+division_categories_json = model_dir + 'Celldeathcategories.json'
 catconfig = load_json(division_categories_json)
-division_cord_json = model_dir + 'ApoptosisCord.json'
+division_cord_json = model_dir + 'Celldeathcord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
 event_threshold = 1.0 - 1.0E-4 
 iou_threshold = 0.3
-dist_threshold = 15
+
 yolo_v2 = False
 downsample = 2
-thresh = 5
+thresh = 1
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:
@@ -65,7 +65,7 @@ for imagename in X:
      
      if MaskName == Name + mask_name:
           print(MaskName, Name, mask_name)
-          model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, thresh = thresh, maskimagename = maskimagename, dist_threshold = dist_threshold)
+          model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, thresh = thresh, maskimagename = maskimagename)
 
 
 # In[3]:
