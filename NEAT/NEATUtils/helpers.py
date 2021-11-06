@@ -1251,7 +1251,7 @@ def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categ
 
         if k > time_prediction.shape[0]:
             break;
-
+        print('zero', zero_label)
         Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord,
                                    inputtime, mode, event_type, marker_tree, zero_label = zero_label)
         # Append the box and the maximum likelehood detected class
@@ -1401,6 +1401,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
 
     max_prob_label = np.argmax(prediction_vector[:total_classes])
     max_prob_class = prediction_vector[max_prob_label]
+    classybox = {}
     if zero_label:
         
         if max_prob_label == 0:
@@ -1441,11 +1442,10 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                        'height': heightmean, 'width': widthmean, 'confidence': confidencemean}
     
             # Make a single dict object containing the class and the box vectors return also the max prob label
-            classybox = {}
             for d in [Class, box]:
                 classybox.update(d)
-        
-    else:    
+            return classybox    
+    if zero_label==False:    
         if max_prob_label > 0:
 
                 if event_type == 'dynamic':
@@ -1485,11 +1485,10 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                            'height': heightmean, 'width': widthmean, 'confidence': confidencemean}
         
                 # Make a single dict object containing the class and the box vectors return also the max prob label
-                classybox = {}
+                
                 for d in [Class, box]:
-                    classybox.update(d)
-
-    return classybox
+                                    classybox.update(d)
+                return classybox  
 
 
 def focpredictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputz):
