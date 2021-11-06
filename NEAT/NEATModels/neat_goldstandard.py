@@ -445,7 +445,6 @@ class NEATDynamic(object):
     def second_pass_predict(self):
 
         print('Detecting event locations')
-        count = 0
         eventboxes = []
         refinedeventboxes = []
         classedboxes = {}
@@ -458,7 +457,6 @@ class NEATDynamic(object):
                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
                                           self.imagey)
                 smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
-                count = count + 1                        
                 tree, location = self.marker_tree[str(int(inputtime))]
                 for i in range(len(location)):
                     
@@ -500,13 +498,10 @@ class NEATDynamic(object):
                                          
                 self.classedboxes = classedboxes    
                 self.eventboxes =  eventboxes
-                #nms over time
-                if count%2 == 0:
-                        self.nms()
-                        self.to_csv()
-                        eventboxes = []
-                        classedboxes = {}    
-                        count = 0
+                self.nms()
+                self.to_csv()
+                eventboxes = []
+                classedboxes = {}    
 
     def nms(self):
 
