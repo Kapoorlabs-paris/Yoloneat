@@ -21,6 +21,7 @@ from tifffile import imread, imwrite
 import csv
 import napari
 import glob
+from skimage.morphology import erosion, dilation, square, binary_dilation, disk
 from scipy import spatial
 import itertools
 #from napari.qt.threading import thread_worker
@@ -33,7 +34,8 @@ from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
 import cv2
 import imageio
-
+from skimage.measure import label
+from skimage import measure
 Boxname = 'ImageIDBox'
 EventBoxname = 'EventIDBox'
 
@@ -303,6 +305,8 @@ class NEATDynamic(object):
         else:
             try:
                 self.markers = imread(markerdir + '/' + Name + '.tif')
+                for i in range(0, self.markers.shape[0]):
+                    self.markers[i,:] = label(self.markers[i,:].astype('uint16'))
             except:
                 self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
                 markerdir = self.savedir + '/' + 'Markers'
@@ -316,7 +320,7 @@ class NEATDynamic(object):
         return self.markers, self.marker_tree, self.density_location
 
     def predict(self, imagename, markers, marker_tree, density_location, savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh=5, downsample = 1):
+                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh=5, downsample = 1, remove_markers = True):
 
         self.imagename = imagename
         self.image = imread(imagename)
@@ -337,6 +341,7 @@ class NEATDynamic(object):
         self.upsample_regions = {}
         self.candidate_regions = {}
         self.downsample = downsample
+        self.remove_markers = remove_markers
         self.image = DownsampleData(self.image, self.downsample)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
@@ -345,20 +350,23 @@ class NEATDynamic(object):
         f.close()
         self.model = load_model(self.model_dir + self.model_name + '.h5',
                                 custom_objects={'loss': self.yololoss, 'Concat': Concat})
-        # self.first_pass_predict()
+        if self.remove_markers:
+          self.first_pass_predict()
         self.second_pass_predict()
 
-    def second_pass_predict(self):
-
+    def first_pass_predict(self):
+        
         print('Detecting event locations')
         count = 0
         eventboxes = []
         refinedeventboxes = []
         classedboxes = {}
+        remove_candidates = {}
+        remove_candidates_list = []
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
-
+                
                 if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
                     imwrite((savename + '.tif'), self.Colorimage)
                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
@@ -379,80 +387,126 @@ class NEATDynamic(object):
                             boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride,
                                                            inputtime, self.config,
                                                            self.key_categories, self.key_cord, self.nboxes, 'detection',
-                                                           'dynamic', self.marker_tree)
+                                                           'dynamic', self.marker_tree, self.remove_markers)
 
                             if boxprediction is not None:
                                 eventboxes = eventboxes + boxprediction
-
-                print('Total initial predictions:', len(eventboxes))
                 for (event_name, event_label) in self.key_categories.items():
 
-                    if event_label > 0:
-                        sorted_event_box = sorted(eventboxes, key=lambda x: x[event_name], reverse=True)
-                        scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
-                        eventboxes = averagenms(sorted_event_box, scores, 0.9, self.event_threshold,
-                                                event_name, 'dynamic', self.imagex, self.imagey, self.imaget,
-                                                self.thresh)
+                    if event_label == 0:                
+                                for box in eventboxes:
+                
+                                    event_prob = box[event_name]
+                                    if event_prob >= 0.9:
+                
+                                        X = box['xcenter']
+                                        Y = box['ycenter']
+                                        T = int(box['real_time_event'])  
+                                        remove_candidates_list.append([T,Y,X])
+        
+        for i in range(0, self.markers.shape[0]):
+                Clean_Coordinates = []
+                sublist = [] 
+                waterproperties = measure.regionprops(self.markers[i,:])
+                for t,y,x in remove_candidates_list:
+                    if t == i:
+                         sublist.append([y,x])
+                         
+                for prop in waterproperties:
+                     current_centroid = prop.centroid
+                     
+                             
+                     if current_centroid not in sublist:
+                                
+                         Clean_Coordinates.append(current_centroid) 
+  
+                Clean_Coordinates = sorted(Clean_Coordinates, key=lambda k: [k[1], k[0]])
+                Clean_Coordinates.append((0, 0))
+                Clean_Coordinates = np.asarray(Clean_Coordinates)
+            
+                coordinates_int = np.round(Clean_Coordinates).astype(int)
+                markers_raw = np.zeros_like(self.markers[i,:])
+                markers_raw[tuple(coordinates_int.T)] = 1 + np.arange(len(Clean_Coordinates))
+            
+                markers = dilation(markers_raw, disk(2))
+            
+                self.markers[i, :] = label(markers.astype('uint16'))                            
 
-                        for box in eventboxes:
+        markerdir = self.savedir + '/' + 'Clean_Markers'  
+        Path(markerdir).mkdir(exist_ok=True)
+        Name = os.path.basename(os.path.splitext(self.imagename)[0])
+        print('Writing the clean markers')
+        self.marker_tree = MakeTrees(self.markers)
+        imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('float32'))    
+        
 
-                            event_prob = box[event_name]
-                            if event_prob >= self.event_threshold:
 
-                                X = box['xcenter']
-                                Y = box['ycenter']
-                                T = int(box['real_time_event'])
 
-                                crop_xminus = int(X) - int(self.imagex / 2)
-                                crop_xplus = int(X) + int(self.imagex / 2)
-                                crop_yminus = int(Y) - int(self.imagey / 2)
-                                crop_yplus = int(Y) + int(self.imagey / 2)
-                                region = (slice(int(T - self.size_tminus - 1), int(T + self.size_tplus)),
-                                          slice(int(crop_yminus), int(crop_yplus)),
-                                          slice(int(crop_xminus), int(crop_xplus)))
+    def second_pass_predict(self):
 
-                                crop_image = self.image[region]
+        print('Detecting event locations')
+        count = 0
+        eventboxes = []
+        refinedeventboxes = []
+        classedboxes = {}
+        savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
+        for inputtime in tqdm(range(0, self.image.shape[0])):
+            if inputtime < self.image.shape[0] - self.imaget:
 
-                                if crop_image.shape[0] >= self.imaget and crop_image.shape[1] >= self.imagey and \
-                                        crop_image.shape[2] >= self.imagex:
-
-                                    # Now apply the prediction for counting real events
-
-                                    prediction_vector = self.second_make_patches(crop_image)
-
-                                    boxprediction = yoloprediction(0, 0, prediction_vector[0],
-                                                                   self.stride, T,
-                                                                   self.config, self.key_categories, self.key_cord,
-                                                                   self.nboxes, 'detection', 'dynamic')
-                                    if len(boxprediction) > 0:
-                                        boxprediction[0]['xcenter'] = X
-                                        boxprediction[0]['ycenter'] = Y
-                                        boxprediction[0]['xstart'] = X - int(self.imagex / 2)
-                                        boxprediction[0]['ystart'] = Y - int(self.imagey / 2)
-
-                                    if boxprediction is not None:
-                                        refinedeventboxes = refinedeventboxes + boxprediction
-
-                print('Total refined predictions:', len(refinedeventboxes))
-
-                current_event_box = []
-                for box in refinedeventboxes:
-
-                    event_prob = box[event_name]
-
-                    if event_prob >= self.event_threshold:
-                        current_event_box.append(box)
-                classedboxes[event_name] = [current_event_box]
-                print('Valid events:', event_name, len(current_event_box))
-                self.classedboxes = classedboxes
-                self.eventboxes = eventboxes
-                # nms over time
-                if inputtime % (self.imaget) == 0:
-                    self.nms()
-                    self.to_csv()
-                    eventboxes = []
-                    refinedeventboxes = []
-                    classedboxes = {}
+                if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
+                    imwrite((savename + '.tif'), self.Colorimage)
+                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
+                                          self.imagey)
+                smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
+                count = count + 1                        
+                tree, location = self.marker_tree[str(int(inputtime))]
+                for i in range(len(location)):
+                    
+                    crop_xminus = location[i][1]  - int(self.imagex/2)
+                    crop_xplus = location[i][1]  + int(self.imagex/2)
+                    crop_yminus = location[i][0]  - int(self.imagey/2)
+                    crop_yplus = location[i][0]   + int(self.imagey/2)
+                    region =(slice(0,int(smallimage.shape[0])),slice(int(crop_yminus), int(crop_yplus)),
+                          slice(int(crop_xminus), int(crop_xplus)))
+                    
+                    crop_image = smallimage[region] 
+                    if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex:                                                
+                                #Now apply the prediction for counting real events
+                                ycenter = location[i][0]
+                                xcenter = location[i][1]
+                                prediction_vector = self.make_patches(crop_image)
+                                
+                                boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
+                                if len(boxprediction) > 0:
+                                        boxprediction[0]['xcenter'] = xcenter
+                                        boxprediction[0]['ycenter'] = ycenter
+                                        boxprediction[0]['xstart'] = xcenter - int(self.imagex/2)
+                                        boxprediction[0]['ystart'] = ycenter - int(self.imagey/2)
+                                        
+                                
+                                if boxprediction is not None:
+                                          eventboxes = eventboxes + boxprediction
+                for (event_name,event_label) in self.key_categories.items(): 
+                                           
+                                        if event_label > 0:
+                                             current_event_box = []
+                                             for box in eventboxes:
+                                        
+                                                event_prob = box[event_name]
+                                                if event_prob >= self.event_threshold:
+                                                   
+                                                    current_event_box.append(box)
+                                             classedboxes[event_name] = [current_event_box]
+                                         
+                self.classedboxes = classedboxes    
+                self.eventboxes =  eventboxes
+                #nms over time
+                if count%2 == 0:
+                        self.nms()
+                        self.to_csv()
+                        eventboxes = []
+                        classedboxes = {}    
+                        count = 0
 
     def nms(self):
 
@@ -463,10 +517,8 @@ class NEATDynamic(object):
 
                 sorted_event_box = self.classedboxes[event_name][0]
                 sorted_event_box = sorted(sorted_event_box, key=lambda x: x[event_name], reverse=True)
-                scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
-                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold,
-                                                   event_name, 'dynamic', self.imagex, self.imagey, self.imaget)
-                best_iou_classedboxes[event_name] = [best_sorted_event_box]
+               
+                best_iou_classedboxes[event_name] = [sorted_event_box]
 
         self.iou_classedboxes = best_iou_classedboxes
 

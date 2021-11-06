@@ -493,7 +493,7 @@ def GenerateMarkers(Image, model, n_tiles):
 
         markers = dilation(markers_raw, disk(2))
 
-        Markers[i, :] = markers
+        Markers[i, :] = label(markers.astype('uint16'))
 
     return Markers
 
@@ -509,8 +509,9 @@ def MakeTrees(segimage):
     for i in tqdm(range(0, segimage.shape[0])):
 
         indices = []
+        
         currentimage = segimage[i, :].astype('uint16')
-        waterproperties = measure.regionprops(currentimage, currentimage)
+        waterproperties = measure.regionprops(currentimage)
         for prop in waterproperties:
             indices.append((int(prop.centroid[0]), int(prop.centroid[1])))
         if len(indices) > 0:
@@ -1238,7 +1239,7 @@ Prediction function for whole image/tile, output is Prediction vector for each i
 
 
 def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categories, key_cord, nboxes, mode,
-                   event_type, marker_tree=None):
+                   event_type, marker_tree=None, zero_label = False):
     LocationBoxes = []
     j = 0
     k = 1
@@ -1252,10 +1253,10 @@ def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categ
             break;
 
         Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord,
-                                   inputtime, mode, event_type, marker_tree)
+                                   inputtime, mode, event_type, marker_tree, zero_label = zero_label)
         # Append the box and the maximum likelehood detected class
         if Classybox is not None:
-            if Classybox['confidence'] > 0.1:
+           
                 LocationBoxes.append(Classybox)
     return LocationBoxes
 
@@ -1295,7 +1296,7 @@ def nonfcn_yoloprediction(sy, sx, time_prediction, stride, inputtime, config, ke
 
 
 def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputtime, mode,
-                   event_type, marker_tree):
+                   event_type, marker_tree, zero_label = False):
     total_classes = len(key_categories)
     total_coords = len(key_cord)
     y = (k - 1) * stride
@@ -1400,49 +1401,93 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
 
     max_prob_label = np.argmax(prediction_vector[:total_classes])
     max_prob_class = prediction_vector[max_prob_label]
-
-    if max_prob_label > 0:
-
-        if event_type == 'dynamic':
-            if mode == 'detection':
-                real_time_event = tcentermean
-                box_time_event = boxtcentermean
-            if mode == 'prediction':
+    if zero_label:
+        
+        if max_prob_label == 0:
+            if event_type == 'dynamic':
+                if mode == 'detection':
+                    real_time_event = tcentermean
+                    box_time_event = boxtcentermean
+                if mode == 'prediction':
+                    real_time_event = int(inputtime)
+                    box_time_event = int(inputtime)
+                if config['yolo_v2']:
+                    realangle = math.pi * (anglemean + 0.5)
+                    rawangle = anglemean
+                else:
+    
+                    realangle = 2
+                    rawangle = 2
+                if marker_tree is not None:
+                    ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
+                # Compute the box vectors
+                box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
+                       'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
+                       'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
+                       'height': heightmean, 'width': widthmean, 'confidence': confidencemean, 'realangle': realangle,
+                       'rawangle': rawangle}
+            if event_type == 'static':
                 real_time_event = int(inputtime)
                 box_time_event = int(inputtime)
-            if config['yolo_v2']:
-                realangle = math.pi * (anglemean + 0.5)
-                rawangle = anglemean
-            else:
+                realangle = 0
+                rawangle = 0
+    
+                if marker_tree is not None:
+                    ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
+    
+                box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
+                       'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
+                       'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
+                       'height': heightmean, 'width': widthmean, 'confidence': confidencemean}
+    
+            # Make a single dict object containing the class and the box vectors return also the max prob label
+            classybox = {}
+            for d in [Class, box]:
+                classybox.update(d)
+        
+    else:    
+        if max_prob_label > 0:
 
-                realangle = 2
-                rawangle = 2
-            if marker_tree is not None:
-                ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
-            # Compute the box vectors
-            box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
-                   'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
-                   'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
-                   'height': heightmean, 'width': widthmean, 'confidence': confidencemean, 'realangle': realangle,
-                   'rawangle': rawangle}
-        if event_type == 'static':
-            real_time_event = int(inputtime)
-            box_time_event = int(inputtime)
-            realangle = 0
-            rawangle = 0
-
-            if marker_tree is not None:
-                ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
-
-            box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
-                   'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
-                   'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
-                   'height': heightmean, 'width': widthmean, 'confidence': confidencemean}
-
-        # Make a single dict object containing the class and the box vectors return also the max prob label
-        classybox = {}
-        for d in [Class, box]:
-            classybox.update(d)
+                if event_type == 'dynamic':
+                    if mode == 'detection':
+                        real_time_event = tcentermean
+                        box_time_event = boxtcentermean
+                    if mode == 'prediction':
+                        real_time_event = int(inputtime)
+                        box_time_event = int(inputtime)
+                    if config['yolo_v2']:
+                        realangle = math.pi * (anglemean + 0.5)
+                        rawangle = anglemean
+                    else:
+        
+                        realangle = 2
+                        rawangle = 2
+                    if marker_tree is not None:
+                        ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
+                    # Compute the box vectors
+                    box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
+                           'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
+                           'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
+                           'height': heightmean, 'width': widthmean, 'confidence': confidencemean, 'realangle': realangle,
+                           'rawangle': rawangle}
+                if event_type == 'static':
+                    real_time_event = int(inputtime)
+                    box_time_event = int(inputtime)
+                    realangle = 0
+                    rawangle = 0
+        
+                    if marker_tree is not None:
+                        ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
+        
+                    box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
+                           'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
+                           'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
+                           'height': heightmean, 'width': widthmean, 'confidence': confidencemean}
+        
+                # Make a single dict object containing the class and the box vectors return also the max prob label
+                classybox = {}
+                for d in [Class, box]:
+                    classybox.update(d)
 
         return classybox
 
