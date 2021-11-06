@@ -1251,7 +1251,6 @@ def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categ
 
         if k > time_prediction.shape[0]:
             break;
-        print('zero', zero_label)
         Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord,
                                    inputtime, mode, event_type, marker_tree, zero_label = zero_label)
         # Append the box and the maximum likelehood detected class
