@@ -1489,7 +1489,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                 for d in [Class, box]:
                     classybox.update(d)
 
-        return classybox
+    return classybox
 
 
 def focpredictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputz):
