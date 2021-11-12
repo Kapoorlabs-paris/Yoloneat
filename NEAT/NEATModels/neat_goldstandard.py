@@ -403,7 +403,8 @@ class NEATDynamic(object):
                                         Y = box['ycenter']
                                         T = int(box['real_time_event'])  
                                         remove_candidates_list.append([T,Y,X])
-        
+                                        print(T,Y,X)
+        print(remove_candidates_list.size())
         for i in range(0, self.markers.shape[0]):
                 Clean_Coordinates = []
                 sublist = [] 
@@ -419,7 +420,7 @@ class NEATDynamic(object):
                      if current_centroid not in sublist:
                                 
                          Clean_Coordinates.append(current_centroid) 
-  
+                print(Clean_Coordinates)
                 Clean_Coordinates = sorted(Clean_Coordinates, key=lambda k: [k[1], k[0]])
                 Clean_Coordinates.append((0, 0))
                 Clean_Coordinates = np.asarray(Clean_Coordinates)
