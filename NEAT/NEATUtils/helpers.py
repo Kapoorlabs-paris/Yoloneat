@@ -1300,6 +1300,7 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
     total_coords = len(key_cord)
     y = (k - 1) * stride
     x = (j - 1) * stride
+   
     prediction_vector = time_prediction[k - 1, j - 1, :]
 
     xstart = x + sx
@@ -1538,7 +1539,7 @@ def get_nearest(marker_tree, ycenter, xcenter, tcenter):
     location = (ycenter, xcenter)
     tree, indices = marker_tree[str(int(round(tcenter)))]
     distance, nearest_location = tree.query(location)
-    if distance <= 20:
+    if distance <= 10:
         nearest_location = int(indices[nearest_location][0]), int(indices[nearest_location][1])
     else:
         nearest_location = location

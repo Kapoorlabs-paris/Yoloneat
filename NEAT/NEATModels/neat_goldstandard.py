@@ -2,7 +2,7 @@ from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
 from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, \
-    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData
+    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData,save_dynamic_csv, dynamic_nms
 from keras import callbacks
 import os
 import math
@@ -29,8 +29,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
+#from qtpy.QtCore import Qt
+#from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
 import cv2
 import imageio
@@ -301,10 +301,12 @@ class NEATDynamic(object):
             self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
             markerdir = self.savedir + '/' + 'Markers'
             Path(markerdir).mkdir(exist_ok=True)
+            
             imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('float32'))
         else:
             try:
                 self.markers = imread(markerdir + '/' + Name + '.tif')
+                self.markers = DownsampleData(self.markers, self.downsample)
                 for i in range(0, self.markers.shape[0]):
                     self.markers[i,:] = label(self.markers[i,:].astype('uint16'))
             except:
@@ -324,9 +326,6 @@ class NEATDynamic(object):
 
         self.imagename = imagename
         self.image = imread(imagename)
-        self.Colorimage = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3], dtype='uint16')
-        print(self.Colorimage.shape)
-        self.Colorimage[:, :, :, 0] = self.image
         self.markers = markers
         self.marker_tree = marker_tree
         self.density_location = density_location
@@ -367,8 +366,7 @@ class NEATDynamic(object):
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
                 
-                if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
-                    imwrite((savename + '.tif'), self.Colorimage)
+              
                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
                                           self.imagey)
                 smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
@@ -397,30 +395,31 @@ class NEATDynamic(object):
                                 for box in eventboxes:
                 
                                     event_prob = box[event_name]
-                                    if event_prob >= 0.9:
+                                    if event_prob >= 0.8:
                 
                                         X = box['xcenter']
                                         Y = box['ycenter']
-                                        T = int(box['real_time_event'])  
+                                        T = int(box['real_time_event']) 
+                                         
                                         remove_candidates_list.append([T,Y,X])
-                                        print(T,Y,X)
-        print(remove_candidates_list.size())
+                                      
+        
         for i in range(0, self.markers.shape[0]):
                 Clean_Coordinates = []
                 sublist = [] 
                 waterproperties = measure.regionprops(self.markers[i,:])
                 for t,y,x in remove_candidates_list:
                     if t == i:
-                         sublist.append([y,x])
+                         sublist.append((int(y),int(x)))
                          
                 for prop in waterproperties:
                      current_centroid = prop.centroid
                      
                              
-                     if current_centroid not in sublist:
+                     if (int(current_centroid[0]), int(current_centroid[1])) not in sublist:
                                 
                          Clean_Coordinates.append(current_centroid) 
-                print(Clean_Coordinates)
+               
                 Clean_Coordinates = sorted(Clean_Coordinates, key=lambda k: [k[1], k[0]])
                 Clean_Coordinates.append((0, 0))
                 Clean_Coordinates = np.asarray(Clean_Coordinates)
@@ -449,15 +448,10 @@ class NEATDynamic(object):
         eventboxes = []
         refinedeventboxes = []
         classedboxes = {}
+        self.n_tiles = (1,1)
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
-            if inputtime < self.image.shape[0] - self.imaget:
-
-                if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
-                    imwrite((savename + '.tif'), self.Colorimage)
-                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
-                                          self.imagey)
-                smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
+             if inputtime < self.image.shape[0] - self.imaget:    
                 tree, location = self.marker_tree[str(int(inputtime))]
                 for i in range(len(location)):
                     
@@ -465,17 +459,31 @@ class NEATDynamic(object):
                     crop_xplus = location[i][1]  + int(self.imagex/2)
                     crop_yminus = location[i][0]  - int(self.imagey/2)
                     crop_yplus = location[i][0]   + int(self.imagey/2)
-                    region =(slice(0,int(smallimage.shape[0])),slice(int(crop_yminus), int(crop_yplus)),
+                    region =(slice(inputtime,inputtime + int(self.imaget)),slice(int(crop_yminus), int(crop_yplus)),
                           slice(int(crop_xminus), int(crop_xplus)))
                     
-                    crop_image = smallimage[region] 
+                    crop_image = self.image[region] 
                     if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex:                                                
                                 #Now apply the prediction for counting real events
                                 ycenter = location[i][0]
                                 xcenter = location[i][1]
-                                prediction_vector = self.make_patches(crop_image)
+                                #prediction_vector = self.make_patches(crop_image)
                                 
-                                boxprediction = nonfcn_yoloprediction(crop_image, 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                                                   
+                                #boxprediction = yoloprediction( 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                            
+
+
+                                predictions, allx, ally = self.predict_main(crop_image)
+                                #Iterate over tiles
+                                for p in range(0,len(predictions)):
+
+                                  sum_time_prediction = predictions[p]
+                                  if sum_time_prediction is not None:
+                                     #For each tile the prediction vector has shape N H W Categories + Training Vector labels
+                                     for i in range(0, sum_time_prediction.shape[0]):
+                                          time_prediction =  sum_time_prediction[i]
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime , self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+
+                       
                                 if len(boxprediction) > 0:
                                         boxprediction[0]['xcenter'] = xcenter
                                         boxprediction[0]['ycenter'] = ycenter
@@ -520,56 +528,8 @@ class NEATDynamic(object):
 
     def to_csv(self):
 
-        for (event_name, event_label) in self.key_categories.items():
+         save_dynamic_csv(self.imagename, self.key_categories, self.iou_classedboxes, self.savedir, self.downsample)        
 
-            if event_label > 0:
-                xlocations = []
-                ylocations = []
-                scores = []
-                confidences = []
-                tlocations = []
-                radiuses = []
-                angles = []
-
-                iou_current_event_boxes = self.iou_classedboxes[event_name][0]
-                iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: x[event_name], reverse=True)
-                for iou_current_event_box in iou_current_event_boxes:
-                    xcenter = iou_current_event_box['xcenter']
-                    ycenter = iou_current_event_box['ycenter']
-                    tcenter = iou_current_event_box['real_time_event']
-                    confidence = iou_current_event_box['confidence']
-                    angle = iou_current_event_box['realangle']
-                    score = iou_current_event_box[event_name]
-                    radius = np.sqrt(
-                        iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box[
-                            'width'] * iou_current_event_box['width']) // 2
-                    # Replace the detection with the nearest marker location
-
-                    xlocations.append(xcenter)
-                    ylocations.append(ycenter)
-                    scores.append(score)
-                    confidences.append(confidence)
-                    tlocations.append(tcenter)
-                    radiuses.append(radius)
-                    angles.append(angle)
-
-                event_count = np.column_stack(
-                    [tlocations, ylocations, xlocations, scores, radiuses, confidences, angles])
-                event_count = sorted(event_count, key=lambda x: x[0], reverse=False)
-                event_data = []
-                csvname = self.savedir + "/" + event_name + "Location" + (
-                    os.path.splitext(os.path.basename(self.imagename))[0])
-                writer = csv.writer(open(csvname + ".csv", "a"))
-                filesize = os.stat(csvname + ".csv").st_size
-                if filesize < 1:
-                    writer.writerow(['T', 'Y', 'X', 'Score', 'Size', 'Confidence', 'Angle'])
-                for line in event_count:
-                    if line not in event_data:
-                        event_data.append(line)
-                    writer.writerows(event_data)
-                    event_data = []
-
-                self.saveimage(xlocations, ylocations, tlocations, angles, radiuses, scores)
 
     def saveimage(self, xlocations, ylocations, tlocations, angles, radius, scores):
 
