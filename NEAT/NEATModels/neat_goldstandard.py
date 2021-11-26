@@ -296,6 +296,8 @@ class NEATDynamic(object):
         self.downsample = downsample
         self.image = DownsampleData(self.image, self.downsample)
         self.n_tiles = n_tiles
+        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
+
         print('Obtaining Markers')
         if markerdir is None:
             self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
@@ -453,7 +455,13 @@ class NEATDynamic(object):
         self.n_tiles = (1,1)
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
         for inputtime in tqdm(range(0, self.image.shape[0])):
-             if inputtime < self.image.shape[0] - self.imaget:    
+             if inputtime < self.image.shape[0] - self.imaget:   
+
+                if inputtime%100==0 and inputtime > 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
+
+
+
+                                      imwrite((heatsavename + '.tif' ), self.heatmap) 
                 tree, location = self.marker_tree[str(int(inputtime))]
                 for i in range(len(location)):
                     
