@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -26,7 +26,7 @@ from pathlib import Path
 
 imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
 model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
-savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/GTmode/'
+savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/GTmode_test/'
 markerdir = '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Markers/'
 model_name = 'Cellsplitdetector'
 
@@ -37,11 +37,11 @@ cordconfig = load_json(division_cord_json)
 model = NEATDynamic(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
-event_threshold = 0.99 #[1,0.99999,0.99999,1,1,1]
+event_threshold = 0.9999 #[1,0.99999,0.99999,1,1,1]
 iou_threshold = 0.3
 yolo_v2 = False
 downsample = 2
-remove_markers = True
+remove_markers = False
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:

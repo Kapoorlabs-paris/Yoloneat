@@ -26,7 +26,8 @@ from scipy.ndimage import morphology
 from skimage.filters import threshold_local, threshold_otsu
 from scipy.ndimage.morphology import binary_fill_holes
 from skimage.segmentation import watershed
-
+from skimage.feature import peak_local_max
+from scipy import ndimage as ndi
 """
  @author: Varun Kapoor
 
@@ -511,9 +512,10 @@ def MakeTrees(segimage):
         indices = []
         
         currentimage = segimage[i, :].astype('uint16')
-        waterproperties = measure.regionprops(currentimage)
-        for prop in waterproperties:
-            indices.append((int(prop.centroid[0]), int(prop.centroid[1])))
+       
+
+        # Comparison between image_max and im to find the coordinates of local maxima
+        indices = peak_local_max(currentimage, min_distance=10)
         if len(indices) > 0:
             tree = spatial.cKDTree(indices)
 

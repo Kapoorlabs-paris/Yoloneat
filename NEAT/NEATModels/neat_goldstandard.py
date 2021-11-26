@@ -395,23 +395,25 @@ class NEATDynamic(object):
                                 for box in eventboxes:
                 
                                     event_prob = box[event_name]
-                                    if event_prob >= 0.8:
+                                    if event_prob >= 0.5:
                 
                                         X = box['xcenter']
                                         Y = box['ycenter']
                                         T = int(box['real_time_event']) 
-                                         
+                                                    
                                         remove_candidates_list.append([T,Y,X])
                                       
-        
-        for i in range(0, self.markers.shape[0]):
+        remove_candidates_list = list(set([ tuple(t) for t in remove_candidates_list ]))
+        for i in tqdm(range(0, self.markers.shape[0])):
                 Clean_Coordinates = []
                 sublist = [] 
-                waterproperties = measure.regionprops(self.markers[i,:])
-                for t,y,x in remove_candidates_list:
+                waterproperties = measure.regionprops(self.markers[i,:].astype('uint16'))
+                for j in  range(0,len(remove_candidates_list)):
+                    t,y,x = remove_candidates_list[j]
                     if t == i:
                          sublist.append((int(y),int(x)))
-                         
+                         #remove_candidates_list.remove([t,y,x])
+                                                 
                 for prop in waterproperties:
                      current_centroid = prop.centroid
                      
@@ -463,15 +465,18 @@ class NEATDynamic(object):
                           slice(int(crop_xminus), int(crop_xplus)))
                     
                     crop_image = self.image[region] 
+                    #crop_image = normalizeFloatZeroOne(crop_image.astype('float32'), 1, 99.8)
                     if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey and crop_image.shape[2] >= self.imagex:                                                
                                 #Now apply the prediction for counting real events
-                                ycenter = location[i][0]
-                                xcenter = location[i][1]
+                                crop_image = normalizeFloatZeroOne(crop_image.astype('float32'), 1, 99.8)
+
+                                ycenter = location[i][0] 
+                                xcenter = location[i][1] 
                                 #prediction_vector = self.make_patches(crop_image)
                                 
                                 #boxprediction = yoloprediction( 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                            
 
-
+                                #print(xcenter, ycenter)  
                                 predictions, allx, ally = self.predict_main(crop_image)
                                 #Iterate over tiles
                                 for p in range(0,len(predictions)):
@@ -481,7 +486,13 @@ class NEATDynamic(object):
                                      #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                                      for i in range(0, sum_time_prediction.shape[0]):
                                           time_prediction =  sum_time_prediction[i]
-                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime , self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride,
+                                                           inputtime, self.config,
+                                                           self.key_categories, self.key_cord, self.nboxes, 'detection',
+                                                           'dynamic')
+
+
+                                        
 
                        
                                 if len(boxprediction) > 0:
@@ -515,16 +526,18 @@ class NEATDynamic(object):
     def nms(self):
 
         best_iou_classedboxes = {}
-        for (event_name, event_label) in self.key_categories.items():
+        self.iou_classedboxes = {}
+        for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
-                # Get all events
 
-                sorted_event_box = self.classedboxes[event_name][0]
-                sorted_event_box = sorted(sorted_event_box, key=lambda x: x[event_name], reverse=True)
-               
-                best_iou_classedboxes[event_name] = [sorted_event_box]
+               #best_sorted_event_box = self.classedboxes[event_name][0]
+               best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh )
+
+               best_iou_classedboxes[event_name] = [best_sorted_event_box]
 
         self.iou_classedboxes = best_iou_classedboxes
+
+
 
     def to_csv(self):
 

@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#
+#/usr/bin/env python
 # coding: utf-8
 
 # In[1]:
@@ -24,12 +25,12 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
-maskimagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/Masks/'
-model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/WinnerOneatModels/'
-savedir= '/home/sancere/VKepler/WildTypeTest/Celldeathpredictor_th1/'
+imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
+maskimagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Masks/'
+model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
+savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/Celldeathdetector_th4/'
 
-model_name = 'Celldeathpredictor'
+model_name = 'Celldeathdetectorm3p3'
 mask_name = '_Mask'
 division_categories_json = model_dir + 'Celldeathcategories.json'
 catconfig = load_json(division_categories_json)
@@ -43,7 +44,7 @@ iou_threshold = 0.3
 
 yolo_v2 = False
 downsample = 2
-thresh = 1
+thresh = 4
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:
