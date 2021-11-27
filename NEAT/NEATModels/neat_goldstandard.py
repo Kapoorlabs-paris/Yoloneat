@@ -2,7 +2,7 @@ from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
 from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, \
-    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData,save_dynamic_csv, dynamic_nms
+    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData,save_dynamic_csv, dynamic_nms, gold_nms
 from keras import callbacks
 import os
 import math
@@ -294,9 +294,11 @@ class NEATDynamic(object):
         self.star = star
         Path(self.savedir).mkdir(exist_ok=True)
         self.downsample = downsample
+        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
+
         self.image = DownsampleData(self.image, self.downsample)
         self.n_tiles = n_tiles
-        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
+        
 
         print('Obtaining Markers')
         if markerdir is None:
@@ -324,7 +326,7 @@ class NEATDynamic(object):
         return self.markers, self.marker_tree, self.density_location
 
     def predict(self, imagename, markers, marker_tree, density_location, savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh=5, downsample = 1, remove_markers = True):
+                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh=1, downsample = 1, remove_markers = True):
 
         self.imagename = imagename
         self.image = imread(imagename)
@@ -338,11 +340,13 @@ class NEATDynamic(object):
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
+        self.maskimage = None
         self.downsample_regions = {}
         self.upsample_regions = {}
         self.candidate_regions = {}
         self.downsample = downsample
         self.remove_markers = remove_markers
+        self.originalimage = self.image
         self.image = DownsampleData(self.image, self.downsample)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
@@ -539,7 +543,7 @@ class NEATDynamic(object):
             if event_label > 0:
 
                #best_sorted_event_box = self.classedboxes[event_name][0]
-               best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh )
+               best_sorted_event_box = gold_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsample, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh )
 
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
 

@@ -1061,6 +1061,42 @@ def saveimage(ColorimageStatic,ColorimageDynamic , xlocations, ylocations, tloca
                     if event_label == 5:
                         ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
 
+def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh):
+
+               sorted_event_box = classedboxes[event_name][0]
+               scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               
+
+               filtered_good_sorted_event_box = []
+               for iou_current_event_box in sorted_event_box:
+                                                      xcenter = iou_current_event_box['xcenter']* downsamplefactor
+                                                      ycenter = iou_current_event_box['ycenter']* downsamplefactor
+                                                      tcenter = iou_current_event_box['real_time_event']
+
+                                                      xstart = iou_current_event_box['xstart']* downsamplefactor
+                                                      ystart = iou_current_event_box['ystart']* downsamplefactor
+
+                                                      xend = xcenter + iou_current_event_box['width']* downsamplefactor
+                                                      yend = ycenter + iou_current_event_box['height']* downsamplefactor
+                                                      score = iou_current_event_box[event_name]
+
+                                                      if event_label >= 1:
+                                                              filtered_good_sorted_event_box.append(iou_current_event_box)
+                                                              for x in range(int(xcenter - 8), int(xcenter + 8)):
+                                                                  for y in range(int(ycenter - 8), int(ycenter + 8)):
+
+                                                                      heatmap[int(tcenter), int(y), int(x)] = heatmap[int(tcenter), int(y), int(x)] + score
+
+               scores = [ filtered_good_sorted_event_box[i][event_name]  for i in range(len(filtered_good_sorted_event_box))]
+                    
+               #best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
+               #print(best_sorted_event_box)
+               return filtered_good_sorted_event_box
+
+
+
+
+
 
 def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh):
     
