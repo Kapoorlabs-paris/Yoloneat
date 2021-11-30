@@ -464,6 +464,7 @@ class NEATDynamic(object):
         refinedeventboxes = []
         classedboxes = {}
         self.n_tiles = (1,1)
+        self.iou_threshold = 0.9
         heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat'
  
         savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'      
