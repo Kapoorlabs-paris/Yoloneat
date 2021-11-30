@@ -313,6 +313,7 @@ class NEATDynamic(object):
                 if remove_markers:
                     self.markers = DownsampleData(self.markers, self.downsample)
                 for i in range(0, self.markers.shape[0]):
+                    self.markers[i,:] = self.markers[i,:] > 0
                     self.markers[i,:] = label(self.markers[i,:].astype('uint16'))
             except:
                 self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
