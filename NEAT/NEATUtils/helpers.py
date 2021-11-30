@@ -40,7 +40,7 @@ This method is used to convert Marker image to a list containing the XY indices 
 def DownsampleData(image, DownsampleFactor):
                     
                 if DownsampleFactor!=1:  
-                    print('Downsampling Image in XY by', DownsampleFactor)
+                    #print('Downsampling Image in XY by', DownsampleFactor)
                     scale_percent = int(100/DownsampleFactor) # percent of original size
                     width = int(image.shape[2] * scale_percent / 100)
                     height = int(image.shape[1] * scale_percent / 100)
@@ -513,9 +513,13 @@ def MakeTrees(segimage):
         
         currentimage = segimage[i, :].astype('uint16')
        
-
+        currentimage = currentimage > 0
+        currentimage = label(currentimage)
+        props = measure.regionprops(currentimage)
+        for prop in props:
+              indices.append((int(prop.centroid[0]), int(prop.centroid[1])))
         # Comparison between image_max and im to find the coordinates of local maxima
-        indices = peak_local_max(currentimage, min_distance=10)
+      
         if len(indices) > 0:
             tree = spatial.cKDTree(indices)
 
@@ -799,7 +803,7 @@ def getmeanbox(box1, box2, event_name, event_type, imagex, imagey, imaget):
     
 
 def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0,
-               thresh=1):
+               thresh=1, onlydynamic = False):
     if len(boxes) == 0:
         return []
 
@@ -837,8 +841,13 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
             # grab the current index
                 j = idxs[pos]
 
-            
-                overlap = compare_function(boxes[i], boxes[j])
+                if onlydynamic:
+                     if boxes[i]['real_time_event'] != boxes[j]['real_time_event']:
+                          overlap = compare_function(boxes[i], boxes[j])
+                     else:
+                          overlap = 1
+                else:
+                       overlap = compare_function(boxes[i], boxes[j])
                 
                 # if there is sufficient overlap, suppress the current bounding box
                 if overlap > nms_threshold:
@@ -1061,14 +1070,14 @@ def saveimage(ColorimageStatic,ColorimageDynamic , xlocations, ylocations, tloca
                     if event_label == 5:
                         ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
 
-def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh):
+def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh, onlydynamic = True):
 
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                
-
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh, onlydynamic)
                filtered_good_sorted_event_box = []
-               for iou_current_event_box in sorted_event_box:
+               for iou_current_event_box in good_sorted_event_box:
                                                       xcenter = iou_current_event_box['xcenter']* downsamplefactor
                                                       ycenter = iou_current_event_box['ycenter']* downsamplefactor
                                                       tcenter = iou_current_event_box['real_time_event']
@@ -1098,11 +1107,11 @@ def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_
 
 
 
-def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh):
+def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh, onlydynamic = False):
     
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh, onlydynamic)
                
                filtered_good_sorted_event_box = []
                for iou_current_event_box in good_sorted_event_box:

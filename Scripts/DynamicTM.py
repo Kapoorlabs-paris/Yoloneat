@@ -12,12 +12,12 @@ os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 
 
 npz_directory = '/data/u934/service_imagerie/v_kapoor/CurieTrainingDatasets/oneatnpz/'
-npz_name = 'Cellsplitdetectorm3p3.npz'
-npz_val_name = 'Cellsplitdetectorm3p3val.npz'
+npz_name = 'Cellsplitdetectorm4p6.npz'
+npz_val_name = 'Cellsplitdetectorm4p6val.npz'
 
 #Read and Write the h5 file, directory location and name
 model_dir =  '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
-model_name = 'Cellsplitdetectorm3p3.h5'
+model_name = 'Cellsplitdetectorm4p6.h5'
 
 #Neural network parameters
 division_categories_json = model_dir + 'Cellsplitcategories.json'
@@ -48,8 +48,8 @@ nboxes = 1
 show = False
 stage_number = 3
 last_conv_factor = 4
-size_tminus = 3
-size_tplus = 3
+size_tminus = 4
+size_tplus = 6
 imagex = 64
 imagey = 64
 yolo_v0 = False
