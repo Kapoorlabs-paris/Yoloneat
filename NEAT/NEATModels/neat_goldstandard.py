@@ -395,7 +395,7 @@ class NEATDynamic(object):
 
                             if boxprediction is not None:
                                 eventboxes = eventboxes + boxprediction
-                for (event_name, event_label) in self.key_categories.items():
+        for (event_name, event_label) in self.key_categories.items():
 
                     if event_label == 0:                
                                 for box in eventboxes:
