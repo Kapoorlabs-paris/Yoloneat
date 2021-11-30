@@ -26,7 +26,7 @@ from pathlib import Path
 
 imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
 model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/WinnerOneatModels/'
-savedir= '/home/sancere/VKepler/WildTypeTest/wt12/GTmode_testm3p3_ht_low/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/GTmode_test_ht_fastm3p3/'
 markerdir = '/home/sancere/VKepler/WildTypeTest/wt12/Markers/'
 model_name = 'Cellsplitdetectorm3p3'
 
@@ -36,7 +36,7 @@ division_cord_json = model_dir + 'Cellsplitcord.json'
 cordconfig = load_json(division_cord_json)
 model = NEATDynamic(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
-n_tiles = (4,4)
+n_tiles = (2,2)
 event_threshold = 1-1.0E-04 #[1,0.99999,0.99999,1,1,1]
 iou_threshold = 0.3
 yolo_v2 = False

@@ -417,9 +417,19 @@ class NEATDynamic(object):
         for box in self.iou_classedboxes:
                   ycentermean, xcentermean = get_nearest(marker_tree, box['ycenter'], box['xcenter'], box['real_time_event'])
 
-                  remove_candidates.append([int(box['real_time_event']), ycentermean, xcentermean]) 
+                  remove_candidates.append([int(box['real_time_event']), ycentermean * self.downsample, xcentermean * self.downsample]) 
 
         remove_candidates_list = list(set([ tuple(t) for t in remove_candidates_list ]))
+
+
+        self.markers = DownsampleData(self.markers, int(1.0//self.downsample))
+        self.image = DownsampleData(self.image, int(1.0//self.downsample))
+        for i in range(0, self.markers.shape[0]):
+                    self.markers[i,:] = self.markers[i,:] > 0
+                    self.markers[i,:] = label(self.markers[i,:].astype('uint16'))
+
+
+
         for i in tqdm(range(0, self.markers.shape[0])):
                 Clean_Coordinates = []
                 sublist = [] 
@@ -470,7 +480,7 @@ class NEATDynamic(object):
         self.iou_threshold = 0.9
         heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat'
  
-        savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'      
+         
         self.image = normalizeFloatZeroOne(self.image.astype('float32'), 1, 99.8)
   
         for inputtime in tqdm(range(0, self.image.shape[0])):
