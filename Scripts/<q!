@@ -283,7 +283,7 @@ class NEATDynamic(object):
 
         self.Trainingmodel.save(self.model_dir + self.model_name)
 
-    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True, downsample = 1, remove_markers = True):
+    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True, downsample = 1, remove_markers = False):
 
         self.starmodel = starmodel
         self.imagename = imagename
@@ -310,7 +310,7 @@ class NEATDynamic(object):
         else:
             try:
                 self.markers = imread(markerdir + '/' + Name + '.tif')
-                if remove_markers:
+                if remove_markers = False:
                     self.markers = DownsampleData(self.markers, self.downsample)
                 for i in range(0, self.markers.shape[0]):
                     self.markers[i,:] = label(self.markers[i,:].astype('uint16'))

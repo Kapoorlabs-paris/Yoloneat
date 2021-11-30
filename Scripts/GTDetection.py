@@ -53,7 +53,7 @@ X = sorted(X)
 marker_dict = {}
 for imagename in X:
    
-     markers, marker_tree, density = model.get_markers(imagename, None, savedir, n_tiles = n_tiles, markerdir=markerdir, star=True, downsample = downsample) 
+     markers, marker_tree, density = model.get_markers(imagename, None, savedir, n_tiles = n_tiles, markerdir=markerdir, star=True, downsample = downsample, remove_markers = remove_markers) 
      model.predict(imagename,markers, marker_tree, density,  savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, remove_markers = remove_markers, downsample = downsample)
 
 

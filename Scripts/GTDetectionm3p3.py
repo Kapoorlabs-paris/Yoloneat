@@ -24,10 +24,10 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
-savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/GTmode_testm3p3_ht_low/'
-markerdir = '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Markers/'
+imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/WinnerOneatModels/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/GTmode_testm3p3_ht_low/'
+markerdir = '/home/sancere/VKepler/WildTypeTest/wt12/Markers/'
 model_name = 'Cellsplitdetectorm3p3'
 
 division_categories_json = model_dir + 'Cellsplitcategories.json'
@@ -41,7 +41,7 @@ event_threshold = 1-1.0E-04 #[1,0.99999,0.99999,1,1,1]
 iou_threshold = 0.3
 yolo_v2 = False
 downsample = 2
-remove_markers = False
+remove_markers = True
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:
@@ -53,7 +53,7 @@ X = sorted(X)
 marker_dict = {}
 for imagename in X:
    
-     markers, marker_tree, density = model.get_markers(imagename, None, savedir, n_tiles = n_tiles, markerdir=markerdir, star=True, downsample = downsample) 
+     markers, marker_tree, density = model.get_markers(imagename, None, savedir, n_tiles = n_tiles, markerdir=markerdir, star=True, downsample = downsample, remove_markers = remove_markers) 
      model.predict(imagename,markers, marker_tree, density,  savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, remove_markers = remove_markers, downsample = downsample)
 
 
