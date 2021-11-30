@@ -473,10 +473,10 @@ class NEATDynamic(object):
                 tree, location = self.marker_tree[str(int(inputtime))]
                 for i in range(len(location)):
                     
-                    crop_xminus = location[i][1]  - int(self.imagex/2) * self.downsample
-                    crop_xplus = location[i][1]  + int(self.imagex/2) * self.downsample
-                    crop_yminus = location[i][0]  - int(self.imagey/2) * self.downsample 
-                    crop_yplus = location[i][0]   + int(self.imagey/2) * self.downsample
+                    crop_xminus = location[i][1]  - int(self.imagex/2) * self.downsample - 1
+                    crop_xplus = location[i][1]  + int(self.imagex/2) * self.downsample + 1
+                    crop_yminus = location[i][0]  - int(self.imagey/2) * self.downsample - 1
+                    crop_yplus = location[i][0]   + int(self.imagey/2) * self.downsample + 1
                     region =(slice(inputtime,inputtime + int(self.imaget)),slice(int(crop_yminus), int(crop_yplus)),
                           slice(int(crop_xminus), int(crop_xplus)))
                     
