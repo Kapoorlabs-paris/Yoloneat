@@ -402,13 +402,20 @@ class NEATDynamic(object):
                 
                                     event_prob = box[event_name]
                                     if event_prob >= 0.5:
-                
-                                        X = box['xcenter']
-                                        Y = box['ycenter']
-                                        T = int(box['real_time_event']) 
-                                                    
-                                        remove_candidates_list.append([T,Y,X])
-                                      
+                                          
+                                        
+
+                                        current_event_box.append(box)
+                                        classedboxes[event_name] = [current_event_box]
+
+        self.classedboxes = classedboxes
+        self.nms()
+
+        for box in self.iou_classedboxes:
+                  ycentermean, xcentermean = get_nearest(marker_tree, box['ycenter'], box['xcenter'], box['real_time_event'])
+
+                  remove_candidates.append([int(box['real_time_event']), ycentermean, xcentermean]) 
+
         remove_candidates_list = list(set([ tuple(t) for t in remove_candidates_list ]))
         for i in tqdm(range(0, self.markers.shape[0])):
                 Clean_Coordinates = []
@@ -439,7 +446,7 @@ class NEATDynamic(object):
                 markers = dilation(markers_raw, disk(2))
             
                 self.markers[i, :] = label(markers.astype('uint16'))                            
-
+         
         markerdir = self.savedir + '/' + 'Clean_Markers'  
         Path(markerdir).mkdir(exist_ok=True)
         Name = os.path.basename(os.path.splitext(self.imagename)[0])

@@ -1466,8 +1466,8 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
     
                     realangle = 2
                     rawangle = 2
-                if marker_tree is not None:
-                    ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
+                #if marker_tree is not None:
+                    #ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
                 # Compute the box vectors
                 box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
                        'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
@@ -1480,8 +1480,8 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
                 realangle = 0
                 rawangle = 0
     
-                if marker_tree is not None:
-                    ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
+                #if marker_tree is not None:
+                    #ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
     
                 box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
                        'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
@@ -1586,7 +1586,8 @@ def get_nearest(marker_tree, ycenter, xcenter, tcenter):
     location = (ycenter, xcenter)
     tree, indices = marker_tree[str(int(round(tcenter)))]
     distance, nearest_location = tree.query(location)
-    if distance <= 10:
+    #print(ycenter, xcenter, distance, int(indices[nearest_location][0]), int(indices[nearest_location][1]))
+    if distance <= 20:
         nearest_location = int(indices[nearest_location][0]), int(indices[nearest_location][1])
     else:
         nearest_location = location

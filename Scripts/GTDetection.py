@@ -16,7 +16,7 @@ from NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
 from pathlib import Path
 
@@ -24,10 +24,10 @@ from pathlib import Path
 # In[2]:
 
 
-imagedir =  '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/'
-model_dir = '/data/u934/service_imagerie/v_kapoor/CurieDeepLearningModels/WinnerOneatModels/'
-savedir= '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/GTmode_test_ht_low/'
-markerdir = '/data/u934/service_imagerie/v_kapoor/WildTypeTest/wt12/Markers/'
+imagedir =  '/home/sancere/VKepler/WildTypeTest/wt12/'
+model_dir = '/home/sancere/VKepler/CurieDeepLearningModels/WinnerOneatModels/'
+savedir= '/home/sancere/VKepler/WildTypeTest/wt12/GTmode_test_ht_low/'
+markerdir = '/home/sancere/VKepler/WildTypeTest/wt12/Markers/'
 model_name = 'Cellsplitdetector'
 
 division_categories_json = model_dir + 'Cellsplitcategories.json'
@@ -41,7 +41,7 @@ event_threshold = 1-1.0E-4 #[1,0.99999,0.99999,1,1,1]
 iou_threshold = 0.9
 yolo_v2 = False
 downsample = 2
-remove_markers = False
+remove_markers = True
 # # In the code block below compute the markers and make a dictionary for each image
 
 # In[ ]:
