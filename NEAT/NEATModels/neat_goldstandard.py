@@ -349,8 +349,8 @@ class NEATDynamic(object):
         self.downsample = downsample
         self.remove_markers = remove_markers
         self.originalimage = self.image
-
-        self.image = DownsampleData(self.image, self.downsample)
+        if self.remove_markers:
+             self.image = DownsampleData(self.image, self.downsample)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate", "lr").encode()
