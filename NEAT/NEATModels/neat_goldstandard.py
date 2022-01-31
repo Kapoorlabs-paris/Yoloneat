@@ -29,8 +29,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-#from qtpy.QtCore import Qt
-#from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
 import cv2
 import imageio
@@ -399,8 +399,9 @@ class NEATDynamic(object):
                             if boxprediction is not None:
                                 eventboxes = eventboxes + boxprediction
         for (event_name, event_label) in self.key_categories.items():
-
-                    if event_label == 0:                
+                    
+                    if event_label == 0:  
+                                current_event_box = []              
                                 for box in eventboxes:
                 
                                     event_prob = box[event_name]
@@ -415,7 +416,7 @@ class NEATDynamic(object):
         self.fast_nms()
 
         for box in self.iou_classedboxes:
-                  ycentermean, xcentermean = get_nearest(marker_tree, box['ycenter'], box['xcenter'], box['real_time_event'])
+                  ycentermean, xcentermean = get_nearest(self.marker_tree, box['ycenter'], box['xcenter'], box['real_time_event'])
 
                   remove_candidates.append([int(box['real_time_event']), ycentermean * self.downsample, xcentermean * self.downsample]) 
 
