@@ -841,21 +841,13 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
             # grab the current index
                 j = idxs[pos]
 
-                if onlydynamic:
-                     if boxes[i]['real_time_event'] != boxes[j]['real_time_event']:
-                          overlap = compare_function(boxes[i], boxes[j])
-                     else:
-                          overlap = 1
-                else:
-                       overlap = compare_function(boxes[i], boxes[j])
+                overlap = compare_function(boxes[i], boxes[j])
                 
                 # if there is sufficient overlap, suppress the current bounding box
                 if overlap > nms_threshold:
                         count = count + 1
                         if count >= thresh:
                             
-                            if boxes[i] not in Averageboxes:
-                               Averageboxes.append(boxes[i])
                             if boxes[j] not in Averageboxes:    
                                Averageboxes.append(boxes[j])
                                
