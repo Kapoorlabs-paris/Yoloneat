@@ -8,7 +8,7 @@ Created on Sun Apr 25 13:32:04 2021
 from NEATUtils import plotters
 import numpy as np
 from NEATUtils import helpers
-from NEATUtils.helpers import load_json, yoloprediction, normalizeFloatZeroOne, fastnms, averagenms
+from NEATUtils.helpers import load_json, yoloprediction, normalizeFloatZeroOne, fastnms, averagenms, microscope_dynamic_nms
 from keras import callbacks
 import os
 import tensorflow as tf
@@ -177,7 +177,7 @@ class NEATPredict(object):
                 Z_start, downsample=False,
                 event_label_interest=1, fileextension='*TIF', nb_prediction=3, n_tiles=(1, 1), Z_n_tiles=(1, 2, 2),
                 overlap_percent=0.6, event_threshold=0.5, iou_threshold=0.01, projection_model=None, delay_projection=4,
-                thresh=5, jumpindex = 1):
+                thresh=4, jumpindex = 1):
 
         self.imagedir = imagedir
         self.basedirResults = self.imagedir + '/' + "live_results"
@@ -362,21 +362,18 @@ class NEATPredict(object):
                              iou_threshold=self.iou_threshold, projection_model=self.projection_model)
 
     def nms(self):
-
+        
+        
         best_iou_classedboxes = {}
         self.iou_classedboxes = {}
-        self.start = self.start + self.jumpindex
-        for (event_name, event_label) in self.key_categories.items():
+        for (event_name,event_label) in self.key_categories.items():
             if event_label > 0:
-                # Get all events
-
-                sorted_event_box = self.classedboxes[event_name][0]
-                scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
-                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold, self.event_threshold, event_name, 'dynamic',self.imagex, self.imagey, self.imaget, self.thresh)
-
-                best_iou_classedboxes[event_name] = [best_sorted_event_box]
-                
-
+               
+               best_sorted_event_box = microscope_dynamic_nms( self.classedboxes, event_name, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh)
+               
+               
+               best_iou_classedboxes[event_name] = [best_sorted_event_box]
+               
         self.iou_classedboxes = best_iou_classedboxes
 
     def to_csv(self):

@@ -1150,7 +1150,32 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                return best_sorted_event_box
            
 
-
+def microscope_dynamic_nms( classedboxes, event_name, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh, onlydynamic = False):
+    
+               sorted_event_box = classedboxes[event_name][0]
+               scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh, onlydynamic)
+               
+               filtered_good_sorted_event_box = []
+               for iou_current_event_box in good_sorted_event_box:
+                                                      xcenter = iou_current_event_box['xcenter']* downsamplefactor
+                                                      ycenter = iou_current_event_box['ycenter']* downsamplefactor
+                                                      tcenter = iou_current_event_box['real_time_event']
+                                                      
+                                                      xstart = iou_current_event_box['xstart']* downsamplefactor
+                                                      ystart = iou_current_event_box['ystart']* downsamplefactor
+                                                      
+                                                      xend = xcenter + iou_current_event_box['width']* downsamplefactor
+                                                      yend = ycenter + iou_current_event_box['height']* downsamplefactor
+                                                      score = iou_current_event_box[event_name]
+                                                      
+                                                      
+                                                                      
+               scores = [ filtered_good_sorted_event_box[i][event_name]  for i in range(len(filtered_good_sorted_event_box))]
+                                                                  
+               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
+               
+               return best_sorted_event_box
 
 def save_dynamic_csv(imagename, key_categories, iou_classedboxes, savedir, downsamplefactor):
     
