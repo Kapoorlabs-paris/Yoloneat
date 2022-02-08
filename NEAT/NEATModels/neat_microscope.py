@@ -271,7 +271,7 @@ class NEATPredict(object):
                             print('Doing max projection')
                             projection = np.amax(Z_image, axis=0)
                         imwrite(self.imagedir + '/' + Z_Name + '.tif', projection.astype('float32'))
-                        print("____ Projection took %s seconds ____ ", (time.time() - start_time))
+                        print(f'____ Projection took {(time.time() - start_time)} seconds ____ ')
 
                     else:
                         if Z_Name in self.Z_movie_name_list:
@@ -316,7 +316,7 @@ class NEATPredict(object):
                 print('Doing ONEAT prediction')
                 start_time = time.time()
                 predictions, allx, ally = self.predict_main(smallimage)
-                print("____ Prediction took %s seconds ____ ", (time.time() - start_time))
+                print(f'____ Prediction took {(time.time() - start_time)} seconds ____ ' )
 
                 # Iterate over tiles
                 for p in tqdm(range(0, len(predictions))):
@@ -351,7 +351,7 @@ class NEATPredict(object):
                 start_time = time.time()
                 self.iou_classedboxes = classedboxes
                 self.nms()
-                print("____ NMS took %s seconds ____ ", (time.time() - start_time))
+                print(f'____ NMS took {(time.time() - start_time)} seconds ____ ')
                 print('Generating ini file')
                 self.to_csv()
                 self.predict(self.imagedir, self.movie_name_list, self.movie_input, self.Z_imagedir,
