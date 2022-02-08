@@ -795,7 +795,7 @@ def getmeanbox(box1, box2, event_name, event_type, imagex, imagey, imaget):
     
 
 def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0,
-               thresh=1, onlydynamic = False):
+               thresh=1):
     if len(boxes) == 0:
         return []
 
@@ -1059,7 +1059,7 @@ def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                
-               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh, onlydynamic)
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
                filtered_good_sorted_event_box = []
                for iou_current_event_box in good_sorted_event_box:
                                                       xcenter = iou_current_event_box['xcenter']* downsamplefactor
@@ -1095,7 +1095,7 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
     
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh, onlydynamic)
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
                
                filtered_good_sorted_event_box = []
                for iou_current_event_box in good_sorted_event_box:
@@ -1138,7 +1138,7 @@ def microscope_dynamic_nms( classedboxes, event_name, downsamplefactor, iou_thre
     
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh, onlydynamic)
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
                scores = [ good_sorted_event_box[i][event_name]  for i in range(len(good_sorted_event_box))]
                best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
                
