@@ -171,11 +171,7 @@ def normalize_mi_ma(x, mi, ma, eps=1e-20, dtype=np.float32):
         ma = dtype(ma) if np.isscalar(ma) else ma.astype(dtype, copy=False)
         eps = dtype(eps)
 
-    try:
-        import numexpr
-        x = numexpr.evaluate("(x - mi ) / (ma - mi + eps)")
-    except ImportError:
-        x = (x - mi) / (ma - mi + eps)
+    x = (x - mi) / (ma - mi + eps)
 
     return x
 
@@ -199,13 +195,9 @@ def normalizer(x, mi, ma, eps=1e-20, dtype=np.float32):
         ma = dtype(ma) if np.isscalar(ma) else ma.astype(dtype, copy=False)
         eps = dtype(eps)
 
-    try:
-        import numexpr
-        x = numexpr.evaluate("(x - mi ) / (ma - mi + eps)")
-    except ImportError:
-        x = (x - mi) / (ma - mi + eps)
+    x = (x - mi) / (ma - mi + eps)
 
-        x = normalizeZeroOne(x)
+    x = normalizeZeroOne(x)
     return x
 
 
@@ -1147,25 +1139,8 @@ def microscope_dynamic_nms( classedboxes, event_name, downsamplefactor, iou_thre
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh, onlydynamic)
-               
-               filtered_good_sorted_event_box = []
-               for iou_current_event_box in good_sorted_event_box:
-                                                      xcenter = iou_current_event_box['xcenter']* downsamplefactor
-                                                      ycenter = iou_current_event_box['ycenter']* downsamplefactor
-                                                      tcenter = iou_current_event_box['real_time_event']
-                                                      
-                                                      xstart = iou_current_event_box['xstart']* downsamplefactor
-                                                      ystart = iou_current_event_box['ystart']* downsamplefactor
-                                                      
-                                                      xend = xcenter + iou_current_event_box['width']* downsamplefactor
-                                                      yend = ycenter + iou_current_event_box['height']* downsamplefactor
-                                                      score = iou_current_event_box[event_name]
-                                                      
-                                                      
-                                                                      
-               scores = [ filtered_good_sorted_event_box[i][event_name]  for i in range(len(filtered_good_sorted_event_box))]
-                                                                  
-               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
+               scores = [ good_sorted_event_box[i][event_name]  for i in range(len(good_sorted_event_box))]
+               best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
                
                return best_sorted_event_box
 
