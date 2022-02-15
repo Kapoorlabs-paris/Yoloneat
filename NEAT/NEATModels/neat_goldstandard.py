@@ -540,10 +540,8 @@ class NEATDynamic(object):
                                         boxprediction[i]['ystart'] = ycenter - int(self.imagey/2) * self.downsample  
 
                                  
-                                        valid_box = False
-                                        if boxprediction[i]['xcenter'] > int(self.imagex/2) * self.downsample and boxprediction[i]['ycenter'] > int(self.imagey/2) * self.downsample:
-                                               valid_box = True           
-                                if boxprediction is not None and valid_box:
+                                                 
+                                if boxprediction is not None:
                                           eventboxes = eventboxes + boxprediction
                 for (event_name,event_label) in self.key_categories.items(): 
                                            
