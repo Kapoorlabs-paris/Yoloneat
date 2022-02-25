@@ -573,7 +573,7 @@ class NEATDynamic(object):
         best_iou_classedboxes = {}
         self.iou_classedboxes = {}
         for (event_name,event_label) in self.key_categories.items():
-            if event_label > 0:
+            if event_label == 0:
 
                #best_sorted_event_box = self.classedboxes[event_name][0]
                best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsample, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh )
