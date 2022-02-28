@@ -1092,7 +1092,7 @@ def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_
 
 
 def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh, onlydynamic = False):
-    
+                
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)

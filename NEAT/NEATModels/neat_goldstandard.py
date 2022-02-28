@@ -413,14 +413,15 @@ class NEATDynamic(object):
                                         classedboxes[event_name] = [current_event_box]
 
         self.classedboxes = classedboxes
-        self.fast_nms()
+        if len(self.classedboxes) > 0:
+                self.fast_nms()
 
-        for box in self.iou_classedboxes:
-                  ycentermean, xcentermean = get_nearest(self.marker_tree, box['ycenter'], box['xcenter'], box['real_time_event'])
+                for box in self.iou_classedboxes:
+                        ycentermean, xcentermean = get_nearest(self.marker_tree, box['ycenter'], box['xcenter'], box['real_time_event'])
 
-                  remove_candidates.append([int(box['real_time_event']), ycentermean * self.downsample, xcentermean * self.downsample]) 
+                        remove_candidates.append([int(box['real_time_event']), ycentermean * self.downsample, xcentermean * self.downsample]) 
 
-        remove_candidates_list = list(set([ tuple(t) for t in remove_candidates_list ]))
+                remove_candidates_list = list(set([ tuple(t) for t in remove_candidates_list ]))
 
 
         self.markers = DownsampleData(self.markers, int(1.0//self.downsample))
