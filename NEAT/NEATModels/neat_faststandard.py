@@ -6,45 +6,22 @@ Created on Mon Jun 28 13:49:35 2021
 @author: vkapoor
 """
 
-from NEATUtils import plotters
 import numpy as np
-from NEATUtils import helpers
-from NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms,DownsampleData, save_dynamic_csv, dynamic_nms
-from keras import callbacks
+from ..NEATUtils.helpers import yoloprediction, normalizeFloatZeroOne, DownsampleData, save_dynamic_csv, dynamic_nms
 import os
 import math
 import tensorflow as tf
 from tqdm import tqdm
-from NEATModels import nets
-from NEATModels.nets import Concat
-from NEATModels.loss import dynamic_yolo_loss
-from keras import backend as K
-#from IPython.display import clear_output
-from keras import optimizers
-from sklearn.utils.class_weight import compute_class_weight
-from pathlib import Path
+from ..NEATModels.nets import Concat
 from keras.models import load_model
 from tifffile import imread, imwrite
-import csv
-import napari
-import glob
 from scipy import ndimage
 from scipy import spatial
-import itertools
-from napari.qt.threading import thread_worker
 import matplotlib.pyplot  as plt
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
-import cv2
-import imageio
-Boxname = 'ImageIDBox'
-EventBoxname = 'EventIDBox'
+from neat_goldstandard import NEATDynamic
 
-class NEATDynamicSegFree(object):
+class NEATSynamic(NEATDynamic):
     
 
     """
@@ -82,157 +59,23 @@ class NEATDynamicSegFree(object):
     
     def __init__(self, config, model_dir, model_name, catconfig = None, cordconfig = None):
 
+        super().__init__(config = config, model_dir = model_dir, model_name = model_name, catconfig = catconfig, cordconfig = cordconfig)
         
-        self.config = config
-        self.catconfig = catconfig
-        self.cordconfig = cordconfig
-        self.model_dir = model_dir
-        self.model_name = model_name 
-        if self.config !=None:
-                self.npz_directory = config.npz_directory
-                self.npz_name = config.npz_name
-                self.npz_val_name = config.npz_val_name
-                self.key_categories = config.key_categories
-                
-                self.show = config.show
-                self.key_cord = config.key_cord
-                self.box_vector = len(config.key_cord)
-                self.categories = len(config.key_categories)
-                self.stage_number = config.stage_number 
-                self.last_conv_factor = config.last_conv_factor
-                self.depth = config.depth
-                self.start_kernel = config.start_kernel
-                self.mid_kernel = config.mid_kernel
-                self.lstm_kernel = config.lstm_kernel
-                self.learning_rate = config.learning_rate
-                self.epochs = config.epochs
-                self.residual = config.residual
-                self.startfilter = config.startfilter
-                self.batch_size = config.batch_size
-                self.multievent = config.multievent
-                self.imagex = config.imagex
-                self.imagey = config.imagey
-                self.imaget = config.size_tminus + config.size_tplus + 1
-                self.size_tminus = config.size_tminus
-                self.size_tplus = config.size_tplus
-                self.nboxes = config.nboxes
-                self.gridx = 1
-                self.gridy = 1
-                self.gridt = 1
-                self.yolo_v0 = config.yolo_v0
-                self.yolo_v1 = config.yolo_v1
-                self.yolo_v2 = config.yolo_v2
-                self.stride = config.stride
-                self.lstm_hidden_unit = config.lstm_hidden_unit
-        if self.config == None:
-               
-                try:
-                   self.config = load_json(self.model_dir + os.path.splitext(self.model_name)[0] + '_Parameter.json')
-                except:
-                   self.config = load_json(self.model_dir + self.model_name + '_Parameter.json')  
-                   
-                self.npz_directory = self.config['npz_directory']
-                self.npz_name = self.config['npz_name']
-                self.npz_val_name = self.config['npz_val_name']
-                self.key_categories = self.catconfig
-                self.box_vector = self.config['box_vector']
-                self.show = self.config['show']
-                self.key_cord = self.cordconfig
-                self.categories = len(self.catconfig)
-                self.depth = self.config['depth']
-                self.start_kernel = self.config['start_kernel']
-                self.mid_kernel = self.config['mid_kernel']
-                self.lstm_kernel = self.config['lstm_kernel']
-                self.lstm_hidden_unit = self.config['lstm_hidden_unit']
-                self.learning_rate = self.config['learning_rate']
-                self.epochs = self.config['epochs']
-                self.residual = self.config['residual']
-                self.startfilter = self.config['startfilter']
-                self.batch_size = self.config['batch_size']
-                self.multievent = self.config['multievent']
-                self.imagex = self.config['imagex']
-                self.imagey = self.config['imagey']
-                self.imaget = self.config['size_tminus'] + self.config['size_tplus'] + 1
-                self.size_tminus = self.config['size_tminus']
-                self.size_tplus = self.config['size_tplus']
-                self.nboxes = self.config['nboxes']
-                self.stage_number = self.config['stage_number'] 
-                self.last_conv_factor = self.config['last_conv_factor']
-                self.gridx = 1
-                self.gridy = 1
-                self.gridt = 1
-                self.yolo_v0 = self. config['yolo_v0']
-                self.yolo_v1 = self.config['yolo_v1']
-                self.yolo_v2 = self.config['yolo_v2']
-                self.stride = self.config['stride']   
-                self.lstm_hidden_unit = self.config['lstm_hidden_unit']
-                
-                
- 
-        self.X = None
-        self.Y = None
-        self.axes = None
-        self.X_val = None
-        self.Y_val = None
-        self.Trainingmodel = None
-        self.Xoriginal = None
-        self.Xoriginal_val = None
-        
-        if self.residual:
-            self.model_keras = nets.ORNET
-        else:
-            self.model_keras = nets.OSNET
-            
-        if self.multievent == True:
-           self.last_activation = 'sigmoid'
-           self.entropy = 'binary'
-           
-           
-        if self.multievent == False:
-           self.last_activation = 'softmax'              
-           self.entropy = 'notbinary' 
-        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes, self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
-        
-
         
 
         
     def predict(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsamplefactor = 1, maskimagename = None, maskfilter = 10):
         
-        self.imagename = imagename
-        self.image = imread(imagename)
-        self.maskfilter = maskfilter
-        self.maskimagename = maskimagename
-        if maskimagename is not None:
-          self.maskimage = imread(maskimagename)
-          self.maskimage = self.maskimage.astype('uint8')
-          self.maskimage = ndimage.minimum_filter(self.maskimage, size = self.maskfilter)
-        else:
-            self.maskimage = None
-        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
-        self.savedir = savedir
-        self.n_tiles = n_tiles
-        self.thresh = thresh
-        self.overlap_percent = overlap_percent
-        self.iou_threshold = iou_threshold
-        self.event_threshold = event_threshold
-        self.downsamplefactor = downsamplefactor
-        self.originalimage = self.image
-        self.image = DownsampleData(self.image, self.downsamplefactor)
-        f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
-        data_p = f.attrs['training_config']
-        data_p = data_p.decode().replace("learning_rate","lr").encode()
-        f.attrs['training_config'] = data_p
-        f.close()
-        self.model =  load_model( self.model_dir + self.model_name + '.h5',  custom_objects={'loss':self.yololoss, 'Concat':Concat})
-       
-            
+
+        self.predict(imagename,savedir,n_tiles = n_tiles, overlap_percent = overlap_percent, event_threshold = event_threshold, iou_threshold = iou_threshold, 
+        thresh = thresh, downsamplefactor = downsamplefactor, maskimagename = maskimagename, maskfilter = maskfilter, density_veto = None, markers = None, marker_tree = None,
+        density_location = None, remove_markers = False )
+
         eventboxes = []
         classedboxes = {}    
         count = 0
-        
-
         heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat' 
+
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
@@ -331,82 +174,6 @@ class NEATDynamicSegFree(object):
         
         save_dynamic_csv(self.imagename, self.key_categories, self.iou_classedboxes, self.savedir, self.downsamplefactor)          
                               
-    
-          
-    def showNapari(self, imagedir, savedir, yolo_v2 = False):
-         
-         
-         Raw_path = os.path.join(imagedir, '*tif')
-         X = glob.glob(Raw_path)
-         self.savedir = savedir
-         Imageids = []
-         self.viewer = napari.Viewer()
-         napari.run()
-         for imagename in X:
-             Imageids.append(imagename)
-         
-         
-         eventidbox = QComboBox()
-         eventidbox.addItem(EventBoxname)
-         for (event_name,event_label) in self.key_categories.items():
-             
-             eventidbox.addItem(event_name)
-            
-         imageidbox = QComboBox()   
-         imageidbox.addItem(Boxname)   
-         detectionsavebutton = QPushButton(' Save detection Movie')
-         
-         for i in range(0, len(Imageids)):
-             
-             
-             imageidbox.addItem(str(Imageids[i]))
-             
-             
-         figure = plt.figure(figsize=(4, 4))
-         multiplot_widget = FigureCanvas(figure)
-         ax = multiplot_widget.figure.subplots(1, 1)
-         width = 400
-         dock_widget = self.viewer.window.add_dock_widget(
-         multiplot_widget, name="EventStats", area='right')
-         multiplot_widget.figure.tight_layout()
-         self.viewer.window._qt_window.resizeDocks([dock_widget], [width], Qt.Horizontal)    
-         eventidbox.currentIndexChanged.connect(lambda eventid = eventidbox : EventViewer(
-                 self.viewer,
-                 imread(imageidbox.currentText()),
-                 eventidbox.currentText(),
-                 self.key_categories,
-                 os.path.basename(os.path.splitext(imageidbox.currentText())[0]),
-                 savedir,
-                 multiplot_widget,
-                 ax,
-                 figure,
-                 yolo_v2,
-            
-        )
-    )    
-         
-         imageidbox.currentIndexChanged.connect(
-         lambda trackid = imageidbox: EventViewer(
-                 self.viewer,
-                 imread(imageidbox.currentText()),
-                 eventidbox.currentText(),
-                 self.key_categories,
-                 os.path.basename(os.path.splitext(imageidbox.currentText())[0]),
-                 savedir,
-                 multiplot_widget,
-                 ax,
-                 figure,
-                 yolo_v2,
-            
-        )
-    )            
-         
-         
-         self.viewer.window.add_dock_widget(eventidbox, name="Event", area='left')  
-         self.viewer.window.add_dock_widget(imageidbox, name="Image", area='left')     
-                                      
-                                                             
-                             
     def overlaptiles(self, sliceregion):
         
              if self.n_tiles == (1, 1):

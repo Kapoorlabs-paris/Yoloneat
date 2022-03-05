@@ -1,39 +1,31 @@
-from NEATUtils import plotters
+from ..NEATUtils import plotters
 import numpy as np
-from NEATUtils import helpers
-from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, \
-    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData,save_dynamic_csv, dynamic_nms, gold_nms
+from ..NEATUtils import helpers
+from ..NEATUtils.helpers import get_nearest,  load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, MakeTrees, downsamplefactorData,save_dynamic_csv, dynamic_nms, gold_nms
 from keras import callbacks
 import os
 import math
 import tensorflow as tf
 from tqdm import tqdm
-from NEATModels import nets
-from NEATModels.nets import Concat
-from NEATModels.loss import dynamic_yolo_loss
+from ..NEATModels import nets
+from ..NEATModels.nets import Concat
+from ..NEATModels.loss import dynamic_yolo_loss
 from keras import backend as K
-# from IPython.display import clear_output
 from keras import optimizers
-from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite
-import csv
 import napari
 import glob
-from skimage.morphology import erosion, dilation, square, binary_dilation, disk
-from scipy import spatial
-import itertools
-#from napari.qt.threading import thread_worker
+from skimage.morphology import erosion, dilation, disk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
+from qtpy.QtWidgets import QComboBox, QPushButton
 import h5py
 import cv2
-import imageio
+from scipy import ndimage
 from skimage.measure import label
 from skimage import measure
 Boxname = 'ImageIDBox'
@@ -283,7 +275,8 @@ class NEATDynamic(object):
 
         self.Trainingmodel.save(self.model_dir + self.model_name)
 
-    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True, downsample = 1, remove_markers = True):
+    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True,
+     downsamplefactor = 1, remove_markers = True):
 
         self.starmodel = starmodel
         self.imagename = imagename
@@ -293,10 +286,10 @@ class NEATDynamic(object):
         self.savedir = savedir
         self.star = star
         Path(self.savedir).mkdir(exist_ok=True)
-        self.downsample = downsample
-        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
+        self.downsamplefactor = downsamplefactor
+        
 
-        #self.image = DownsampleData(self.image, self.downsample)
+        #self.image = downsamplefactorData(self.image, self.downsamplefactor)
         self.n_tiles = n_tiles
         
 
@@ -311,7 +304,7 @@ class NEATDynamic(object):
             try:
                 self.markers = imread(markerdir + '/' + Name + '.tif')
                 if remove_markers:
-                    self.markers = DownsampleData(self.markers, self.downsample)
+                    self.markers = downsamplefactorData(self.markers, self.downsamplefactor)
                 for i in range(0, self.markers.shape[0]):
                     self.markers[i,:] = self.markers[i,:] > 0
                     self.markers[i,:] = label(self.markers[i,:].astype('uint16'))
@@ -327,30 +320,30 @@ class NEATDynamic(object):
 
         return self.markers, self.marker_tree, self.density_location
 
-    def predict(self, imagename, markers, marker_tree, density_location, savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1, density_veto=5, thresh=5, downsample = 1, remove_markers = True):
+    def predict(self, imagename,  savedir, n_tiles=(1, 1), overlap_percent=0.8,
+                event_threshold=0.5, iou_threshold=0.1,  thresh=5, downsamplefactor = 1, 
+                 maskimagename = None, maskfilter = 10, density_veto=5,
+                 markers = None, marker_tree = None, density_location = None, remove_markers = True):
 
         self.imagename = imagename
         self.image = imread(imagename)
-        self.markers = markers
-        self.marker_tree = marker_tree
-        self.density_location = density_location
+        self.maskfilter = maskfilter
+        self.maskimagename = maskimagename
+        if maskimagename is not None:
+          self.maskimage = imread(maskimagename)
+          self.maskimage = self.maskimage.astype('uint8')
+          self.maskimage = ndimage.minimum_filter(self.maskimage, size = self.maskfilter)
+        else:
+            self.maskimage = None
+        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')  
         self.savedir = savedir
         self.n_tiles = n_tiles
         self.thresh = thresh
-        self.density_veto = density_veto
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
-        self.maskimage = None
-        self.downsample_regions = {}
-        self.upsample_regions = {}
-        self.candidate_regions = {}
-        self.downsample = downsample
-        self.remove_markers = remove_markers
+        self.downsamplefactor = downsamplefactor
         self.originalimage = self.image
-        if self.remove_markers:
-             self.image = DownsampleData(self.image, self.downsample)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate", "lr").encode()
@@ -358,13 +351,25 @@ class NEATDynamic(object):
         f.close()
         self.model = load_model(self.model_dir + self.model_name + '.h5',
                                 custom_objects={'loss': self.yololoss, 'Concat': Concat})
+
+        self.markers = markers
+        self.marker_tree = marker_tree
+        self.density_location = density_location
+        self.density_veto = density_veto
+        self.downsamplefactor_regions = {}
+        self.upsample_regions = {}
+        self.candidate_regions = {}
+        self.remove_markers = remove_markers
+        if self.remove_markers:
+             self.image = downsamplefactorData(self.image, self.downsamplefactor)
+        
         if self.remove_markers:
           self.first_pass_predict()
         self.second_pass_predict()
 
     def first_pass_predict(self):
         
-        print('Detecting event locations')
+        print('Detecting background event locations')
         count = 0
         eventboxes = []
         refinedeventboxes = []
@@ -419,13 +424,14 @@ class NEATDynamic(object):
                 for box in self.iou_classedboxes:
                         ycentermean, xcentermean = get_nearest(self.marker_tree, box['ycenter'], box['xcenter'], box['real_time_event'])
 
-                        remove_candidates.append([int(box['real_time_event']), ycentermean * self.downsample, xcentermean * self.downsample]) 
+                        remove_candidates.append([int(box['real_time_event']), ycentermean * self.downsamplefactor, xcentermean * self.downsamplefactor]) 
 
                 remove_candidates_list = list(set([ tuple(t) for t in remove_candidates_list ]))
 
+        #Image back to the same co ordinate system
+        self.markers = downsamplefactorData(self.markers, int(1.0//self.downsamplefactor))
+        self.image = downsamplefactorData(self.image, int(1.0//self.downsamplefactor))
 
-        self.markers = DownsampleData(self.markers, int(1.0//self.downsample))
-        self.image = DownsampleData(self.image, int(1.0//self.downsample))
         for i in range(0, self.markers.shape[0]):
                     self.markers[i,:] = self.markers[i,:] > 0
                     self.markers[i,:] = label(self.markers[i,:].astype('uint16'))
@@ -496,20 +502,20 @@ class NEATDynamic(object):
                 tree, location = self.marker_tree[str(int(inputtime))]
                 for i in range(len(location)):
                     
-                    crop_xminus = location[i][1]  - int(self.imagex/2) * self.downsample - 1
-                    crop_xplus = location[i][1]  + int(self.imagex/2) * self.downsample + 1
-                    crop_yminus = location[i][0]  - int(self.imagey/2) * self.downsample - 1
-                    crop_yplus = location[i][0]   + int(self.imagey/2) * self.downsample + 1
+                    crop_xminus = location[i][1]  - int(self.imagex/2) * self.downsamplefactor - 1
+                    crop_xplus = location[i][1]  + int(self.imagex/2) * self.downsamplefactor + 1
+                    crop_yminus = location[i][0]  - int(self.imagey/2) * self.downsamplefactor - 1
+                    crop_yplus = location[i][0]   + int(self.imagey/2) * self.downsamplefactor + 1
                     region =(slice(inputtime,inputtime + int(self.imaget)),slice(int(crop_yminus), int(crop_yplus)),
                           slice(int(crop_xminus), int(crop_xplus)))
                     
                     crop_image = self.image[region] 
                     #crop_image = normalizeFloatZeroOne(crop_image.astype('float32'), 1, 99.8)
-                    if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey * self.downsample and crop_image.shape[2] >= self.imagex * self.downsample:                                                
+                    if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey * self.downsamplefactor and crop_image.shape[2] >= self.imagex * self.downsamplefactor:                                                
                                 #Now apply the prediction for counting real events
                                 #crop_image = normalizeFloatZeroOne(crop_image.astype('float32'), 1, 99.8)
                                 
-                                crop_image = DownsampleData(crop_image, self.downsample)
+                                crop_image = downsamplefactorData(crop_image, self.downsamplefactor)
                                 ycenter = location[i][0]
                                 xcenter = location[i][1]
                                   
@@ -537,8 +543,8 @@ class NEATDynamic(object):
                                       for i in range(0, len(boxprediction)):  
                                         boxprediction[i]['xcenter'] = xcenter
                                         boxprediction[i]['ycenter'] = ycenter
-                                        boxprediction[i]['xstart'] = xcenter - int(self.imagex/2) * self.downsample
-                                        boxprediction[i]['ystart'] = ycenter - int(self.imagey/2) * self.downsample  
+                                        boxprediction[i]['xstart'] = xcenter - int(self.imagex/2) * self.downsamplefactor
+                                        boxprediction[i]['ystart'] = ycenter - int(self.imagey/2) * self.downsamplefactor  
 
                                  
                                                  
@@ -577,7 +583,7 @@ class NEATDynamic(object):
             if event_label == 0:
 
                #best_sorted_event_box = self.classedboxes[event_name][0]
-               best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsample, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh )
+               best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh )
 
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
 

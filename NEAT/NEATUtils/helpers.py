@@ -520,22 +520,31 @@ def MakeTrees(segimage):
     return AllTrees
 
 
-def compare_function(box1, box2):
+def compare_function(box1, box2, gridx, gridy):
     w1, h1 = box1['width'], box1['height']
     w2, h2 = box2['width'], box2['height']
+    x1 = box1['xcenter']
+    x2 = box2['xcenter']
+    
+    y1 = box1['ycenter']
+    y2 = box2['ycenter']
 
-    r1 = np.sqrt(w1 * w1 + h1 * h1) / 2
-    r2 = np.sqrt(w2 * w2 + h2 * h2) / 2
-    xA = max(box1['xcenter'], box2['xcenter'])
-    xB = min(box1['xcenter'] + r1, box2['xcenter'] + r2)
-    yA = max(box1['ycenter'], box2['ycenter'])
-    yB = min(box1['ycenter'] + r1, box2['ycenter'] + r2)
+    if abs(x1 - x2) <=gridx and abs(y1 - y2) <= gridy:
+            r1 = np.sqrt(w1 * w1 + h1 * h1) / 2
+            r2 = np.sqrt(w2 * w2 + h2 * h2) / 2
+            xA = max(box1['xcenter'], box2['xcenter'])
+            xB = min(box1['xcenter'] + r1, box2['xcenter'] + r2)
+            yA = max(box1['ycenter'], box2['ycenter'])
+            yB = min(box1['ycenter'] + r1, box2['ycenter'] + r2)
 
-    intersect = max(0, xB - xA) * max(0, yB - yA)
+            intersect = max(0, xB - xA) * max(0, yB - yA)
 
-    union = r1 * r1 + r2 * r2 - intersect
+            union = r1 * r1 + r2 * r2 - intersect
 
-    return float(np.true_divide(intersect, union))
+            return float(np.true_divide(intersect, union))
+    else:
+
+        return -1        
 
 def dist_compare_function(box1, box2):
     
@@ -556,7 +565,7 @@ def dist_compare_function(box1, box2):
     return distance
 
 
-def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
+def fastnms(boxes, scores, nms_threshold, score_threshold, gridx, gridy):
     if len(boxes) == 0:
         return []
 
@@ -595,10 +604,10 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
             j = idxs[pos]
 
             # compute the ratio of overlap between the two boxes and the area of the second box
-            overlap = compare_function(boxes[i], boxes[j])
+            overlap = compare_function(boxes[i], boxes[j], gridx, gridy)
 
             # if there is sufficient overlap, suppress the current bounding box
-            if overlap > nms_threshold:
+            if overlap > abs(nms_threshold):
                 count = count + 1
                 suppress.append(pos)
 
@@ -609,7 +618,7 @@ def fastnms(boxes, scores, nms_threshold, score_threshold, event_name):
     return pick
 
 
-def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0):
+def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_type, gridx, gridy, imaget=0):
     if len(boxes) == 0:
         return []
 
@@ -647,12 +656,12 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
             # grab the current index
                 j = idxs[pos]
                 
-                overlap = compare_function(boxes[i], boxes[j])
+                overlap = compare_function(boxes[i], boxes[j], gridx, gridy)
                
             
                 # if there is sufficient overlap, suppress the current bounding box
-                if   overlap > nms_threshold:
-                    newbox = getmeanbox(boxes[i], boxes[j], event_name, event_type, imagex, imagey, imaget)
+                if   overlap > abs(nms_threshold):
+                    newbox = getmeanbox(boxes[i], boxes[j], event_name, event_type, gridx, gridy, imaget)
                     suppress.append(pos)
                 if newbox is None:
                         newbox = boxes[i]
@@ -668,7 +677,7 @@ def averagenms(boxes, scores, nms_threshold, score_threshold, event_name, event_
 
 
 
-def getmeanbox(box1, box2, event_name, event_type, imagex, imagey, imaget):
+def getmeanbox(box1, box2, event_name, event_type, gridx, gridy, imaget):
     
     if event_type == 'static':
     
@@ -707,8 +716,8 @@ def getmeanbox(box1, box2, event_name, event_type, imagex, imagey, imaget):
                         meanboxscore = boxscore / 2
                         meanboxXstart = boxAXstart
                         meanboxYstart = boxAYstart
-                        meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * imagex
-                        meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * imagey
+                        meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * gridx
+                        meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * gridy
     
                         meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw) / boxscore) * imaget)
     
@@ -768,8 +777,8 @@ def getmeanbox(box1, box2, event_name, event_type, imagex, imagey, imaget):
                         meanboxscore = boxscore / 2
                         meanboxXstart = boxAXstart
                         meanboxYstart = boxAYstart
-                        meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * imagex
-                        meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * imagey
+                        meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * gridx
+                        meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * gridy
     
                         meanboxrealtime = int(min(boxATstart, boxBTstart) + (min(boxATcenterraw, boxBTcenterraw) / max(boxAscore, boxBscore)) * imaget)
     
@@ -794,7 +803,7 @@ def getmeanbox(box1, box2, event_name, event_type, imagex, imagey, imaget):
     return newbox
     
 
-def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_type, imagex, imagey, imaget=0,
+def goodboxes(boxes, scores, nms_threshold, score_threshold, gridx, gridy,
                thresh=1):
     if len(boxes) == 0:
         return []
@@ -833,10 +842,10 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
             # grab the current index
                 j = idxs[pos]
 
-                overlap = compare_function(boxes[i], boxes[j])
+                overlap = compare_function(boxes[i], boxes[j], gridx, gridy)
                 
                 # if there is sufficient overlap, suppress the current bounding box
-                if overlap > nms_threshold:
+                if overlap > abs(nms_threshold):
                         count = count + 1
                         if count >= thresh:
                             
@@ -856,7 +865,7 @@ def goodboxes(boxes, scores, nms_threshold, score_threshold, event_name, event_t
 
 
 
-def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
+def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name, gridx, gridy):
     if len(boxes) == 0:
         return []
 
@@ -896,7 +905,7 @@ def simpleaveragenms(boxes, scores, nms_threshold, score_threshold, event_name):
             j = idxs[pos]
 
             # compute the ratio of overlap between the two boxes and the area of the second box
-            overlap = compare_function(boxes[i], boxes[j])
+            overlap = compare_function(boxes[i], boxes[j], gridx, gridy)
 
             # if there is sufficient overlap, suppress the current bounding box
             if overlap > nms_threshold:
@@ -1054,12 +1063,12 @@ def saveimage(ColorimageStatic,ColorimageDynamic , xlocations, ylocations, tloca
                     if event_label == 5:
                         ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
 
-def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh, onlydynamic = True):
+def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, gridx, gridy, imaget, thresh, onlydynamic = True):
 
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
                
-               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', gridx, gridy, imaget, thresh)
                filtered_good_sorted_event_box = []
                for iou_current_event_box in good_sorted_event_box:
                                                       xcenter = iou_current_event_box['xcenter']* downsamplefactor
@@ -1082,7 +1091,7 @@ def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_
 
                scores = [ filtered_good_sorted_event_box[i][event_name]  for i in range(len(filtered_good_sorted_event_box))]
                     
-               #best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
+               #best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', gridx, gridy, imaget)
                #print(best_sorted_event_box)
                return filtered_good_sorted_event_box
 
@@ -1091,26 +1100,19 @@ def gold_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_
 
 
 
-def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, event_label, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh, onlydynamic = False):
+def dynamic_nms(heatmap, maskimage, classedboxes, event_name, downsamplefactor, iou_threshold, event_threshold, gridx, gridy, imaget, thresh):
                 
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', gridx, gridy, imaget, thresh)
                
                filtered_good_sorted_event_box = []
                for iou_current_event_box in good_sorted_event_box:
-                                                      xcenter = iou_current_event_box['xcenter']* downsamplefactor
-                                                      ycenter = iou_current_event_box['ycenter']* downsamplefactor
-                                                      tcenter = iou_current_event_box['real_time_event']
+                                                          xcenter = iou_current_event_box['xcenter']* downsamplefactor
+                                                          ycenter = iou_current_event_box['ycenter']* downsamplefactor
+                                                          tcenter = iou_current_event_box['real_time_event']
+                                                          score = iou_current_event_box[event_name]
                                                       
-                                                      xstart = iou_current_event_box['xstart']* downsamplefactor
-                                                      ystart = iou_current_event_box['ystart']* downsamplefactor
-                                                      
-                                                      xend = xcenter + iou_current_event_box['width']* downsamplefactor
-                                                      yend = ycenter + iou_current_event_box['height']* downsamplefactor
-                                                      score = iou_current_event_box[event_name]
-                                                      
-                                                      if event_label >= 1:
                                                           if maskimage is not None:
                                                               if maskimage[int(tcenter), int(ycenter), int(xcenter)] > 0:
                                                                       filtered_good_sorted_event_box.append(iou_current_event_box)
@@ -1129,18 +1131,18 @@ def dynamic_nms(heatmap, maskimage, originalimage, classedboxes, event_name, eve
                                                                       
                scores = [ filtered_good_sorted_event_box[i][event_name]  for i in range(len(filtered_good_sorted_event_box))]
                                                                   
-               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
+               best_sorted_event_box = averagenms(filtered_good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', gridx, gridy, imaget)
                
                return best_sorted_event_box
            
 
-def microscope_dynamic_nms( classedboxes, event_name, downsamplefactor, iou_threshold, event_threshold, imagex, imagey, imaget, thresh, onlydynamic = False):
+def microscope_dynamic_nms( classedboxes, event_name, iou_threshold, event_threshold, gridx, gridy, imaget, thresh):
     
                sorted_event_box = classedboxes[event_name][0]
                scores = [ sorted_event_box[i][event_name]  for i in range(len(sorted_event_box))]
-               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget, thresh)
+               good_sorted_event_box = goodboxes(sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', gridx, gridy, imaget, thresh)
                scores = [ good_sorted_event_box[i][event_name]  for i in range(len(good_sorted_event_box))]
-               best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', imagex, imagey, imaget)
+               best_sorted_event_box = averagenms(good_sorted_event_box, scores, iou_threshold, event_threshold, event_name, 'dynamic', gridx, gridy, imaget)
                
                return best_sorted_event_box
 
@@ -1278,7 +1280,7 @@ Prediction function for whole image/tile, output is Prediction vector for each i
 
 
 def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categories, key_cord, nboxes, mode,
-                   event_type, marker_tree=None, zero_label = False):
+                   event_type, marker_tree=None):
     LocationBoxes = []
     j = 0
     k = 1
@@ -1291,15 +1293,15 @@ def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categ
         if k > time_prediction.shape[0]:
             break;
         Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord,
-                                   inputtime, mode, event_type, marker_tree, zero_label = zero_label)
+                                   inputtime, mode, event_type, marker_tree)
         # Append the box and the maximum likelehood detected class
         if Classybox is not None:
-           
                 LocationBoxes.append(Classybox)
+
     return LocationBoxes
 
 
-def focyoloprediction(sy, sx, z_prediction, stride, inputz, config, key_categories, key_cord, nboxes, mode, event_type):
+def focyoloprediction(sy, sx, z_prediction, stride, inputz, config, key_categories, key_cord, nboxes):
     LocationBoxes = []
     j = 0
     k = 1
@@ -1334,7 +1336,7 @@ def nonfcn_yoloprediction(sy, sx, time_prediction, stride, inputtime, config, ke
 
 
 def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputtime, mode,
-                   event_type, marker_tree, zero_label = False):
+                   event_type):
     total_classes = len(key_categories)
     total_coords = len(key_cord)
     y = (k - 1) * stride
@@ -1352,11 +1354,9 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
     xcentermean = 0
     ycentermean = 0
     tcentermean = 0
-
     xcenterrawmean = 0
     ycenterrawmean = 0
     tcenterrawmean = 0
-
     boxtcentermean = 0
     widthmean = 0
     heightmean = 0
@@ -1367,9 +1367,8 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
     tcenter = 0
     boxtcenter = 0
     confidencemean = 0
-    scoremean = 0
-    trainshapex = config['imagex']
-    trainshapey = config['imagey']
+    trainshapex = config['gridx']
+    trainshapey = config['gridy']
     tcenterraw = 0
     for b in range(0, nboxes):
         xcenter = xstart + prediction_vector[total_classes + config['x'] + b * total_coords] * trainshapex
@@ -1438,101 +1437,46 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
     tcenterrawmean = tcenterrawmean / nboxes
     boxtstartmean = boxtstartmean / nboxes
 
-    max_prob_label = np.argmax(prediction_vector[:total_classes])
-    max_prob_class = prediction_vector[max_prob_label]
     classybox = {}
-    if zero_label:
         
-        if max_prob_label == 0:
-            if event_type == 'dynamic':
-                if mode == 'detection':
-                    real_time_event = tcentermean
-                    box_time_event = boxtcentermean
-                if mode == 'prediction':
-                    real_time_event = int(inputtime)
-                    box_time_event = int(inputtime)
-                if config['yolo_v2']:
-                    realangle = math.pi * (anglemean + 0.5)
-                    rawangle = anglemean
-                else:
-    
-                    realangle = 2
-                    rawangle = 2
-                #if marker_tree is not None:
-                    #ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
-                # Compute the box vectors
-                box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
-                       'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
-                       'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
-                       'height': heightmean, 'width': widthmean, 'confidence': confidencemean, 'realangle': realangle,
-                       'rawangle': rawangle}
-            if event_type == 'static':
-                real_time_event = int(inputtime)
-                box_time_event = int(inputtime)
-                realangle = 0
-                rawangle = 0
-    
-                #if marker_tree is not None:
-                    #ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
-    
-                box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
-                       'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
-                       'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
-                       'height': heightmean, 'width': widthmean, 'confidence': confidencemean}
-    
-            # Make a single dict object containing the class and the box vectors return also the max prob label
-            for d in [Class, box]:
-                classybox.update(d)
-            return classybox    
-    if zero_label==False:    
-        if max_prob_label > 0:
+       
+    if event_type == 'dynamic':
+        if mode == 'detection':
+            real_time_event = tcentermean
+            box_time_event = boxtcentermean
+        if mode == 'prediction':
+            real_time_event = int(inputtime)
+            box_time_event = int(inputtime)
+        if config['yolo_v2']:
+            realangle = math.pi * (anglemean + 0.5)
+            rawangle = anglemean
+        else:
+            realangle = 2
+            rawangle = 2
+        # Compute the box vectors
+        box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
+                'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
+                'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
+                'height': heightmean, 'width': widthmean, 'confidence': confidencemean, 'realangle': realangle,
+                'rawangle': rawangle}
+    if event_type == 'static':
+        real_time_event = int(inputtime)
+        box_time_event = int(inputtime)
+        realangle = 0
+        rawangle = 0
 
-                if event_type == 'dynamic':
-                    if mode == 'detection':
-                        real_time_event = tcentermean
-                        box_time_event = boxtcentermean
-                    if mode == 'prediction':
-                        real_time_event = int(inputtime)
-                        box_time_event = int(inputtime)
-                    if config['yolo_v2']:
-                        realangle = math.pi * (anglemean + 0.5)
-                        rawangle = anglemean
-                    else:
         
-                        realangle = 2
-                        rawangle = 2
-                    if marker_tree is not None:
-                        ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
-                    # Compute the box vectors
-                    box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
-                           'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
-                           'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
-                           'height': heightmean, 'width': widthmean, 'confidence': confidencemean, 'realangle': realangle,
-                           'rawangle': rawangle}
-                if event_type == 'static':
-                    real_time_event = int(inputtime)
-                    box_time_event = int(inputtime)
-                    realangle = 0
-                    rawangle = 0
-        
-                    if marker_tree is not None:
-                        ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
-        
-                    box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
-                           'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
-                           'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,
-                           'height': heightmean, 'width': widthmean, 'confidence': confidencemean}
-        
-                # Make a single dict object containing the class and the box vectors return also the max prob label
-                
-                for d in [Class, box]:
-                                    classybox.update(d)
-                return classybox  
+
+    # Make a single dict object containing the class and the box vectors return also the max prob label
+    for d in [Class, box]:
+        classybox.update(d)
+    
+    return classybox    
+    
 
 
 def focpredictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputz):
     total_classes = len(key_categories)
-    total_coords = len(key_cord)
     y = (k - 1) * stride
     x = (j - 1) * stride
     prediction_vector = time_prediction[0, k - 1, j - 1, :]
@@ -1544,8 +1488,8 @@ def focpredictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key
     for (event_name, event_label) in key_categories.items():
         Class[event_name] = prediction_vector[event_label]
 
-    trainshapex = config['imagex']
-    trainshapey = config['imagey']
+    trainshapex = config['gridx']
+    trainshapey = config['gridy']
 
     xcentermean = xstart + 0.5 * trainshapex
     ycentermean = ystart + 0.5 * trainshapey
@@ -1578,7 +1522,6 @@ def get_nearest(marker_tree, ycenter, xcenter, tcenter):
     location = (ycenter, xcenter)
     tree, indices = marker_tree[str(int(round(tcenter)))]
     distance, nearest_location = tree.query(location)
-    #print(ycenter, xcenter, distance, int(indices[nearest_location][0]), int(indices[nearest_location][1]))
     if distance <= 20:
         nearest_location = int(indices[nearest_location][0]), int(indices[nearest_location][1])
     else:
