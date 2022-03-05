@@ -570,20 +570,13 @@ class NEATDynamic(object):
                           slice(int(crop_xminus), int(crop_xplus)))
                     
                     crop_image = self.image[region] 
-                    #crop_image = normalizeFloatZeroOne(crop_image.astype('float32'), 1, 99.8)
                     if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey * self.downsamplefactor and crop_image.shape[2] >= self.imagex * self.downsamplefactor:                                                
                                 #Now apply the prediction for counting real events
-                                #crop_image = normalizeFloatZeroOne(crop_image.astype('float32'), 1, 99.8)
                                 
                                 crop_image = downsamplefactorData(crop_image, self.downsamplefactor)
                                 ycenter = location[i][0]
                                 xcenter = location[i][1]
                                   
-                                #prediction_vector = self.make_patches(crop_image)
-                                
-                                #boxprediction = yoloprediction( 0, 0, prediction_vector, self.stride, inputtime, self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')                            
-
-                                #print(xcenter, ycenter)  
                                 predictions, allx, ally = self.predict_main(crop_image)
                                 #Iterate over tiles
                                 for p in range(0,len(predictions)):
@@ -658,7 +651,12 @@ class NEATDynamic(object):
             if event_label > 0:
 
                #best_sorted_event_box = self.classedboxes[event_name][0]
-               best_sorted_event_box = gold_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, 1, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, 1 )
+               if self.remove_markers is not None:
+                   best_sorted_event_box = gold_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, 1, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, 1 )
+
+               if self.remove_markers == None:
+                   best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh )
+
 
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
 
@@ -667,15 +665,13 @@ class NEATDynamic(object):
 
 
     def to_csv(self):
-
-         save_dynamic_csv(self.imagename, self.key_categories, self.iou_classedboxes, self.savedir, 1)        
-
+         if self.remove_markers is not None:
+            save_dynamic_csv(self.imagename, self.key_categories, self.iou_classedboxes, self.savedir, 1)        
+         if self.markers is None:
+            save_dynamic_csv(self.imagename, self.key_categories, self.iou_classedboxes, self.savedir, self.downsamplefactor)          
+  
 
     def saveimage(self, xlocations, ylocations, tlocations, angles, radius, scores):
-
-        colors = [(0, 255, 0), (0, 0, 255), (255, 0, 0)]
-        # fontScale
-        fontScale = 1
 
         # Blue color in BGR
         textcolor = (255, 0, 0)
@@ -688,7 +684,6 @@ class NEATDynamic(object):
             Z = int(tlocations[j])
 
             image = self.Colorimage[Z, :, :, 1]
-            color = (0, 255, 0)
             if scores[j] >= 1.0 - 1.0E-5:
                 color = (0, 0, 255)
                 image = self.Colorimage[Z, :, :, 2]
@@ -704,10 +699,6 @@ class NEATDynamic(object):
             if self.yolo_v2:
                 x1 = xlocations[j]
                 y1 = ylocations[j]
-                x2 = x1 + radius[j] * math.cos(angles[j])
-                y2 = y1 + radius[j] * math.sin(angles[j])
-                # cv2.line(self.Colorimage[tlocation, :], (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255), 1)
-        # imwrite((csvimagename + '.tif'), self.Colorimage.astype('uint8'))
 
     def showNapari(self, imagedir, savedir, yolo_v2=False):
 
