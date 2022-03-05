@@ -363,24 +363,86 @@ class NEATDynamic(object):
         if self.remove_markers:
              self.image = downsamplefactorData(self.image, self.downsamplefactor)
         
-        if self.remove_markers:
-          self.first_pass_predict()
-        self.second_pass_predict()
+        if self.remove_markers == True:
+           self.first_pass_predict()
+        if self.remove_markers == False:  
+           self.second_pass_predict()
+        if self.remove_makers == None:
+           self.default_pass_predict() 
+
+    def default_pass_predict(self):
+        eventboxes = []
+        classedboxes = {}    
+        count = 0
+        heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat' 
+
+        print('Detecting event locations')
+        for inputtime in tqdm(range(0, self.image.shape[0])):
+                    if inputtime < self.image.shape[0] - self.imaget:
+                                count = count + 1
+                                if inputtime%100==0 and inputtime > 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
+                                      
+                                                                              
+                                      
+                                      imwrite((heatsavename + '.tif' ), self.heatmap)
+                                      
+                                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
+                                                          self.imagey)
+
+                                smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
+                                # Cut off the region for training movie creation
+                                #Break image into tiles if neccessary
+                                predictions, allx, ally = self.predict_main(smallimage)
+                                #Iterate over tiles
+                                for p in range(0,len(predictions)):   
+                        
+                                  sum_time_prediction = predictions[p]
+                                  if sum_time_prediction is not None:
+                                     #For each tile the prediction vector has shape N H W Categories + Training Vector labels
+                                     for i in range(0, sum_time_prediction.shape[0]):
+                                          time_prediction =  sum_time_prediction[i]
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime , self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          
+                                          if boxprediction is not None:
+                                                  eventboxes = eventboxes + boxprediction
+                                            
+                                for (event_name,event_label) in self.key_categories.items(): 
+                                                     
+                                                if event_label > 0:
+                                                     current_event_box = []
+                                                     for box in eventboxes:
+                                                
+                                                        event_prob = box[event_name]
+                                                        event_confidence = box['confidence']
+                                                        if event_prob >= self.event_threshold and event_confidence >= 0.9:
+                                                           
+                                                            current_event_box.append(box)
+                                                     classedboxes[event_name] = [current_event_box]
+                                                 
+                                self.classedboxes = classedboxes    
+                                self.eventboxes =  eventboxes
+                                #nms over time
+                                if inputtime%(self.imaget) == 0 and inputtime > 0:
+ 
+                                    self.nms()
+                                    self.to_csv()
+                                    eventboxes = []
+                                    classedboxes = {}    
+                                    count = 0
+
 
     def first_pass_predict(self):
         
         print('Detecting background event locations')
-        count = 0
         eventboxes = []
-        refinedeventboxes = []
         classedboxes = {}
         remove_candidates = {}
-        remove_candidates_list = []
+        
         
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
                 
-              
+                remove_candidates_list = []
                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
                                           self.imagey)
                 smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
@@ -424,9 +486,12 @@ class NEATDynamic(object):
                 for box in self.iou_classedboxes:
                         ycentermean, xcentermean = get_nearest(self.marker_tree, box['ycenter'], box['xcenter'], box['real_time_event'])
 
-                        remove_candidates.append([int(box['real_time_event']), ycentermean * self.downsamplefactor, xcentermean * self.downsamplefactor]) 
-
-                remove_candidates_list = list(set([ tuple(t) for t in remove_candidates_list ]))
+                        if remove_candidates[str(int(box['real_time_event']))] is None:
+                              remove_candidates[str(int(box['real_time_event']))] = (ycentermean * self.downsamplefactor, xcentermean * self.downsamplefactor)
+                        else:
+                             remove_candidates_list = remove_candidates[str(int(box['real_time_event']))]
+                             remove_candidates_list.append((ycentermean * self.downsamplefactor, xcentermean * self.downsamplefactor))
+                             remove_candidates[str(int(box['real_time_event']))] = remove_candidates_list
 
         #Image back to the same co ordinate system
         self.markers = downsamplefactorData(self.markers, int(1.0//self.downsamplefactor))
@@ -442,12 +507,7 @@ class NEATDynamic(object):
                 Clean_Coordinates = []
                 sublist = [] 
                 waterproperties = measure.regionprops(self.markers[i,:].astype('uint16'))
-                for j in  range(0,len(remove_candidates_list)):
-                    t,y,x = remove_candidates_list[j]
-                    if t == i:
-                         sublist.append((int(y),int(x)))
-                         #remove_candidates_list.remove([t,y,x])
-                                                 
+                sublist = remove_candidates[str(int(i))]
                 for prop in waterproperties:
                      current_centroid = prop.centroid
                      

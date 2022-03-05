@@ -69,68 +69,7 @@ class NEATSynamic(NEATDynamic):
 
         self.predict(imagename,savedir,n_tiles = n_tiles, overlap_percent = overlap_percent, event_threshold = event_threshold, iou_threshold = iou_threshold, 
         thresh = thresh, downsamplefactor = downsamplefactor, maskimagename = maskimagename, maskfilter = maskfilter, density_veto = None, markers = None, marker_tree = None,
-        density_location = None, remove_markers = False )
-
-        eventboxes = []
-        classedboxes = {}    
-        count = 0
-        heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat' 
-
-        print('Detecting event locations')
-        for inputtime in tqdm(range(0, self.image.shape[0])):
-                    if inputtime < self.image.shape[0] - self.imaget:
-                                count = count + 1
-                                if inputtime%100==0 and inputtime > 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
-                                      
-                                                                              
-                                      
-                                      imwrite((heatsavename + '.tif' ), self.heatmap)
-                                      
-                                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
-                                                          self.imagey)
-
-                                smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
-                                # Cut off the region for training movie creation
-                                #Break image into tiles if neccessary
-                                predictions, allx, ally = self.predict_main(smallimage)
-                                #Iterate over tiles
-                                for p in range(0,len(predictions)):   
-                        
-                                  sum_time_prediction = predictions[p]
-                                  if sum_time_prediction is not None:
-                                     #For each tile the prediction vector has shape N H W Categories + Training Vector labels
-                                     for i in range(0, sum_time_prediction.shape[0]):
-                                          time_prediction =  sum_time_prediction[i]
-                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime , self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
-                                          
-                                          if boxprediction is not None:
-                                                  eventboxes = eventboxes + boxprediction
-                                            
-                                for (event_name,event_label) in self.key_categories.items(): 
-                                                     
-                                                if event_label > 0:
-                                                     current_event_box = []
-                                                     for box in eventboxes:
-                                                
-                                                        event_prob = box[event_name]
-                                                        event_confidence = box['confidence']
-                                                        if event_prob >= self.event_threshold and event_confidence >= 0.9:
-                                                           
-                                                            current_event_box.append(box)
-                                                     classedboxes[event_name] = [current_event_box]
-                                                 
-                                self.classedboxes = classedboxes    
-                                self.eventboxes =  eventboxes
-                                #nms over time
-                                if inputtime%(self.imaget) == 0 and inputtime > 0:
- 
-                                    self.nms()
-                                    self.to_csv()
-                                    eventboxes = []
-                                    classedboxes = {}    
-                                    count = 0
-                                            
-                      
+        density_location = None, remove_markers = None )
         
                                 
                             
@@ -146,10 +85,6 @@ class NEATSynamic(NEATDynamic):
                      #Update the tree
                      self.marker_tree[str(int(tcenter))] =  [tree, indices]
             
-                
-                
-        
-
         
     def nms(self):
         
