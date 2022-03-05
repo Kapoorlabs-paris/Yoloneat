@@ -4,7 +4,7 @@ import sys
 import os
 import glob
 sys.path.append("../NEAT")
-from NEATModels import NEATDynamicSegFree, nets
+from NEATModels import NEATSynamic, nets
 from NEATModels.config import dynamic_config
 from NEATUtils import helpers
 from NEATUtils.helpers import load_json
@@ -29,7 +29,7 @@ division_categories_json = model_dir + 'Celleventcategories.json'
 catconfig = load_json(division_categories_json)
 division_cord_json = model_dir + 'Celleventcord.json'
 cordconfig = load_json(division_cord_json)
-model = NEATDynamicSegFree(None, model_dir , model_name,catconfig, cordconfig)
+model = NEATSynamic(None, model_dir , model_name,catconfig, cordconfig)
 Path(savedir).mkdir(exist_ok=True)
 n_tiles = (4,4)
 event_threshold = 1.0 - 1.0E-4 
