@@ -1,10 +1,7 @@
 from __future__ import print_function, unicode_literals, absolute_import, division
 # import matplotlib.pyplot as plt
 import numpy as np
-import os
 import collections
-import warnings
-import csv
 import json
 import cv2
 from scipy import spatial
@@ -423,13 +420,7 @@ def DensityCounter(MarkerImage, TrainshapeX, TrainshapeY):
     return AllDensity
 
 
-def _fill_label_holes(lbl_img, **kwargs):
-    lbl_img_filled = np.zeros_like(lbl_img)
-    for l in (set(np.unique(lbl_img)) - set([0])):
-        mask = lbl_img == l
-        mask_filled = binary_fill_holes(mask, **kwargs)
-        lbl_img_filled[mask_filled] = l
-    return lbl_img_filled
+
 
 
 def fill_label_holes(lbl_img, **kwargs):
@@ -462,6 +453,45 @@ def dilate_label_holes(lbl_img, iterations):
         lbl_img_filled[mask_filled] = l
     return lbl_img_filled
 
+def zero_pad(image, TrainshapeX, TrainshapeY):
+    time = image.shape[0]
+    sizeY = image.shape[2]
+    sizeX = image.shape[1]
+
+    sizeXextend = sizeX
+    sizeYextend = sizeY
+
+    while sizeXextend % TrainshapeX != 0:
+        sizeXextend = sizeXextend + 1
+
+    while sizeYextend % TrainshapeY != 0:
+        sizeYextend = sizeYextend + 1
+
+    extendimage = np.zeros([time, sizeXextend, sizeYextend])
+
+    extendimage[0:time, 0:sizeX, 0:sizeY] = image
+
+    return extendimage
+
+
+def twod_zero_pad(image, PadX, PadY):
+    sizeY = image.shape[1]
+    sizeX = image.shape[0]
+
+    sizeXextend = sizeX
+    sizeYextend = sizeY
+
+    while sizeXextend % PadX != 0:
+        sizeXextend = sizeXextend + 1
+
+    while sizeYextend % PadY != 0:
+        sizeYextend = sizeYextend + 1
+
+    extendimage = np.zeros([sizeXextend, sizeYextend])
+
+    extendimage[0:sizeX, 0:sizeY] = image
+
+    return extendimage
 
 def GenerateMarkers(Image, model, n_tiles):
     Markers = np.zeros([Image.shape[0], Image.shape[1], Image.shape[2]])
@@ -529,7 +559,7 @@ def compare_function(box1, box2, gridx, gridy):
     y1 = box1['ycenter']
     y2 = box2['ycenter']
 
-    if abs(x1 - x2) <=gridx and abs(y1 - y2) <= gridy:
+    if abs(x1 - x2) <= gridx and abs(y1 - y2) <= gridy:
             r1 = np.sqrt(w1 * w1 + h1 * h1) / 2
             r2 = np.sqrt(w2 * w2 + h2 * h2) / 2
             xA = max(box1['xcenter'], box2['xcenter'])
@@ -544,27 +574,42 @@ def compare_function(box1, box2, gridx, gridy):
             return float(np.true_divide(intersect, union))
     else:
 
-        return -1        
-
-def dist_compare_function(box1, box2):
-    
-    x1 = box1['xcenter']
-    x2 = box2['xcenter']
-    
-    y1 = box1['ycenter']
-    y2 = box2['ycenter']
-    
-    t1 = box1['real_time_event']
-    t2 = box2['real_time_event']
-    
-    vec1 = [x1, y1, t1]
-    vec2 = [x2, y2, t2]
-    
-    distance = Genericdist(vec1, vec2)
-    
-    return distance
+        return -2        
 
 
+def get_max_score_index(scores, threshold=0, top_k=0, descending=True):
+    """ Get the max scores with corresponding indicies
+    Adapted from the OpenCV c++ source in `nms.inl.hpp <https://github.com/opencv/opencv/blob/ee1e1ce377aa61ddea47a6c2114f99951153bb4f/modules/dnn/src/nms.inl.hpp#L33>`__
+    :param scores: a list of scores
+    :type scores: list
+    :param threshold: consider scores higher than this threshold
+    :type threshold: float
+    :param top_k: return at most top_k scores; if 0, keep all
+    :type top_k: int
+    :param descending: if True, list is returened in descending order, else ascending
+    :returns: a  sorted by score list  of [score, index]
+    """
+    score_index = []
+
+    # Generate index score pairs
+    for i, score in enumerate(scores):
+        if (threshold > 0) and (score > threshold):
+            score_index.append([score, i])
+        else:
+            score_index.append([score, i])
+
+    # Sort the score pair according to the scores in descending order
+    npscores = np.array(score_index)
+
+    if descending:
+        npscores = npscores[npscores[:, 0].argsort()[::-1]]  # descending order
+    else:
+        npscores = npscores[npscores[:, 0].argsort()]  # ascending order
+
+    if top_k > 0:
+        npscores = npscores[0:top_k]
+
+    return npscores.tolist()
 def fastnms(boxes, scores, nms_threshold, score_threshold, gridx, gridy):
     if len(boxes) == 0:
         return []
@@ -685,9 +730,6 @@ def getmeanbox(box1, box2, event_name, event_type, gridx, gridy, imaget):
                         boxAXstart = box1['xstart']
                         boxAYstart = box1['ystart']
                         boxATstart = box1['tstart']
-                        boxAXcenter = box1['xcenter']
-                        boxAYcenter = box1['ycenter']
-                        boxArealtime = box1['real_time_event']
                         boxAboxtime = box1['box_time_event']
                         boxAheight = box1['height']
                         boxAwidth = box1['width']
@@ -700,9 +742,6 @@ def getmeanbox(box1, box2, event_name, event_type, gridx, gridy, imaget):
                         boxBscore = box2[event_name]
                         boxBXstart = box2['xstart']
                         boxBYstart = box2['ystart']
-                        boxBXcenter = box2['xcenter']
-                        boxBYcenter = box2['ycenter']
-                        boxBrealtime = box2['real_time_event']
                         boxBboxtime = box2['box_time_event']
                         boxBheight = box2['height']
                         boxBwidth = box2['width']
@@ -714,12 +753,12 @@ def getmeanbox(box1, box2, event_name, event_type, gridx, gridy, imaget):
     
                         boxscore = (boxAscore + boxBscore)
                         meanboxscore = boxscore / 2
-                        meanboxXstart = boxAXstart
-                        meanboxYstart = boxAYstart
-                        meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * gridx
-                        meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * gridy
+                        meanboxXstart = ( boxAXstart + boxBXstart )/2 
+                        meanboxYstart = ( boxAYstart + boxBYstart )/2
+                        meanboxXcenter = meanboxXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * gridx
+                        meanboxYcenter = meanboxYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * gridy
     
-                        meanboxrealtime = int(boxATstart + ((boxATcenterraw + boxBTcenterraw) / boxscore) * imaget)
+                        meanboxrealtime = int( (boxATstart + boxBTstart ) /2 + ((boxATcenterraw + boxBTcenterraw) / boxscore) * imaget)
     
                         meanboxtime = int((boxAboxtime + boxBboxtime) / 2)
                         meanboxheight = (boxAheight + boxBheight) / 2
@@ -734,16 +773,13 @@ def getmeanbox(box1, box2, event_name, event_type, gridx, gridy, imaget):
                                       'real_time_event': meanboxrealtime, 'box_time_event': meanboxtime,
                                       'height': meanboxheight, 'width': meanboxwidth, 'confidence': meanboxconfidence,
                                       event_name: meanboxscore}
-    
+                        return newbox 
     if event_type == 'dynamic':
     
                         boxAscore = box1[event_name]
                         boxAXstart = box1['xstart']
                         boxAYstart = box1['ystart']
                         boxATstart = box1['tstart']
-                        boxAXcenter = box1['xcenter']
-                        boxAYcenter = box1['ycenter']
-                        boxArealtime = box1['real_time_event']
                         boxAboxtime = box1['box_time_event']
                         boxAheight = box1['height']
                         boxAwidth = box1['width']
@@ -759,9 +795,6 @@ def getmeanbox(box1, box2, event_name, event_type, gridx, gridy, imaget):
                         boxBXstart = box2['xstart']
                         boxBYstart = box2['ystart']
                         boxBTstart = box2['tstart']
-                        boxBXcenter = box2['xcenter']
-                        boxBYcenter = box2['ycenter']
-                        boxBrealtime = box2['real_time_event']
                         boxBboxtime = box2['box_time_event']
                         boxBheight = box2['height']
                         boxBwidth = box2['width']
@@ -775,14 +808,14 @@ def getmeanbox(box1, box2, event_name, event_type, gridx, gridy, imaget):
     
                         boxscore = (boxAscore + boxBscore)
                         meanboxscore = boxscore / 2
-                        meanboxXstart = boxAXstart
-                        meanboxYstart = boxAYstart
+                        meanboxXstart = ( boxAXstart + boxBXstart )/2 
+                        meanboxYstart = ( boxAYstart + boxBYstart )/2
                         meanboxXcenter = boxAXstart + ((boxAXcenterraw + boxBXcenterraw) / boxscore) * gridx
                         meanboxYcenter = boxAYstart + ((boxAYcenterraw + boxBYcenterraw) / boxscore) * gridy
     
-                        meanboxrealtime = int(min(boxATstart, boxBTstart) + (min(boxATcenterraw, boxBTcenterraw) / max(boxAscore, boxBscore)) * imaget)
+                        meanboxrealtime = int((boxATstart + boxBTstart ) /2 + (min(boxATcenterraw, boxBTcenterraw) / max(boxAscore, boxBscore)) * imaget)
     
-                        meanboxtime = int(min(boxAboxtime, boxBboxtime))
+                        meanboxtime = int(boxATstart + boxBTstart ) /2
                         meanboxheight = (boxAheight + boxBheight) / 2
                         meanboxwidth = (boxAwidth + boxBwidth) / 2
                         meanboxconfidence = (boxAconfidence + boxBconfidence) / 2
@@ -800,7 +833,7 @@ def getmeanbox(box1, box2, event_name, event_type, gridx, gridy, imaget):
     
     
     
-    return newbox
+                        return newbox
     
 
 def goodboxes(boxes, scores, nms_threshold, score_threshold, gridx, gridy,
