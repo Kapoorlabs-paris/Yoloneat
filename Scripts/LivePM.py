@@ -2,11 +2,10 @@
 import sys
 import os
 from glob import glob
-sys.path.append("../NEAT")
-from NEATModels import NEATPredict, nets
-from NEATModels.config import dynamic_config
-from NEATUtils import helpers
-from NEATUtils.helpers import load_json
+from oneat.NEATModels import NEATPredict, nets
+from oneat.NEATModels.config import dynamic_config
+from oneat.NEATUtils import helpers
+from oneat.NEATUtils.helpers import load_json
 from csbdeep.models import ProjectionCARE
 os.environ["CUDA_VISIBLE_DEVICES"]="1"
 os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"

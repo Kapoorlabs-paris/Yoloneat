@@ -1,7 +1,7 @@
-from NEATUtils import plotters
+from ..NEATUtils import plotters
 import numpy as np
-from NEATUtils import helpers
-from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, focyoloprediction, fastnms, simpleaveragenms
+from ..NEATUtils import helpers
+from ..NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, DensityCounter, MakeTrees, focyoloprediction, fastnms, simpleaveragenms
 from keras import callbacks
 import os
 from matplotlib import cm
@@ -10,14 +10,13 @@ import pandas as pd
 from scipy.ndimage.filters import median_filter, gaussian_filter, maximum_filter
 import tensorflow as tf
 from tqdm import tqdm
-from NEATModels import nets
-from NEATModels.nets import Concat
-from NEATModels.loss import dynamic_yolo_loss
+from ..NEATModels import nets
+from ..NEATModels.nets import Concat
+from ..NEATModels.loss import dynamic_yolo_loss
 from scipy.ndimage.morphology import binary_fill_holes
 from keras import backend as K
 #from IPython.display import clear_output
 from keras import optimizers
-from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite

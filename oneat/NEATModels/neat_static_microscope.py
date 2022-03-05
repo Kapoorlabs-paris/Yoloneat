@@ -12,21 +12,20 @@ Created on Sun Apr 25 13:32:04 2021
 
 @author: vkapoor
 """
-from NEATUtils import plotters
+from ..NEATUtils import plotters
 import numpy as np
-from NEATUtils import helpers
-from NEATUtils.helpers import load_json, yoloprediction, normalizeFloatZeroOne, fastnms, averagenms
+from ..NEATUtils import helpers
+from ..NEATUtils.helpers import load_json, yoloprediction, normalizeFloatZeroOne, fastnms, averagenms
 from keras import callbacks
 import os
 import tensorflow as tf
 import time
-from NEATModels import nets
-from NEATModels.nets import Concat
-from NEATModels.loss import static_yolo_loss_segfree
+from ..NEATModels import nets
+from ..NEATModels.nets import Concat
+from ..NEATModels.loss import static_yolo_loss_segfree
 from tqdm import tqdm
 # from IPython.display import clear_output
 from keras import optimizers
-from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite, TiffFile, imsave

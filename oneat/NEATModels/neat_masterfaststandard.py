@@ -1,20 +1,27 @@
-from NEATUtils import plotters
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jun 28 13:49:35 2021
+
+@author: vkapoor
+"""
+
+from ..NEATUtils import plotters
 import numpy as np
-from NEATUtils import helpers
-from NEATUtils.helpers import get_nearest, save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, \
-    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms, DownsampleData, save_dynamic_csv, dynamic_nms
+from ..NEATUtils import helpers
+from ..NEATUtils.helpers import save_json, load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, \
+    DensityCounter, MakeTrees, nonfcn_yoloprediction, fastnms, averagenms
 from keras import callbacks
 import os
 import math
 import tensorflow as tf
 from tqdm import tqdm
-from NEATModels import nets
-from NEATModels.nets import Concat
-from NEATModels.loss import dynamic_yolo_loss
+from ..NEATModels import nets
+from ..NEATModels.nets import Concat
+from ..NEATModels.loss import dynamic_yolo_loss
 from keras import backend as K
 # from IPython.display import clear_output
 from keras import optimizers
-from sklearn.utils.class_weight import compute_class_weight
 from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite
@@ -23,22 +30,22 @@ import napari
 import glob
 from scipy import spatial
 import itertools
-from napari.qt.threading import thread_worker
+#from napari.qt.threading import thread_worker
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.backends.backend_qt5agg import \
+    #FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
+#from qtpy.QtCore import Qt
+#from qtpy.QtWidgets import QComboBox, QPushButton, QSlider
 import h5py
-import cv2
+#import cv2
 import imageio
 
 Boxname = 'ImageIDBox'
 EventBoxname = 'EventIDBox'
 
 
-class NEATDynamicSeg(object):
+class NEATMasterDynamicSegFree(object):
     """
     Parameters
     ----------
@@ -71,24 +78,26 @@ class NEATDynamicSeg(object):
     
     """
 
-    def __init__(self, config, model_dir, model_name, catconfig=None, cordconfig=None):
+    def __init__(self, config, model_dir, model_name, catconfig=None, cordconfig=None, second_model_name=None):
 
         self.config = config
         self.catconfig = catconfig
         self.cordconfig = cordconfig
         self.model_dir = model_dir
         self.model_name = model_name
+        self.second_model_name = second_model_name
         if self.config != None:
             self.npz_directory = config.npz_directory
             self.npz_name = config.npz_name
             self.npz_val_name = config.npz_val_name
             self.key_categories = config.key_categories
-            self.stage_number = config.stage_number
-            self.last_conv_factor = config.last_conv_factor
+
             self.show = config.show
             self.key_cord = config.key_cord
             self.box_vector = len(config.key_cord)
             self.categories = len(config.key_categories)
+            self.stage_number = config.stage_number
+            self.last_conv_factor = config.last_conv_factor
             self.depth = config.depth
             self.start_kernel = config.start_kernel
             self.mid_kernel = config.mid_kernel
@@ -180,64 +189,22 @@ class NEATDynamicSeg(object):
         self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes,
                                           self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
 
-    
-
-    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True, downsample = 1):
-
-        self.starmodel = starmodel
-        self.imagename = imagename
-        self.image = imread(imagename)
-        self.heatmap = np.zeros(self.image.shape, dtype = 'float32')
-        self.density_location = {}
-        Name = os.path.basename(os.path.splitext(self.imagename)[0])
-        self.savedir = savedir
-        self.star = star
-        self.downsample = downsample
-        self.image = DownsampleData(self.image, self.downsample)
-        Path(self.savedir).mkdir(exist_ok=True)
-
-        self.n_tiles = n_tiles
-        print('Obtaining Markers')
-        if markerdir is None:
-            self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles, self.star)
-            markerdir = self.savedir + '/' + 'Markers'
-            Path(markerdir).mkdir(exist_ok=True)
-            imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('float32'))
-        else:
-            try:
-                self.markers = imread(markerdir + '/' + Name + '.tif')
-            except:
-                self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles, self.star)
-                markerdir = self.savedir + '/' + 'Markers'
-                Path(markerdir).mkdir(exist_ok=True)
-                imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('float32'))
-        self.marker_tree = MakeTrees(self.markers)
-
-        # print('Computing density of each marker')
-        # self.density_location = DensityCounter(self.markers, self.imagex, self.imagey)
-
-        return self.markers, self.marker_tree, self.density_location
-
-    def predict(self, imagename, markers, marker_tree, density_location, savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1, density_veto=5, downsamplefactor = 1):
+    def predict(self, imagename, savedir, event_threshold, n_tiles=(1, 1), overlap_percent=0.8, iou_threshold=0.1,
+                thresh=5):
 
         self.imagename = imagename
         self.image = imread(imagename)
-        self.Colorimage = np.zeros_like(self.image)
-        self.markers = markers
-        self.marker_tree = marker_tree
-        self.density_location = density_location
+        self.ColorimageDynamic = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3],
+                                          dtype='uint16')
+        self.ColorimageStatic = np.zeros([self.image.shape[0], self.image.shape[1], self.image.shape[2], 3],
+                                         dtype='uint16')
+        self.ColorimageDynamic[:, :, :, 0] = self.image
         self.savedir = savedir
         self.n_tiles = n_tiles
-        self.density_veto = density_veto
+        self.thresh = thresh
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
-        self.downsample_regions = {}
-        self.upsample_regions = {}
-        self.candidate_regions = {}
-        self.downsamplefactor = downsamplefactor
-        self.image = DownsampleData(self.image, self.downsamplefactor)
         f = h5py.File(self.model_dir + self.model_name + '.h5', 'r+')
         data_p = f.attrs['training_config']
         data_p = data_p.decode().replace("learning_rate", "lr").encode()
@@ -246,53 +213,33 @@ class NEATDynamicSeg(object):
         self.model = load_model(self.model_dir + self.model_name + '.h5',
                                 custom_objects={'loss': self.yololoss, 'Concat': Concat})
 
-        self.first_pass_predict()
-
-    def first_pass_predict(self):
+        if self.second_model_name is not None:
+            f_second = h5py.File(self.model_dir + self.second_model_name + '.h5', 'r+')
+            data_p_second = f_second.attrs['training_config']
+            data_p_second = data_p_second.decode().replace("learning_rate", "lr").encode()
+            f_second.attrs['training_config'] = data_p_second
+            f_second.close()
+            self.second_model = load_model(self.model_dir + self.second_model_name + '.h5',
+                                           custom_objects={'loss': self.yololoss, 'Concat': Concat})
 
         eventboxes = []
         classedboxes = {}
         count = 0
-        heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat'
+
+        savename = self.savedir + "/" + (os.path.splitext(os.path.basename(self.imagename))[0]) + '_Colored'
+
         print('Detecting event locations')
         for inputtime in tqdm(range(0, self.image.shape[0])):
             if inputtime < self.image.shape[0] - self.imaget:
-
-                eventboxes = []
-                tree, indices = self.marker_tree[str(int(inputtime))]
-
-                down_region = []
-                up_region = []
-                # all_density_location = self.density_location[str(inputtime)]
-                # density = all_density_location[0]
-                # locations = all_density_location[1]
-
                 count = count + 1
-                if inputtime%10==0 or inputtime >= self.image.shape[0] - self.imaget - 1:
-                                      
-                        imwrite((heatsavename + '.tif' ), self.heatmap)
-
+                if inputtime % 10 == 0 or inputtime >= self.image.shape[0] - self.imaget - 1:
+                    imwrite((savename + '.tif'), self.ColorimageDynamic)
+                    imwrite((savename + '.tif'), self.ColorimageStatic)
                 smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
                                           self.imagey)
                 smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
                 # Cut off the region for training movie creation
-                # for i in range(len(density)):
-
-                # if density[i] <= self.density_veto:
-                # down_region.append(location)
-                # self.remove_marker_locations(inputtime, location)
-                # if density[i] >= 5 * self.density_veto:
-                # up_region.append(location)
-                # self.remove_marker_locations(inputtime, location)
-
-                self.downsample_regions[str(inputtime)] = down_region
-                self.upsample_regions[str(inputtime)] = up_region
-                # Cut off the region for training movie creation
                 # Break image into tiles if neccessary
-                
-                
-                
-                
                 predictions, allx, ally = self.predict_main(smallimage)
                 # Iterate over tiles
                 for p in range(0, len(predictions)):
@@ -303,10 +250,9 @@ class NEATDynamicSeg(object):
                         # For each tile the prediction vector has shape N H W Categories + Training Vector labels
                         for i in range(0, sum_time_prediction.shape[0]):
                             time_prediction = sum_time_prediction[i]
-                            boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride,
-                                                           inputtime, self.config,
-                                                           self.key_categories, self.key_cord, self.nboxes, 'detection',
-                                                           'dynamic', marker_tree=self.marker_tree)
+                            boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime,
+                                                           self.config, self.key_categories, self.key_cord, self.nboxes,
+                                                           'detection', 'dynamic')
 
                             if boxprediction is not None:
                                 eventboxes = eventboxes + boxprediction
@@ -318,8 +264,7 @@ class NEATDynamicSeg(object):
                         for box in eventboxes:
 
                             event_prob = box[event_name]
-                            event_confidence = box['confidence']
-                            if event_prob >= self.event_threshold and event_confidence >= 0.9:
+                            if event_prob >= self.event_threshold[event_label]:
                                 current_event_box.append(box)
                         classedboxes[event_name] = [current_event_box]
 
@@ -335,12 +280,11 @@ class NEATDynamicSeg(object):
 
     def remove_marker_locations(self, tcenter, location):
 
-        tree, indices = self.marker_tree[str(int(round(tcenter)))]
-
-        # if location in indices:
-        if location in indices:
+        tree, indices = self.marker_tree[str(int(tcenter))]
+        try:
             indices.remove(location)
-
+        except:
+            pass
         tree = spatial.cKDTree(indices)
 
         # Update the tree
@@ -354,21 +298,121 @@ class NEATDynamicSeg(object):
             if event_label > 0:
                 # Get all events
 
-                best_sorted_event_box = dynamic_nms(self.heatmap, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh)
-               
+                sorted_event_box = self.classedboxes[event_name][0]
+                scores = [sorted_event_box[i][event_name] for i in range(len(sorted_event_box))]
+                best_sorted_event_box = averagenms(sorted_event_box, scores, self.iou_threshold,
+                                                   self.event_threshold[event_label], event_name, 'dynamic',
+                                                   self.imagex, self.imagey, self.imaget, self.thresh)
+
                 best_iou_classedboxes[event_name] = [best_sorted_event_box]
-                # print("nms",best_iou_classedboxes[event_name])
+
         self.iou_classedboxes = best_iou_classedboxes
 
     def to_csv(self):
 
-        
-       
-        save_dynamic_csv(self.imagename, self.key_categories, self.iou_classedboxes, self.savedir, self.downsamplefactor)
-        
+        for (event_name, event_label) in self.key_categories.items():
 
+            if event_label > 0:
+                xlocations = []
+                ylocations = []
+                scores = []
+                confidences = []
+                tlocations = []
+                radiuses = []
+                angles = []
 
- 
+                iou_current_event_boxes = self.iou_classedboxes[event_name][0]
+
+                iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: math.sqrt(
+                    (x['xcenter'] - self.image.shape[2] // 2) * (x['xcenter'] - self.image.shape[2] // 2) + (
+                    (x['ycenter'] - self.image.shape[1] // 2)) * ((x['ycenter'] - self.image.shape[1] // 2))),
+                                                 reverse=True)
+
+                for iou_current_event_box in iou_current_event_boxes:
+                    xcenter = iou_current_event_box['xcenter']
+                    ycenter = iou_current_event_box['ycenter']
+                    tcenter = iou_current_event_box['real_time_event']
+                    confidence = iou_current_event_box['confidence']
+                    angle = iou_current_event_box['realangle']
+                    score = iou_current_event_box[event_name]
+                    radius = np.sqrt(
+                        iou_current_event_box['height'] * iou_current_event_box['height'] + iou_current_event_box[
+                            'width'] * iou_current_event_box['width']) // 2
+                    # Replace the detection with the nearest marker location
+                    if xcenter < self.image.shape[2] or ycenter < self.image.shape[1]:
+                        xlocations.append(xcenter)
+                        ylocations.append(ycenter)
+                        scores.append(score)
+                        confidences.append(confidence)
+                        tlocations.append(tcenter)
+                        radiuses.append(radius)
+                        angles.append(angle)
+
+                event_count = np.column_stack(
+                    [tlocations, ylocations, xlocations, scores, radiuses, confidences, angles])
+                event_count = sorted(event_count, key=lambda x: x[0], reverse=False)
+                event_data = []
+                csvname = self.savedir + "/" + event_name + "Location" + (
+                os.path.splitext(os.path.basename(self.imagename))[0])
+                writer = csv.writer(open(csvname + ".csv", "a"))
+                filesize = os.stat(csvname + ".csv").st_size
+                if filesize < 1:
+                    writer.writerow(['T', 'Y', 'X', 'Score', 'Size', 'Confidence', 'Angle'])
+                for line in event_count:
+                    if line not in event_data:
+                        event_data.append(line)
+                    writer.writerows(event_data)
+                    event_data = []
+
+                self.saveimage(event_label, xlocations, ylocations, tlocations, radiuses, scores)
+
+    def saveimage(self, event_label, xlocations, ylocations, tlocations, radius, scores):
+
+        colors = [(0, 255, 0), (0, 0, 255), (255, 0, 0)]
+        # fontScale
+        fontScale = 1
+
+        # Blue color in BGR
+        textcolor = (255, 0, 0)
+
+        # Line thickness of 2 px
+        thickness = 2
+        for j in range(len(xlocations)):
+            startlocation = (int(xlocations[j] - radius[j]), int(ylocations[j] - radius[j]))
+            endlocation = (int(xlocations[j] + radius[j]), int(ylocations[j] + radius[j]))
+            Z = int(tlocations[j])
+
+            if event_label == 1:
+                image = self.ColorimageDynamic[Z, :, :, 1]
+                color = (0, 255, 0)
+            if event_label == 2:
+                color = (0, 0, 255)
+                image = self.ColorimageDynamic[Z, :, :, 2]
+            if event_label == 3:
+                color = (0, 255, 0)
+                image = self.ColorimageStatic[Z, :, :, 0]
+            if event_label == 4:
+                color = (0, 0, 255)
+                image = self.ColorimageStatic[Z, :, :, 1]
+            if event_label == 5:
+                color = (255, 0, 0)
+                image = self.ColorimageStatic[Z, :, :, 2]
+
+            img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            cv2.rectangle(img, startlocation, endlocation, textcolor, thickness)
+
+            cv2.putText(img, str('%.5f' % (scores[j])), startlocation, cv2.FONT_HERSHEY_SIMPLEX, 1, textcolor,
+                        thickness, cv2.LINE_AA)
+            if event_label == 1:
+                self.ColorimageDynamic[Z, :, :, 1] = img[:, :, 0]
+            if event_label == 2:
+                self.ColorimageDynamic[Z, :, :, 2] = img[:, :, 0]
+            if event_label == 3:
+                self.ColorimageStatic[Z, :, :, 0] = img[:, :, 0]
+            if event_label == 4:
+                self.ColorimageStatic[Z, :, :, 1] = img[:, :, 0]
+            if event_label == 5:
+                self.ColorimageStatic[Z, :, :, 2] = img[:, :, 0]
 
     def showNapari(self, imagedir, savedir, yolo_v2=False):
 
@@ -466,9 +510,9 @@ class NEATDynamicSeg(object):
                 pairs = []
                 # row is y, col is x
 
-                while rowstart < sliceregion.shape[1] - patchy:
+                while rowstart < sliceregion.shape[1]:
                     colstart = 0
-                    while colstart < sliceregion.shape[2] - patchx:
+                    while colstart < sliceregion.shape[2]:
                         # Start iterating over the tile with jumps = stride of the fully convolutional network.
                         pairs.append([rowstart, colstart])
                         colstart += jumpx
@@ -477,12 +521,12 @@ class NEATDynamicSeg(object):
                     # Include the last patch
                 rowstart = sliceregion.shape[1] - patchy
                 colstart = 0
-                while colstart < sliceregion.shape[2]:
+                while colstart < sliceregion.shape[2] - patchx:
                     pairs.append([rowstart, colstart])
                     colstart += jumpx
                 rowstart = 0
                 colstart = sliceregion.shape[2] - patchx
-                while rowstart < sliceregion.shape[1]:
+                while rowstart < sliceregion.shape[1] - patchy:
                     pairs.append([rowstart, colstart])
                     rowstart += jumpy
 
@@ -503,7 +547,9 @@ class NEATDynamicSeg(object):
                 patch = []
                 rowout = []
                 column = []
-
+                patchx = sliceregion.shape[2] // self.n_tiles[0]
+                patchy = sliceregion.shape[1] // self.n_tiles[1]
+                patchshape = (patchy, patchx)
                 smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, [0, 0])
                 patch.append(smallpatch)
                 rowout.append(smallrowout)
@@ -536,7 +582,6 @@ class NEATDynamicSeg(object):
         except tf.errors.ResourceExhaustedError:
 
             print('Out of memory, increasing overlapping tiles for prediction')
-
             self.list_n_tiles = list(self.n_tiles)
             self.list_n_tiles[0] = self.n_tiles[0] + 1
             self.list_n_tiles[1] = self.n_tiles[1] + 1
@@ -552,11 +597,6 @@ class NEATDynamicSeg(object):
 
         prediction_vector = self.model.predict(np.expand_dims(predict_im, -1), verbose=0)
 
-        return prediction_vector
-
-    def make_batch_patches(self, sliceregion):
-
-        prediction_vector = self.model.predict(np.expand_dims(sliceregion, -1), verbose=0)
         return prediction_vector
 
 

@@ -6,7 +6,7 @@ Created on Mon Jun 28 13:49:35 2021
 @author: vkapoor
 """
 
-from neat_goldstandard import NEATDynamic
+from .neat_goldstandard import NEATDynamic
 
 class NEATSynamic(NEATDynamic):
     

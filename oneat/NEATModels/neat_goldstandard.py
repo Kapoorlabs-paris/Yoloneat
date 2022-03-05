@@ -1,7 +1,7 @@
 from ..NEATUtils import plotters
 import numpy as np
 from ..NEATUtils import helpers
-from ..NEATUtils.helpers import get_nearest,  load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, MakeTrees, downsamplefactorData,save_dynamic_csv, dynamic_nms, gold_nms
+from ..NEATUtils.helpers import get_nearest,  load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, MakeTrees, DownsampleData,save_dynamic_csv, dynamic_nms, gold_nms
 from keras import callbacks
 import os
 import math
