@@ -335,15 +335,13 @@ class NEATDynamic(object):
 
         return self.markers, self.marker_tree, self.watershed, self.mask
 
-    def predict(self, imagename,  savedir, n_tiles=(1, 1), overlap_percent=0.8,
+    def predict(self, image,  savedir, n_tiles=(1, 1), overlap_percent=0.8,
                 event_threshold=0.5, iou_threshold=0.1,  fidelity=5, downsamplefactor = 1, 
-                  maskfilter = 10, 
-                 markers = None, marker_tree = None, watershed = None, mask = None, remove_markers = True):
+                maskfilter = 10, markers = None, marker_tree = None, watershed = None, maskimage = None, remove_markers = True):
 
-        self.imagename = imagename
         self.watershed = watershed
-        self.mask = mask
-        self.image = imread(imagename)
+        self.maskimage = maskimage
+        self.image = image
         self.maskfilter = maskfilter
         if self.maskimage is not None:
           self.maskimage = ndimage.minimum_filter(self.maskimage, size = self.maskfilter)
