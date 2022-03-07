@@ -321,7 +321,7 @@ class NEATDynamic(object):
         return self.markers, self.marker_tree, self.density_location
 
     def predict(self, imagename,  savedir, n_tiles=(1, 1), overlap_percent=0.8,
-                event_threshold=0.5, iou_threshold=0.1,  thresh=5, downsamplefactor = 1, 
+                event_threshold=0.5, iou_threshold=0.1,  fidelity=5, downsamplefactor = 1, 
                  maskimagename = None, maskfilter = 10, density_veto=5,
                  markers = None, marker_tree = None, density_location = None, remove_markers = True):
 
@@ -338,7 +338,7 @@ class NEATDynamic(object):
         self.heatmap = np.zeros(self.image.shape, dtype = 'float32')  
         self.savedir = savedir
         self.n_tiles = n_tiles
-        self.thresh = thresh
+        self.fidelity = fidelity
         self.overlap_percent = overlap_percent
         self.iou_threshold = iou_threshold
         self.event_threshold = event_threshold
@@ -400,7 +400,7 @@ class NEATDynamic(object):
                                      #For each tile the prediction vector has shape N H W Categories + Training Vector labels
                                      for i in range(0, sum_time_prediction.shape[0]):
                                           time_prediction =  sum_time_prediction[i]
-                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime , self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic')
+                                          boxprediction = yoloprediction(ally[p], allx[p], time_prediction, self.stride, inputtime , self.config, self.key_categories, self.key_cord, self.nboxes, 'detection', 'dynamic',marker_tree=self.marker_tree)
                                           
                                           if boxprediction is not None:
                                                   eventboxes = eventboxes + boxprediction
@@ -633,7 +633,7 @@ class NEATDynamic(object):
             if event_label == 0:
 
                #best_sorted_event_box = self.classedboxes[event_name][0]
-               best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh )
+               best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.fidelity )
 
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
 
@@ -652,7 +652,7 @@ class NEATDynamic(object):
                    best_sorted_event_box = gold_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, 1, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, 1 )
 
                if self.remove_markers == None:
-                   best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.thresh )
+                   best_sorted_event_box = dynamic_nms(self.heatmap,self.maskimage, self.originalimage, self.classedboxes, event_name, event_label, self.downsamplefactor, self.iou_threshold, self.event_threshold, self.imagex, self.imagey, self.imaget, self.fidelity )
 
 
                best_iou_classedboxes[event_name] = [best_sorted_event_box]
