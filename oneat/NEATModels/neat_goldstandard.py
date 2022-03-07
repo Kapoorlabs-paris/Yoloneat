@@ -1,7 +1,7 @@
 from ..NEATUtils import plotters
 import numpy as np
 from ..NEATUtils import helpers
-from ..NEATUtils.helpers import get_nearest,  load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, MakeTrees, DownsampleData,save_dynamic_csv, dynamic_nms, gold_nms
+from ..NEATUtils.helpers import get_nearest,  load_json, yoloprediction, normalizeFloatZeroOne, GenerateMarkers, GenerateMask, MakeTrees, DownsampleData,save_dynamic_csv, dynamic_nms, gold_nms
 from keras import callbacks
 import os
 import math
@@ -275,63 +275,77 @@ class NEATDynamic(object):
 
         self.Trainingmodel.save(self.model_dir + self.model_name)
 
-    def get_markers(self, imagename, starmodel, savedir, n_tiles, markerdir=None, star=True,
+    def get_markers(self, imagename, starmodel, maskmodel, savedir, n_tiles, markerdir=None, maskdir = None, watersheddir = None,
      downsamplefactor = 1, remove_markers = True):
 
         self.starmodel = starmodel
         self.imagename = imagename
         self.image = imread(imagename)
-        self.density_location = {}
+        self.markerdir = markerdir
+        self.maskdir = maskdir
+        self.maskmodel = maskmodel
+        self.waterhseddir = watersheddir
         Name = os.path.basename(os.path.splitext(self.imagename)[0])
         self.savedir = savedir
-        self.star = star
         Path(self.savedir).mkdir(exist_ok=True)
         self.downsamplefactor = downsamplefactor
-        
-
-        #self.image = downsamplefactorData(self.image, self.downsamplefactor)
         self.n_tiles = n_tiles
         
 
-        print('Obtaining Markers')
-        if markerdir is None:
-            self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
-            markerdir = self.savedir + '/' + 'Markers'
-            Path(markerdir).mkdir(exist_ok=True)
-            
-            imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('float32'))
+        print('Obtaining Markers, Mask and Watershed image')
+        if self.markerdir is None:
+            self.markers, self.watershed, self.mask = GenerateMarkers(self.image, self.starmodel, self.maskmodel, self.n_tiles)
+            self.markerdir = self.savedir + '/' + 'Markers'
+            self.watersheddir = self.savedir + '/' + 'Watershed'
+            self.maskdir = self.savedir + '/' + 'Mask'
+            Path(self.markerdir).mkdir(exist_ok=True)
+            Path(self.watersheddir).mkdir(exist_ok=True)
+            Path(self.maskdir).mkdir(exist_ok=True)
+            imwrite(self.markerdir + '/' + Name + '.tif', self.markers.astype('float32'))
+            imwrite(self.watersheddir + '/' + Name + '.tif', self.watershed.astype('float32'))
+            imwrite(self.maskdir + '/' + Name + '.tif', self.mask.astype('float32'))
+
+
         else:
             try:
-                self.markers = imread(markerdir + '/' + Name + '.tif')
+                self.markers = imread(self.markerdir + '/' + Name + '.tif')
+                self.watershed = imread(self.watersheddir + '/' + Name + '.tif')
+                self.mask = imread(self.maskdir + '/' + Name + '.tif')
                 if remove_markers:
                     self.markers = DownsampleData(self.markers, self.downsamplefactor)
                 for i in range(0, self.markers.shape[0]):
                     self.markers[i,:] = self.markers[i,:] > 0
                     self.markers[i,:] = label(self.markers[i,:].astype('uint16'))
+                    
+
+
             except:
-                self.markers = GenerateMarkers(self.image, self.starmodel, self.n_tiles)
-                markerdir = self.savedir + '/' + 'Markers'
-                Path(markerdir).mkdir(exist_ok=True)
-                imwrite(markerdir + '/' + Name + '.tif', self.markers.astype('float32'))
+                self.markers, self.watershed, self.mask = GenerateMarkers(self.image, self.starmodel, self.maskmodel, self.n_tiles)
+                self.markerdir = self.savedir + '/' + 'Markers'
+                self.watersheddir = self.savedir + '/' + 'Watershed'
+                self.maskdir = self.savedir + '/' + 'Mask
+                Path(self.markerdir).mkdir(exist_ok=True)
+                Path(self.watersheddir).mkdir(exist_ok=True)
+                Path(self.maskdir).mkdir(exist_ok=True)
+                imwrite(self.markerdir + '/' + Name + '.tif', self.markers.astype('float32'))
+                imwrite(self.watersheddir + '/' + Name + '.tif', self.watershed.astype('float32'))
+                imwrite(self.maskdir + '/' + Name + '.tif', self.mask.astype('float32'))
         self.marker_tree = MakeTrees(self.markers)
 
-        # print('Computing density of each marker')
-        # self.density_location = DensityCounter(self.markers, self.imagex, self.imagey)
 
-        return self.markers, self.marker_tree, self.density_location
+        return self.markers, self.marker_tree, self.watershed, self.mask
 
     def predict(self, imagename,  savedir, n_tiles=(1, 1), overlap_percent=0.8,
                 event_threshold=0.5, iou_threshold=0.1,  fidelity=5, downsamplefactor = 1, 
-                 maskimagename = None, maskfilter = 10, density_veto=5,
-                 markers = None, marker_tree = None, density_location = None, remove_markers = True):
+                  maskfilter = 10, 
+                 markers = None, marker_tree = None, watershed = None, mask = None, remove_markers = True):
 
         self.imagename = imagename
+        self.watershed = watershed
+        self.mask = mask
         self.image = imread(imagename)
         self.maskfilter = maskfilter
-        self.maskimagename = maskimagename
-        if maskimagename is not None:
-          self.maskimage = imread(maskimagename)
-          self.maskimage = self.maskimage.astype('uint8')
+        if self.maskimage is not None:
           self.maskimage = ndimage.minimum_filter(self.maskimage, size = self.maskfilter)
         else:
             self.maskimage = None
@@ -354,11 +368,6 @@ class NEATDynamic(object):
 
         self.markers = markers
         self.marker_tree = marker_tree
-        self.density_location = density_location
-        self.density_veto = density_veto
-        self.downsamplefactor_regions = {}
-        self.upsample_regions = {}
-        self.candidate_regions = {}
         self.remove_markers = remove_markers
         if self.remove_markers:
              self.image = DownsampleData(self.image, self.downsamplefactor)
@@ -377,6 +386,7 @@ class NEATDynamic(object):
         heatsavename = self.savedir+ "/"  + (os.path.splitext(os.path.basename(self.imagename))[0])+ '_Heat' 
 
         print('Detecting event locations')
+        self.image = DownsampleData(self.image, self.downsamplefactor)
         for inputtime in tqdm(range(0, self.image.shape[0])):
                     if inputtime < self.image.shape[0] - self.imaget:
                                 count = count + 1

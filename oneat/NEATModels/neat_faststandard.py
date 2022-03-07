@@ -15,8 +15,9 @@ class NEATSynamic(NEATDynamic):
 
         super().__init__(config = config, model_dir = model_dir, model_name = model_name, catconfig = catconfig, cordconfig = cordconfig)
         
-    def predict_synamic(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, thresh = 5, downsamplefactor = 1, maskimagename = None, maskfilter = 10):
+    def predict_synamic(self,imagename, savedir, n_tiles = (1,1), overlap_percent = 0.8, event_threshold = 0.5, iou_threshold = 0.1, fidelity = 5,
+     downsamplefactor = 1, maskimagename = None, maskfilter = 10):
 
         self.predict(imagename,savedir,n_tiles = n_tiles, overlap_percent = overlap_percent, event_threshold = event_threshold, iou_threshold = iou_threshold, 
-        thresh = thresh, downsamplefactor = downsamplefactor, maskimagename = maskimagename, maskfilter = maskfilter, density_veto = None, markers = None, marker_tree = None,
-        density_location = None, remove_markers = None )
+        fidelity = fidelity, downsamplefactor = downsamplefactor, maskimagename = maskimagename, maskfilter = maskfilter,  markers = None, marker_tree = None,
+         remove_markers = None )

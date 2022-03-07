@@ -27,6 +27,7 @@ from scipy.ndimage.morphology import binary_fill_holes
 from skimage.segmentation import watershed
 from skimage.feature import peak_local_max
 from scipy import ndimage as ndi
+from skimage.filters import threshold_multiotsu
 """
  @author: Varun Kapoor
 
@@ -495,11 +496,13 @@ def twod_zero_pad(image, PadX, PadY):
 
     return extendimage
 
-def GenerateMarkers(Image, model, n_tiles):
+def GenerateMarkers(Image, model, maskmodel, n_tiles):
     Markers = np.zeros([Image.shape[0], Image.shape[1], Image.shape[2]])
+    Watershed = np.zeros([Image.shape[0], Image.shape[1], Image.shape[2]])
+    Mask = np.zeros([Image.shape[0], Image.shape[1], Image.shape[2]])
     for i in tqdm(range(0, Image.shape[0])):
         smallimage = Image[i, :]
-
+        maskimage = GenerateMask(smallimage, maskmodel, n_tiles)
         smallimage = normalize(smallimage, 1, 99.8, axis=(0, 1))
         shape = [smallimage.shape[0], smallimage.shape[1]]
         resize_smallimage = twod_zero_pad(smallimage, 64, 64)
@@ -517,11 +520,34 @@ def GenerateMarkers(Image, model, n_tiles):
         markers_raw[tuple(coordinates_int.T)] = 1 + np.arange(len(Coordinates))
 
         markers = dilation(markers_raw, disk(2))
-
+        markers = morphology.dilation(markers_raw, morphology.disk(2))
+        watershedImage = watershed(-smallimage, markers, mask=maskimage.copy())
         Markers[i, :] = label(markers.astype('uint16'))
+        Watershed[i,:] = watershedImage
+        Mask[i,:] = maskimage
+    return Markers, Watershed, Mask
 
-    return Markers
 
+def GenerateMask(Image, model, n_tiles):
+     
+    Mask = np.zeros([Image.shape[0], Image.shape[1], Image.shape[2]])
+    for i in tqdm(range(0, Image.shape[0])):
+        smallimage = Image[i, :]
+        Segmented = model.predict(smallimage, 'YX', n_tiles=n_tiles)
+
+        try:
+            thresholds = threshold_multiotsu(Segmented, classes=2)
+
+            # Using the threshold values, we generate the three regions.
+            regions = np.digitize(Segmented, bins=thresholds)
+        except:
+
+            regions = Segmented
+
+        Binary = regions > 0
+        Mask[i,:] = Binary
+
+    return Mask  
 
 """
 This method takes the integer labelled segmentation image as input and creates a dictionary of markers at all timepoints for easy search

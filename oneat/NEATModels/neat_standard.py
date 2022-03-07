@@ -52,8 +52,8 @@ class NEATDynamicSeg(NEATDynamic):
                 event_threshold=0.5, iou_threshold=0.1, fidelity = 5, downsamplefactor = 1, maskimagename = None, maskfilter = 10):
 
         self.predict(imagename,savedir,n_tiles = n_tiles, overlap_percent = overlap_percent, event_threshold = event_threshold, iou_threshold = iou_threshold, 
-        fidelity = fidelity, downsamplefactor = downsamplefactor, maskimagename = maskimagename, maskfilter = maskfilter, density_veto = None, markers = markers, marker_tree = marker_tree,
-        density_location = None, remove_markers = None )
+        fidelity = fidelity, downsamplefactor = downsamplefactor, maskimagename = maskimagename, maskfilter = maskfilter, markers = markers, marker_tree = marker_tree,
+         remove_markers = None )
 
 def CreateVolume(patch, imaget, timepoint):
     starttime = timepoint

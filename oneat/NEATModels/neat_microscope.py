@@ -33,147 +33,16 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 
-class NEATPredict(object):
-    """
-    Parameters
-    ----------
+class NEATPredict(NEATDynamic):
     
-    NpzDirectory : Specify the location of npz file containing the training data with movies and labels
-    
-    TrainModelName : Specify the name of the npz file containing training data and labels
-    
-    ValidationModelName :  Specify the name of the npz file containing validation data and labels
-    
-    categories : Number of action classes
-    
-    Categories_Name : List of class names and labels
-    
-    model_dir : Directory location where trained model weights are to be read or written from
-    
-    model_name : The h5 file of CNN + LSTM + Dense Neural Network to be used for training
-    
-    model_keras : The model as it appears as a Keras function
-    
-    model_weights : If re-training model_weights = model_dir + model_name else None as default
-    
-    lstm_hidden_units : Number of hidden units for LSTm layer, 64 by default
-    
-    epochs :  Number of training epochs, 55 by default
-    
-    batch_size : batch_size to be used for training, 20 by default
-    
-    
-    
-    """
 
     def __init__(self, config, model_dir, model_name, catconfig=None, cordconfig=None):
 
-        self.config = config
-        self.catconfig = catconfig
-        self.cordconfig = cordconfig
-        self.model_dir = model_dir
-        self.model_name = model_name
-        if self.config != None:
-            self.npz_directory = config.npz_directory
-            self.npz_name = config.npz_name
-            self.npz_val_name = config.npz_val_name
-            self.key_categories = config.key_categories
-            self.box_vector = config.box_vector
-            self.show = config.show
-            self.key_cord = config.key_cord
-            self.categories = len(config.key_categories)
-            self.depth = config.depth
-            self.start_kernel = config.start_kernel
-            self.mid_kernel = config.mid_kernel
-            self.lstm_kernel = config.lstm_kernel
-            self.learning_rate = config.learning_rate
-            self.epochs = config.epochs
-            self.residual = config.residual
-            self.startfilter = config.startfilter
-            self.batch_size = config.batch_size
-            self.multievent = config.multievent
-            self.imagex = config.imagex
-            self.imagey = config.imagey
-            self.imaget = config.size_tminus
-            self.size_tminus = config.size_tminus
-            self.size_tplus = config.size_tplus
-            self.nboxes = config.nboxes
-            self.gridx = config.gridx
-            self.gridy = config.gridy
-            self.gridt = config.gridt
-            self.yolo_v0 = config.yolo_v0
-            self.yolo_v1 = config.yolo_v1
-            self.yolo_v2 = config.yolo_v2
-            self.stride = config.stride
-            self.lstm_hidden_unit = config.lstm_hidden_unit
-        if self.config == None:
+          super().__init__(config = config, model_dir = model_dir, model_name = model_name, catconfig = catconfig, cordconfig = cordconfig)
 
-            try:
-                self.config = load_json(self.model_dir + os.path.splitext(self.model_name)[0] + '_Parameter.json')
-            except:
-                self.config = load_json(self.model_dir + self.model_name + '_Parameter.json')
 
-            self.npz_directory = self.config['npz_directory']
-            self.npz_name = self.config['npz_name']
-            self.npz_val_name = self.config['npz_val_name']
-            self.key_categories = self.catconfig
-            self.box_vector = self.config['box_vector']
-            self.show = self.config['show']
-            self.key_cord = self.cordconfig
-            self.categories = len(self.catconfig)
-            self.depth = self.config['depth']
-            self.start_kernel = self.config['start_kernel']
-            self.mid_kernel = self.config['mid_kernel']
-            self.lstm_kernel = self.config['lstm_kernel']
-            self.lstm_hidden_unit = self.config['lstm_hidden_unit']
-            self.learning_rate = self.config['learning_rate']
-            self.epochs = self.config['epochs']
-            self.residual = self.config['residual']
-            self.startfilter = self.config['startfilter']
-            self.batch_size = self.config['batch_size']
-            self.multievent = self.config['multievent']
-            self.imagex = self.config['imagex']
-            self.imagey = self.config['imagey']
-            self.imaget = self.config['size_tminus']
-            self.size_tminus = self.config['size_tminus']
-            self.size_tplus = self.config['size_tplus']
-            self.nboxes = self.config['nboxes']
-            self.gridx = 1
-            self.gridy = 1
-            self.gridt = 1
-            self.yolo_v0 = self.config['yolo_v0']
-            self.yolo_v1 = self.config['yolo_v1']
-            self.yolo_v2 = self.config['yolo_v2']
-            self.stride = self.config['stride']
-            self.lstm_hidden_unit = self.config['lstm_hidden_unit']
-
-        self.X = None
-        self.Y = None
-        self.axes = None
-        self.X_val = None
-        self.Y_val = None
-        self.Trainingmodel = None
-        self.Xoriginal = None
-        self.Xoriginal_val = None
-
-        if self.residual:
-            self.model_keras = nets.ORNET
-        else:
-            self.model_keras = nets.OSNET
-
-        if self.multievent == True:
-            self.last_activation = 'sigmoid'
-            self.entropy = 'binary'
-
-        if self.multievent == False:
-            self.last_activation = 'softmax'
-            self.entropy = 'notbinary'
-
-        self.yololoss = dynamic_yolo_loss(self.categories, self.gridx, self.gridy, self.gridt, self.nboxes,
-                                          self.box_vector, self.entropy, self.yolo_v0, self.yolo_v1, self.yolo_v2)
-
-    def predict(self, imagedir, movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start,
-                Z_start, downsample=False,
+    def predict_microscope(self, imagedir, movie_name_list, movie_input, Z_imagedir, Z_movie_name_list, Z_movie_input, start,
+                Z_start, downsample=1,
                 event_label_interest=1, fileextension='*TIF', nb_prediction=3, n_tiles=(1, 1), Z_n_tiles=(1, 2, 2),
                 overlap_percent=0.6, event_threshold=0.5, iou_threshold=0.01, projection_model=None, delay_projection=4,
                 thresh=4, jumpindex = 1):
@@ -287,8 +156,8 @@ class NEATPredict(object):
 
                 sizey = current_movies.shape[1]
                 sizex = current_movies.shape[2]
-                if self.downsample:
-                    scale_percent = 50
+                if self.downsample !=1:
+                    scale_percent = 100/self.downsample
                     width = int(sizey * scale_percent / 100)
                     height = int(sizex * scale_percent / 100)
                     dim = (width, height)
@@ -307,7 +176,7 @@ class NEATPredict(object):
 
                 eventboxes = []
                 classedboxes = {}
-                smallimage = CreateVolume(current_movies_down, self.size_tminus + 1, 0, sizex, sizey)
+                smallimage = CreateVolume(current_movies_down, self.size_tminus + 1, 0)
 
                 smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
                 # Break image into tiles if neccessary
@@ -349,10 +218,10 @@ class NEATPredict(object):
                 print('Performining non maximal supression')
                 start_time = time.time()
                 self.iou_classedboxes = classedboxes
-                self.nms()
+                self.nms_microscope()
                 print(f'____ NMS took {(time.time() - start_time)} seconds ____ ')
                 print('Generating ini file')
-                self.to_csv()
+                self.to_csv_microscope()
                 self.predict(self.imagedir, self.movie_name_list, self.movie_input, self.Z_imagedir,
                              self.Z_movie_name_list, self.Z_movie_input, self.start, Z_start,
                              fileextension=self.fileextension, downsample=self.downsample,
@@ -360,7 +229,7 @@ class NEATPredict(object):
                              overlap_percent=self.overlap_percent, event_threshold=self.event_threshold,
                              iou_threshold=self.iou_threshold, projection_model=self.projection_model)
 
-    def nms(self):
+    def nms_microscope(self):
         
         
         best_iou_classedboxes = {}
@@ -376,7 +245,7 @@ class NEATPredict(object):
                
         self.iou_classedboxes = best_iou_classedboxes
 
-    def to_csv(self):
+    def to_csv_microscope(self):
 
         for (event_name, event_label) in self.key_categories.items():
 
@@ -396,10 +265,6 @@ class NEATPredict(object):
                 bbox_left_x = self.image.shape[2] // 4
                 bbox_right_x = 3 *self.image.shape[2] // 4
                 iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: x[event_name], reverse=True)
-                #iou_current_event_boxes = sorted(iou_current_event_boxes, key=lambda x: np.sqrt(
-                    #(x['xcenter'] - self.image.shape[2] // 2) * (x['xcenter'] - self.image.shape[2] // 2)) + np.sqrt(
-                    #(x['ycenter'] - self.image.shape[1] // 2) * (x['ycenter'] - self.image.shape[1] // 2)),
-                                                 #reverse=False)
 
                 for iou_current_event_box in iou_current_event_boxes:
                     xcenter = iou_current_event_box['xcenter']
@@ -443,10 +308,6 @@ class NEATPredict(object):
                 ImageResults = self.basedirResults + '/' + 'ImageLocations'
                 Path(ImageResults).mkdir(exist_ok=True)
 
-                csvimagename = ImageResults + "/" + event_name + 'LocationData'
-                name = str(self.start)
-                
-
                 event_data = []
                 writer = csv.writer(open(csvname + ".csv", "a"))
                 filesize = os.stat(csvname + ".csv").st_size
@@ -459,156 +320,7 @@ class NEATPredict(object):
                     event_data = []
 
 
-
-    def overlaptiles(self, sliceregion):
-
-        if self.n_tiles == (1, 1):
-            patch = []
-            rowout = []
-            column = []
-            patchx = sliceregion.shape[2] // self.n_tiles[0]
-            patchy = sliceregion.shape[1] // self.n_tiles[1]
-            patchshape = (patchy, patchx)
-            smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, [0, 0])
-            patch.append(smallpatch)
-            rowout.append(smallrowout)
-            column.append(smallcolumn)
-
-        else:
-            patchx = sliceregion.shape[2] // self.n_tiles[0]
-            patchy = sliceregion.shape[1] // self.n_tiles[1]
-
-            if patchx > self.imagex and patchy > self.imagey:
-                if self.overlap_percent > 1 or self.overlap_percent < 0:
-                    self.overlap_percent = 0.8
-
-                jumpx = int(self.overlap_percent * patchx)
-                jumpy = int(self.overlap_percent * patchy)
-
-                patchshape = (patchy, patchx)
-                rowstart = 0;
-                colstart = 0
-                pairs = []
-                # row is y, col is x
-
-                while rowstart < sliceregion.shape[1]:
-                    colstart = 0
-                    while colstart < sliceregion.shape[2]:
-                        # Start iterating over the tile with jumps = stride of the fully convolutional network.
-                        pairs.append([rowstart, colstart])
-                        colstart += jumpx
-                    rowstart += jumpy
-
-                    # Include the last patch
-                rowstart = sliceregion.shape[1]
-                colstart = 0
-                while colstart < sliceregion.shape[2]:
-                    pairs.append([rowstart, colstart])
-                    colstart += jumpx
-                rowstart = 0
-                colstart = sliceregion.shape[2] - patchx
-                while rowstart < sliceregion.shape[1] - patchy:
-                    pairs.append([rowstart, colstart])
-                    rowstart += jumpy
-
-                if sliceregion.shape[1] >= self.imagey and sliceregion.shape[2] >= self.imagex:
-
-                    patch = []
-                    rowout = []
-                    column = []
-                    for pair in pairs:
-                        smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, pair)
-                        if smallpatch.shape[1] >= self.imagey and smallpatch.shape[2] >= self.imagex:
-                            patch.append(smallpatch)
-                            rowout.append(smallrowout)
-                            column.append(smallcolumn)
-
-            else:
-
-                patch = []
-                rowout = []
-                column = []
-                patchx = sliceregion.shape[2] // self.n_tiles[0]
-                patchy = sliceregion.shape[1] // self.n_tiles[1]
-                patchshape = (patchy, patchx)
-                smallpatch, smallrowout, smallcolumn = chunk_list(sliceregion, patchshape, self.stride, [0, 0])
-                patch.append(smallpatch)
-                rowout.append(smallrowout)
-                column.append(smallcolumn)
-        self.patch = patch
-        self.sy = rowout
-        self.sx = column
-
-    def predict_main(self, sliceregion):
-        try:
-            self.overlaptiles(sliceregion)
-            predictions = []
-            allx = []
-            ally = []
-            if len(self.patch) > 0:
-                for i in range(0, len(self.patch)):
-                    try:
-                        sum_time_prediction = self.make_patches(self.patch[i])
-                        predictions.append(sum_time_prediction)
-                        allx.append(self.sx[i])
-                        ally.append(self.sy[i])
-                    except:
-
-                        pass
-
-            else:
-
-                sum_time_prediction = self.make_patches(self.patch)
-                predictions.append(sum_time_prediction)
-                allx.append(self.sx)
-                ally.append(self.sy)
-
-        except tf.errors.ResourceExhaustedError:
-
-            print('Out of memory, increasing overlapping tiles for prediction')
-
-            self.list_n_tiles = list(self.n_tiles)
-            self.list_n_tiles[0] = self.n_tiles[0] + 1
-            self.list_n_tiles[1] = self.n_tiles[1] + 1
-            self.n_tiles = tuple(self.list_n_tiles)
-
-            self.predict_main(sliceregion)
-
-        return predictions, allx, ally
-
-    def make_patches(self, sliceregion):
-
-        predict_im = np.expand_dims(sliceregion, 0)
-
-        prediction_vector = self.model.predict(np.expand_dims(predict_im, -1), verbose=0)
-
-        return prediction_vector
-
-
-def chunk_list(image, patchshape, stride, pair):
-    rowstart = pair[0]
-    colstart = pair[1]
-
-    endrow = rowstart + patchshape[0]
-    endcol = colstart + patchshape[1]
-
-    if endrow > image.shape[1]:
-        endrow = image.shape[1]
-    if endcol > image.shape[2]:
-        endcol = image.shape[2]
-
-    region = (slice(0, image.shape[0]), slice(rowstart, endrow),
-              slice(colstart, endcol))
-
-    # The actual pixels in that region.
-    patch = image[region]
-
-    # Always normalize patch that goes into the netowrk for getting a prediction score
-
-    return patch, rowstart, colstart
-
-
-def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+def CreateVolume(patch, imaget, timepoint):
     starttime = timepoint
     endtime = timepoint + imaget
     smallimg = patch[starttime:endtime, :]
