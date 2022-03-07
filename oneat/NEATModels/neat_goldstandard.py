@@ -386,8 +386,7 @@ class NEATDynamic(object):
                                       
                                       imwrite((heatsavename + '.tif' ), self.heatmap)
                                       
-                                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
-                                                          self.imagey)
+                                smallimage = CreateVolume(self.image, self.imaget, inputtime)
 
                                 smallimage = normalizeFloatZeroOne(smallimage,1,99.8)
                                 # Cut off the region for training movie creation
@@ -443,8 +442,7 @@ class NEATDynamic(object):
             if inputtime < self.image.shape[0] - self.imaget:
                 
                 remove_candidates_list = []
-                smallimage = CreateVolume(self.image, self.imaget, inputtime, self.imagex,
-                                          self.imagey)
+                smallimage = CreateVolume(self.image, self.imaget, inputtime)
                 smallimage = normalizeFloatZeroOne(smallimage, 1, 99.8)
                 # Cut off the region for training movie creation
                 # Break image into tiles if neccessary
@@ -898,7 +896,7 @@ class NEATDynamic(object):
         return prediction_vector
 
 
-def CreateVolume(patch, imaget, timepoint, imagey, imagex):
+def CreateVolume(patch, imaget, timepoint):
     starttime = timepoint
     endtime = timepoint + imaget
     smallimg = patch[starttime:endtime, :]
