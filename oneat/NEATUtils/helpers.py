@@ -1328,7 +1328,7 @@ def yoloprediction(sy, sx, time_prediction, stride, inputtime, config, key_categ
         if k > time_prediction.shape[0]:
             break;
         Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord,
-                                   inputtime, mode, event_type, marker_tree)
+                                   inputtime, mode, event_type, marker_tree = marker_tree)
         # Append the box and the maximum likelehood detected class
         if Classybox is not None:
                 LocationBoxes.append(Classybox)
@@ -1363,7 +1363,7 @@ def nonfcn_yoloprediction(sy, sx, time_prediction, stride, inputtime, config, ke
     j = 1
     k = 1
     Classybox = predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord,
-                               inputtime, mode, event_type, marker_tree)
+                               inputtime, mode, event_type, marker_tree = marker_tree)
     # Append the box and the maximum likelehood detected class
     if Classybox is not None:
         LocationBoxes.append(Classybox)
@@ -1371,7 +1371,7 @@ def nonfcn_yoloprediction(sy, sx, time_prediction, stride, inputtime, config, ke
 
 
 def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_categories, key_cord, inputtime, mode,
-                   event_type):
+                   event_type, marker_tree = None):
     total_classes = len(key_categories)
     total_coords = len(key_cord)
     y = (k - 1) * stride
@@ -1489,6 +1489,9 @@ def predictionloop(j, k, sx, sy, nboxes, stride, time_prediction, config, key_ca
             realangle = 2
             rawangle = 2
         # Compute the box vectors
+        if marker_tree is not None:
+            ycentermean, xcentermean = get_nearest(marker_tree, ycentermean, xcentermean, real_time_event)
+
         box = {'xstart': xstart, 'ystart': ystart, 'tstart': boxtstartmean, 'xcenterraw': xcenterrawmean,
                 'ycenterraw': ycenterrawmean, 'tcenterraw': tcenterrawmean, 'xcenter': xcentermean,
                 'ycenter': ycentermean, 'real_time_event': real_time_event, 'box_time_event': box_time_event,

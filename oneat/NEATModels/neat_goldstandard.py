@@ -304,7 +304,7 @@ class NEATDynamic(object):
             try:
                 self.markers = imread(markerdir + '/' + Name + '.tif')
                 if remove_markers:
-                    self.markers = downsamplefactorData(self.markers, self.downsamplefactor)
+                    self.markers = DownsampleData(self.markers, self.downsamplefactor)
                 for i in range(0, self.markers.shape[0]):
                     self.markers[i,:] = self.markers[i,:] > 0
                     self.markers[i,:] = label(self.markers[i,:].astype('uint16'))
@@ -361,7 +361,7 @@ class NEATDynamic(object):
         self.candidate_regions = {}
         self.remove_markers = remove_markers
         if self.remove_markers:
-             self.image = downsamplefactorData(self.image, self.downsamplefactor)
+             self.image = DownsampleData(self.image, self.downsamplefactor)
         
         if self.remove_markers == True:
            self.first_pass_predict()
@@ -494,8 +494,8 @@ class NEATDynamic(object):
                              remove_candidates[str(int(box['real_time_event']))] = remove_candidates_list
 
         #Image back to the same co ordinate system
-        self.markers = downsamplefactorData(self.markers, int(1.0//self.downsamplefactor))
-        self.image = downsamplefactorData(self.image, int(1.0//self.downsamplefactor))
+        self.markers = DownsampleData(self.markers, int(1.0//self.downsamplefactor))
+        self.image = DownsampleData(self.image, int(1.0//self.downsamplefactor))
 
         for i in range(0, self.markers.shape[0]):
                     self.markers[i,:] = self.markers[i,:] > 0
@@ -573,7 +573,7 @@ class NEATDynamic(object):
                     if crop_image.shape[0] >= self.imaget and  crop_image.shape[1] >= self.imagey * self.downsamplefactor and crop_image.shape[2] >= self.imagex * self.downsamplefactor:                                                
                                 #Now apply the prediction for counting real events
                                 
-                                crop_image = downsamplefactorData(crop_image, self.downsamplefactor)
+                                crop_image = DownsampleData(crop_image, self.downsamplefactor)
                                 ycenter = location[i][0]
                                 xcenter = location[i][1]
                                   
@@ -612,8 +612,7 @@ class NEATDynamic(object):
                                                 event_prob = box[event_name]
                                                 if event_prob >= self.event_threshold:
                                                     
-                                                    #if box['xcenter'] < 40 and box['ycenter'] < 40:
-                                                           #print(box)          
+                                                             
                                                     current_event_box.append(box)
                                              classedboxes[event_name] = [current_event_box]
                                          

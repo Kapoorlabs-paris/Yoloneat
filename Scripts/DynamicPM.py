@@ -3,11 +3,10 @@
 import sys
 import os
 import glob
-sys.path.append("../NEAT")
-from NEATModels import NEATSynamic, nets
-from NEATModels.config import dynamic_config
-from NEATUtils import helpers
-from NEATUtils.helpers import load_json
+from oneat.NEATModels import NEATSynamic, nets
+from oneat.NEATModels.config import dynamic_config
+from oneat.NEATUtils import helpers
+from oneat.NEATUtils.helpers import load_json
 
 from csbdeep.models import Config, CARE
 
@@ -57,7 +56,7 @@ for imagename in X:
      
      if MaskName == Name + mask_name:
           print(MaskName, Name, mask_name)
-          model.predict(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, thresh = thresh, maskimagename = maskimagename, dist_threshold = dist_threshold)
+          model.predict_synamic(imagename, savedir, n_tiles = n_tiles, event_threshold = event_threshold, iou_threshold = iou_threshold, downsamplefactor = downsample, thresh = thresh, maskimagename = maskimagename, dist_threshold = dist_threshold)
 
 
 
