@@ -5,13 +5,13 @@ from oneat.NEATUtils.helpers import get_nearest,  load_json, yoloprediction, nor
 from keras import callbacks
 import os
 import math
-import tensorflow as tf
 from tqdm import tqdm
 from oneat.NEATModels import nets
 from oneat.NEATModels.nets import Concat
 from oneat.NEATModels.loss import dynamic_yolo_loss
 from keras import backend as K
-from keras import optimizers
+import tensorflow as tf
+from tensorflow.keras import optimizers
 from pathlib import Path
 from keras.models import load_model
 from tifffile import imread, imwrite
