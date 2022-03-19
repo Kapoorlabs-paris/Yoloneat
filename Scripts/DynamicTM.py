@@ -1,6 +1,7 @@
 import sys
 import os
 from glob import glob
+sys.path.append("../oneat")
 from oneat.NEATModels import NEATDynamic, nets
 from oneat.NEATModels.config import dynamic_config
 from oneat.NEATUtils import helpers
